@@ -1,2 +1,2 @@
-# ufs-plot-utils
+# ufs_plot_utils
 Plotting utilities for UFS applications

@@ -6,7 +6,7 @@ from pathlib import Path
 parent_dir = Path(__file__).resolve().parents[2]
 sys.path.append(str(parent_dir))
 
-import plot_ufsda as plt
+import ufs_plot_utils as plt
 import logging
 
 def main():
