@@ -1,3 +1,4 @@
+import os
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
@@ -88,10 +89,7 @@ class PlotData:
         cbar.set_label(var_cbar_label, fontsize=7)
 
         # Save figure
-        plt.savefig(output_file, dpi=300, bbox_inches="tight")
-        plt.close(fig)
-
-        logger.info(f'''Saved: {output_file}''')
+        self.out_file(output_file, ndpi=300, fmt="png", fig=fig)
 
 
 # ======================================================================================= CHJ =====
@@ -151,3 +149,31 @@ class PlotData:
         #ax.add_feature(borders)
         ax.add_feature(coastline)
 
+
+# ======================================================================================= CHJ =====
+    def out_file(self, output_file, ndpi=300, fmt="png", fig=None):
+        """
+        Save figure to output directory.
+    
+        Parameters:
+            output_file (str): file name (without extension or with .png)
+            ndpi (int): resolution
+            fig (matplotlib.figure.Figure): optional figure object
+        """
+    
+        work_dir = getattr(self.cfg, "output_path", ".")
+    
+        # Ensure extension
+        if not output_file.endswith(f'''.{fmt}'''):
+            output_file = output_file + ".{fmt}"
+    
+        fp_out = os.path.join(work_dir, output_file)
+    
+        logger.info(f'''Saving figure to: {fp_out}''')
+    
+        if fig is not None:
+            fig.savefig(fp_out, dpi=ndpi, bbox_inches='tight')
+            plt.close(fig)
+        else:
+            plt.savefig(fp_out, dpi=ndpi, bbox_inches='tight')
+            plt.close('all')
