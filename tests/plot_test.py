@@ -21,7 +21,7 @@ def main():
 
     # Set logger configuration
     plt.LoggerConfig.setup(args.log_level)
-    logger = logging.getLogger(__name__)
+    #logger = logging.getLogger(__name__)
 
     # Read input configuration YAML file
     cfg = plt.GetConfig(args.input_config)
@@ -29,53 +29,9 @@ def main():
     # Print out configuration parameters
     cfg.log_config()
 
-    # Read NetCDF file(s)
-    data_reader = plt.GetData(cfg)
-
-    ## Read geo data (lat/lon)
-    lat, lon = data_reader.get_geo_file()
-    logger.info(f'''lat shape = {lat.shape}''')
-    logger.info(f'''lon shape = {lon.shape}''')
-
-    ## Plotter
-    plotter = plt.PlotData(cfg)
-
-    ## Name builder
-    names = plt.SetNames(cfg)
-
-    ## Read and plot data for variables
-    for varname in cfg.var_list:
-        logger.info(f'''=== Processing variable: {varname}''')
-        ### Extract 2D data
-        data_var, var_cbar_label = data_reader.get_data_file(varname)
-        logger.debug(f'''{varname}:: shape = {data_var.shape}''')
-        logger.debug(f'''{varname}:: colorbar label = {var_cbar_label}''')
-
-        ### Set output file name
-        output_file = names.build_filename(
-            varname,
-            z_index=cfg.z_index
-        )
-
-        ### Set title
-        output_title = names.build_title(
-            varname,
-            z_index=cfg.z_index
-        )
-
-        ### Plot data
-        plotter.plot_data_tiles(
-            data_var=data_var,
-            lat=lat,
-            lon=lon,
-            varname=varname,
-            var_cbar_label=var_cbar_label,
-            output_title=output_title,
-            output_file=output_file
-        )
-
-    data_reader.close()
-
+    # Run pipeline
+    pipeline = plt.PlotPipeline(cfg)
+    pipeline.run_tiles_inc()
 
 
 # Main call ========================================================= CHJ =====

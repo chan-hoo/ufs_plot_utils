@@ -36,9 +36,8 @@ class PlotData:
         lat,
         lon,
         varname,
-        var_cbar_label="Test label",
-        output_title="Test Title",
-        output_file="test_plot.png"
+        var_cbar_label,
+        output_title
     ):
         """
         Plot cubed-sphere tiled data.
@@ -50,12 +49,13 @@ class PlotData:
 
         fig,ax=plt.subplots(1,1,subplot_kw=dict(projection=ccrs.Robinson(central_lon)))
         ax.set_global()
-        ax.set_title(output_title, fontsize=8)
 
         # Background plot
         self.plot_background(ax)
         # Colormap
         cmap, vmin, vmax = self.cmap_helper.select_cmap(varname, data_var)
+        # Title
+        ax.set_title(output_title, fontsize=8)
 
         cs = None
         for it in range(num_tiles):
@@ -65,7 +65,6 @@ class PlotData:
 
             # Wrap longitude consistently
             lon_tile = (lon_tile + 180) % 360 - 180
-
             # Mask invalid values
             var_tile = np.ma.masked_invalid(var_tile)
 
@@ -84,13 +83,11 @@ class PlotData:
         divider = make_axes_locatable(ax)
         ax_cb = divider.new_horizontal(size="3%", pad=0.1, axes_class=plt.Axes)
         fig.add_axes(ax_cb)
-
         cbar = plt.colorbar(cs, cax=ax_cb, extend="both")
         cbar.ax.tick_params(labelsize=6)
         cbar.set_label(var_cbar_label, fontsize=7)
 
-        # Save figure
-        self.out_file(output_file, ndpi=300, fmt="png", fig=fig)
+        return fig
 
 
 # ======================================================================================= CHJ =====
@@ -150,31 +147,3 @@ class PlotData:
         #ax.add_feature(borders)
         ax.add_feature(coastline)
 
-
-# ======================================================================================= CHJ =====
-    def out_file(self, output_file, ndpi=300, fmt="png", fig=None):
-        """
-        Save figure to output directory.
-    
-        Parameters:
-            output_file (str): file name (without extension or with .png)
-            ndpi (int): resolution
-            fmt: file extension
-            fig (matplotlib.figure.Figure): optional figure object
-        """
-    
-        work_dir = getattr(self.cfg, "output_path", ".")
-    
-        # Full name of output file
-        output_file = f'''{output_file}.{fmt}'''
-    
-        fp_out = os.path.join(work_dir, output_file)
-    
-        logger.info(f'''Saving figure to: {fp_out}''')
-    
-        if fig is not None:
-            fig.savefig(fp_out, dpi=ndpi, bbox_inches='tight')
-            plt.close(fig)
-        else:
-            plt.savefig(fp_out, dpi=ndpi, bbox_inches='tight')
-            plt.close('all')
