@@ -71,7 +71,9 @@ def main():
             lon=lon,
             var_cbar_label=var_cbar_label,
             output_title=output_title,
-            output_file=output_file
+            output_file=output_file,
+            vmin=data_min,
+            vmax=data_max
         )
 
     data_reader.close()

@@ -76,10 +76,15 @@ class GetData:
         logger.info(f'''{varname}:: final shape = {data_var.shape}''')
 
         # Compute min/max excluding NaN
-        data_min = np.nanmin(data_var)
-        data_max = np.nanmax(data_var)
-        logger.info(f'''{varname}:: min = {data_min}''')
-        logger.info(f'''{varname}:: max = {data_max}''')
+        if np.all(np.isnan(data_var)):
+            logger.warning(f'''{varname}:: all values are NaN''')
+            data_min, data_max = None, None
+        else:
+            data_min = np.nanpercentile(data_var, 2)
+            data_max = np.nanpercentile(data_var, 98)
+
+        logger.info(f'''{varname}:: min ( 2%) = {data_min}''')
+        logger.info(f'''{varname}:: max (98%) = {data_max}''')
 
         return data_var, var_cbar_label, data_min, data_max
 
