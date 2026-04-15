@@ -53,7 +53,7 @@ class PlotData:
         # Background plot
         self.plot_background(ax)
         # Colormap
-        cmap, vmin, vmax = self.choose_colormap(data_var, varname)
+        cmap, vmin, vmax = self.select_cmap(varname, data_var)
 
         cs = None
         for it in range(num_tiles):
@@ -92,7 +92,59 @@ class PlotData:
 
 
 # ======================================================================================= CHJ =====
-    def choose_colormap(self, data_var, varname=None):
+    def select_cmap(self, varname, data_var):
+        """
+        Central logic for choosing colormap
+        """
+        increment_flag = str(getattr(self.cfg, "INCREMENT_PLOT", "NO")).upper()
+        is_increment = increment_flag in ["YES", "TRUE", "1"]
+    
+        if is_increment:
+            return self.choose_colormap(varname, data_var)
+        else:
+            return self.get_met_cmap(varname, data_var)
+
+
+# ======================================================================================= CHJ =====
+    def get_met_cmap(self, varname, data_var):
+        """
+        Return meteorology-specific colormap and range
+        """
+        from matplotlib.colors import LinearSegmentedColormap
+    
+        var = varname.lower()
+    
+        # Temperature (NWS-style)
+        if "tmp" in var or "temp" in var:
+            colors = [
+                "#4B0082", "#0000FF", "#00BFFF", "#00FF00",
+                "#FFFF00", "#FFA500", "#FF4500", "#FF0000"
+            ]
+            cmap = LinearSegmentedColormap.from_list("nws_temp", colors)
+            vmin = np.nanpercentile(data_var, 2)
+            vmax = np.nanpercentile(data_var, 98)
+            logger.info(f'''{varname}: using NWS temperature colormap''')
+    
+        # Wind / vector fields
+        elif any(v in var for v in ["ugrd", "vgrd", "wind", "u", "v"]):
+            cmap = "RdBu_r"
+            abs_max = np.nanmax(np.abs(data_var))
+            vmin, vmax = -abs_max, abs_max
+            logger.info(f'''{varname}: using diverging wind colormap''')
+    
+        # Default fallback
+        else:
+            cmap = "viridis"
+            vmin = np.nanpercentile(data_var, 2)
+            vmax = np.nanpercentile(data_var, 98)
+    
+            logger.info(f'''{varname}: using default colormap''')
+    
+        return cmap, vmin, vmax
+
+
+# ======================================================================================= CHJ =====
+    def choose_colormap(self, varname, data_var):
         """
         Automatically choose colormap and vmin/vmax.
         """
