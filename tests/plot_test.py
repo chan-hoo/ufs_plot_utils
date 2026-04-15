@@ -40,6 +40,9 @@ def main():
     ## Plotter
     plotter = plt.PlotData(cfg)
 
+    ## Name builder
+    names = plt.SetNames(cfg)
+
     ## Read and plot data for variables
     for varname in cfg.var_list:
         logger.info(f'''=== Processing variable: {varname}''')
@@ -48,7 +51,12 @@ def main():
         logger.debug(f'''{varname}:: shape = {data_var.shape}''')
         logger.debug(f'''{varname}:: colorbar label = {var_cbar_label}''')
 
-        output_file = f'''test_{varname}.png'''
+        ### Set output file name
+        output_file = names.build_filename(
+            varname,
+            z_index=cfg.z_index
+        )
+
         ### Plot data
         plotter.plot_data_tiles(
             data_var=data_var,

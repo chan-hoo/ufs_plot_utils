@@ -158,14 +158,14 @@ class PlotData:
         Parameters:
             output_file (str): file name (without extension or with .png)
             ndpi (int): resolution
+            fmt: file extension
             fig (matplotlib.figure.Figure): optional figure object
         """
     
         work_dir = getattr(self.cfg, "output_path", ".")
     
-        # Ensure extension
-        if not output_file.endswith(f'''.{fmt}'''):
-            output_file = output_file + ".{fmt}"
+        # Full name of output file
+        output_file = f'''{output_file}.{fmt}'''
     
         fp_out = os.path.join(work_dir, output_file)
     
