@@ -33,28 +33,29 @@ class PlotData:
         data_var,
         lat,
         lon,
+        varname,
         var_cbar_label="Test label",
         output_title="Test Title",
-        output_file="test_plot.png",
-        cmap="viridis",
-        vmin=None,
-        vmax=None,
-        central_lon=-77.0369
+        output_file="test_plot.png"
     ):
         """
         Plot cubed-sphere tiled data.
         """
         logger.info("Plotting seamless global map")
 
-        num_tiles = data_var.shape[0]
+        num_tiles = 6
+        central_lon=-77.0369
 
         fig,ax=plt.subplots(1,1,subplot_kw=dict(projection=ccrs.Robinson(central_lon)))
         ax.set_global()
-        self.plot_background(ax)
         ax.set_title(output_title, fontsize=8)
 
-        cs = None
+        # Background plot
+        self.plot_background(ax)
+        # Colormap
+        cmap, vmin, vmax = self.choose_colormap(data_var, varname)
 
+        cs = None
         for it in range(num_tiles):
             lon_tile = np.array(lon[it, :, :])
             lat_tile = np.array(lat[it, :, :])
@@ -65,8 +66,6 @@ class PlotData:
 
             # Mask invalid values
             var_tile = np.ma.masked_invalid(var_tile)
-
-            logger.debug(f'''Tile {it+1}: min={np.nanmin(var_tile)}, max={np.nanmax(var_tile)}''')
 
             cs = ax.pcolormesh(
                 lon_tile,
@@ -90,6 +89,40 @@ class PlotData:
 
         # Save figure
         self.out_file(output_file, ndpi=300, fmt="png", fig=fig)
+
+
+# ======================================================================================= CHJ =====
+    def choose_colormap(self, data_var, varname=None):
+        """
+        Automatically choose colormap and vmin/vmax.
+        """
+        if np.all(np.isnan(data_var)):
+            logger.warning(f'''{varname}: all NaN values''')
+            return "viridis", None, None
+    
+        data_min = np.nanmin(data_var)
+        data_max = np.nanmax(data_var)
+        logger.info(f'''{varname}:: data_min={data_min}, data_max={data_max}''')
+    
+        # Diverging case
+        if data_min < 0 and data_max > 0:
+            cmap = "RdBu_r"   # standard diverging
+            abs_max = np.nanmax(np.abs(data_var))
+            vmin = -abs_max
+            vmax = abs_max
+            logger.info(f'''{varname}: using diverging colormap''')
+    
+        # Sequential case
+        else:
+            cmap = "viridis"
+            # robust range (avoid outliers)
+            vmin = np.nanpercentile(data_var, 2)
+            vmax = np.nanpercentile(data_var, 98)
+            logger.info(f'''{varname}: using sequential colormap''')
+    
+        logger.info(f'''{varname}:: cmap={cmap}, vmin={vmin}, vmax={vmax}''')
+    
+        return cmap, vmin, vmax
 
 
 # ======================================================================================= CHJ =====
