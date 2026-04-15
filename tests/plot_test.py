@@ -57,13 +57,19 @@ def main():
             z_index=cfg.z_index
         )
 
+        ### Set title
+        output_title = names.build_title(
+            varname,
+            z_index=cfg.z_index
+        )
+
         ### Plot data
         plotter.plot_data_tiles(
             data_var=data_var,
             lat=lat,
             lon=lon,
             var_cbar_label=var_cbar_label,
-            out_title=varname,
+            output_title=output_title,
             output_file=output_file
         )
 

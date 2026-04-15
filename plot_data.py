@@ -34,7 +34,7 @@ class PlotData:
         lat,
         lon,
         var_cbar_label="Test label",
-        out_title="Test Title",
+        output_title="Test Title",
         output_file="test_plot.png",
         cmap="viridis",
         vmin=None,
@@ -51,7 +51,7 @@ class PlotData:
         fig,ax=plt.subplots(1,1,subplot_kw=dict(projection=ccrs.Robinson(central_lon)))
         ax.set_global()
         self.plot_background(ax)
-        ax.set_title(out_title, fontsize=8)
+        ax.set_title(output_title, fontsize=8)
 
         cs = None
 

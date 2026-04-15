@@ -20,16 +20,15 @@ class SetNames:
         parts = []
 
         # File name prefix
-        prefix = getattr(self.cfg, "output_file_prefix", None)
-        if prefix:
-            parts.append(prefix.rstrip("_"))  # avoid double underscore
+        prefix = getattr(self.cfg, "output_file_prefix")
+        parts.append(prefix)
 
         # Variable name
         parts.append(varname)
 
         # Vertical level
         if z_index is not None:
-            parts.append(f"z{int(z_index):03d}")
+            parts.append(f'''z{int(z_index):03d}''')
 
         # Date
         pdy = getattr(self.cfg, "PDY", None)
@@ -37,9 +36,9 @@ class SetNames:
             parts.append(str(pdy))
 
         # Cycle
-        cyc = getattr(self.cfg, "cyc", None)
-        if cyc:
-            parts.append(f"{int(cyc):02d}")
+        cycle = getattr(self.cfg, "cycle", None)
+        if cycle:
+            parts.append(cycle)
 
         filename = "_".join(parts)
 
@@ -47,3 +46,39 @@ class SetNames:
 
         return filename
 
+
+# ======================================================================================= CHJ =====
+    def build_title(self, varname, z_index=None):
+        """
+        Build plot title:
+        prefix var (levXXX) PDY cyc
+        """    
+        parts = []
+    
+        # Prefix
+        prefix = getattr(self.cfg, "output_file_prefix")
+        prefix = prefix.upper()
+        parts.append(prefix)
+    
+        # Variable name
+        parts.append(varname)
+    
+        # Vertical level
+        if z_index is not None:
+            parts.append(f'''z{int(z_index)}''')
+    
+        # Date
+        pdy = getattr(self.cfg, "PDY", None)
+        if pdy:
+            parts.append(str(pdy))
+    
+        # Cycle
+        cycle = getattr(self.cfg, "cycle", None)
+        if cycle:
+            parts.append(cycle)
+    
+        title = " :: ".join(parts)
+    
+        logger.info(f'''Plot title: {title}''')
+    
+        return title
