@@ -5,5 +5,5 @@ Plotting utilities for UFS applications
 ```
 cd tests
 source load_py_env.[platform]
-./plot_test.py 
+./plot_test.py -i config.yaml -l INFO
 ```

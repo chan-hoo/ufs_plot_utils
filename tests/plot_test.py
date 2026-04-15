@@ -47,9 +47,10 @@ def main():
     for varname in cfg.var_list:
         logger.info(f'''=== Processing variable: {varname}''')
         ### Extract 2D data
-        data_var, var_cbar_label = data_reader.get_data_file(varname)
+        data_var, var_cbar_label, data_min, data_max = data_reader.get_data_file(varname)
         logger.debug(f'''{varname}:: shape = {data_var.shape}''')
         logger.debug(f'''{varname}:: colorbar label = {var_cbar_label}''')
+        logger.debug(f'''{varname}:: min = {data_min}, max = {data_max}''')
 
         ### Set output file name
         output_file = names.build_filename(

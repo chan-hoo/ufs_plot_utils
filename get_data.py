@@ -73,10 +73,15 @@ class GetData:
 
         # Handle NaNs
         data_var = da.to_numpy()
-
         logger.info(f'''{varname}:: final shape = {data_var.shape}''')
 
-        return data_var, var_cbar_label
+        # Compute min/max excluding NaN
+        data_min = np.nanmin(data_var)
+        data_max = np.nanmax(data_var)
+        logger.info(f'''{varname}:: min = {data_min}''')
+        logger.info(f'''{varname}:: max = {data_max}''')
+
+        return data_var, var_cbar_label, data_min, data_max
 
 
 # ======================================================================================= CHJ =====
