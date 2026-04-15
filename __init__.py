@@ -1,4 +1,5 @@
 from .cli import CLI
+from .get_cmap import GetCmap
 from .get_config import GetConfig
 from .get_data import GetData
 from .logger_config import LoggerConfig
