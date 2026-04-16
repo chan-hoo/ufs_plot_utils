@@ -39,7 +39,7 @@ class GetData:
         """
         Auto-detect tile vs single file
         """    
-        if "tile" in self.ds.dims:
+        if any(d.lower() == "tile" for d in self.ds.dims):
             return self.get_data_file(varname, z_index, time_index)
     
         # fallback: check tiled files exist
@@ -153,23 +153,26 @@ class GetData:
 
 
 # ======================================================================================= CHJ =====
-    def get_geo_file(self):
+    def get_geo(self):
         """
-        Extract latitude and longitude arrays.
-        """    
+        Determine how geo data is obtained based on parameter INPUT_HAS_GEO
+        """
         input_geo_flag = str(getattr(self.cfg.flags, "INPUT_HAS_GEO", "YES")).upper()
         use_input_geo = input_geo_flag in ["YES", "TRUE", "1", "ON"]
         if use_input_geo:
-            logger.info(f'''Using input file for geo data''')
-            self._open_dataset()
-            ds_geo = self.ds
+            return self.get_geo_file()
         else:
-            geo_path = os.path.join(self.cfg.paths.geo_path, self.cfg.filenames.geo_file)
-            logger.info(f'''Opening separate geo file: {geo_path}''')
-            try:
-                ds_geo = xr.open_dataset(geo_path)
-            except Exception as e:
-                raise FileNotFoundError(f'''Could NOT open geo file: {geo_path}''') from e
+            return self.get_geo_grid()
+
+
+# ======================================================================================= CHJ =====
+    def get_geo_file(self):
+        """
+        Extract latitude and longitude arrays from input data file.
+        """    
+        logger.info(f'''Using input file for geo data''')
+        self._open_dataset()
+        ds_geo = self.ds
     
         # Detect lat/lon variable names
         lat_candidates = ["lat", "latitude"]
@@ -194,34 +197,11 @@ class GetData:
 
 
 # ======================================================================================= CHJ =====
-    def get_geo_orog(self):
+    def get_geo_grid(self):
         """
-        Get longitudes and latitudes of the plotting target grid from a orography file.
+        Get longitudes and latitudes of the plotting target grid from tiled grid files
         """
 
-
-
-# ======================================================================================= CHJ =====
-    def _slice_data(self, da, z_index, time_index):
-        """
-        Apply time + vertical slicing
-        """    
-        # time
-        time_dim = next((d for d in ["time", "Time"] if d in da.dims), None)
-        if time_dim:
-            if da.sizes[time_dim] > 1:
-                logger.warning(f'''{time_dim} dimension > 1, using index {time_index}''')
-            da = da.isel({time_dim: time_index})
-    
-        # vertical
-        # pfull (1->127: high->low altitude: 127=near-surface, 76=505.65mb)
-        z_dims = ["pfull", "zaxis_1", "zaxis_2", "zaxis_3",
-                  "zaxis_4", "lev", "level", "depth", "z"]
-        z_dim = next((d for d in z_dims if d in da.dims), None)
-        if z_dim:
-            da = da.isel({z_dim: z_index})
-    
-        return da
 
 
 # ======================================================================================= CHJ =====
@@ -245,4 +225,27 @@ class GetData:
         logger.info(f'''{varname}:: cbar_label = {label}''')
     
         return label
+
+
+# ======================================================================================= CHJ =====
+    def _slice_data(self, da, z_index, time_index):
+        """
+        Apply time + vertical slicing
+        """    
+        # time
+        time_dim = next((d for d in ["time", "Time"] if d in da.dims), None)
+        if time_dim:
+            if da.sizes[time_dim] > 1:
+                logger.warning(f'''{time_dim} dimension > 1, using index {time_index}''')
+            da = da.isel({time_dim: time_index})
+    
+        # vertical
+        # pfull (1->127: high->low altitude: 127=near-surface, 76=505.65mb)
+        z_dims = ["pfull", "zaxis_1", "zaxis_2", "zaxis_3",
+                  "zaxis_4", "lev", "level", "depth", "z"]
+        z_dim = next((d for d in z_dims if d in da.dims), None)
+        if z_dim:
+            da = da.isel({z_dim: z_index})
+    
+        return da
 

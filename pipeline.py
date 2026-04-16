@@ -25,7 +25,7 @@ class PlotPipeline:
         Execute full pipeline for increment in FV3 tiled domains
         """
         # Get geo
-        lat, lon = self.data.get_geo_file()
+        lat, lon = self.data.get_geo()
 
         # Loop variables
         for varname in self.cfg.params.var_list:
