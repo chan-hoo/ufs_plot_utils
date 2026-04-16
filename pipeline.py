@@ -20,9 +20,9 @@ class PlotPipeline:
         self.names = SetNames(cfg)
 
 # ======================================================================================= CHJ =====
-    def run_tiles_inc(self):
+    def run_inc_tiles(self):
         """
-        Execute full pipeline for tiled data of increment
+        Execute full pipeline for increment in FV3 tiled domains
         """
         # Get geo
         lat, lon = self.data.get_geo_file()
@@ -55,3 +55,4 @@ class PlotPipeline:
             self.output.save_figure(fig, filename)
 
         self.data.close()
+
