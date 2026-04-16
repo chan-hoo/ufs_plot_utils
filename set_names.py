@@ -20,7 +20,7 @@ class SetNames:
         parts = []
 
         # File name prefix
-        prefix = getattr(self.cfg, "output_file_prefix")
+        prefix = getattr(self.cfg.filenames, "output_file_prefix")
         parts.append(prefix)
 
         # Variable name
@@ -31,12 +31,12 @@ class SetNames:
             parts.append(f'''z{int(z_index):03d}''')
 
         # Date
-        pdy = getattr(self.cfg, "PDY", None)
+        pdy = getattr(self.cfg.params, "PDY", None)
         if pdy:
             parts.append(str(pdy))
 
         # Cycle
-        cycle = getattr(self.cfg, "cycle", None)
+        cycle = getattr(self.cfg.params, "cycle", None)
         if cycle:
             parts.append(cycle)
 
@@ -56,7 +56,7 @@ class SetNames:
         parts = []
     
         # Prefix
-        prefix = getattr(self.cfg, "output_file_prefix")
+        prefix = getattr(self.cfg.filenames, "output_file_prefix")
         prefix = prefix.upper()
         parts.append(prefix)
     
@@ -68,12 +68,12 @@ class SetNames:
             parts.append(f'''z{int(z_index)}''')
     
         # Date
-        pdy = getattr(self.cfg, "PDY", None)
+        pdy = getattr(self.cfg.params, "PDY", None)
         if pdy:
             parts.append(str(pdy))
     
         # Cycle
-        cycle = getattr(self.cfg, "cycle", None)
+        cycle = getattr(self.cfg.params, "cycle", None)
         if cycle:
             parts.append(cycle)
     

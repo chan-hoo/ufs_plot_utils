@@ -1,17 +1,24 @@
-cartopy_ne_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/NaturalEarth
-cycle: t00z
-geo_file: cubed_sphere_grid_atminc.jedi.nc
-geo_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
-INCREMENT_PLOT: 'YES'
-INPUT_HAS_GEO: 'YES'
-input_file: cubed_sphere_grid_atminc.jedi.nc
-input_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
-output_file_prefix: ufsda_test
-output_path: ./
-PDY: 20080901
-USE_FIXED_RANGE: 'YES'
-var_list:
-  - tmp
-  - ugrd
-  - vgrd
-z_index: 76
+flags:
+  INCREMENT_PLOT: 'YES'
+  INPUT_HAS_GEO: 'YES'
+  USE_FIXED_RANGE: 'YES'
+
+paths:
+  cartopy_ne_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/NaturalEarth
+  geo_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
+  input_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
+  output_path: ./
+
+filenames:
+  geo_file: cubed_sphere_grid_atminc.jedi.nc
+  input_file: cubed_sphere_grid_atminc.jedi.nc
+  output_file_prefix: ufsda_test
+
+params:
+  cycle: t00z
+  PDY: 20080901
+  var_list:
+    - tmp
+    - ugrd
+    - vgrd
+  z_index: 76

@@ -17,7 +17,7 @@ class GetCmap:
         """
         Central logic for choosing colormap
         """
-        increment_flag = str(getattr(self.cfg, "INCREMENT_PLOT", "NO")).upper()
+        increment_flag = str(getattr(self.cfg.flags, "INCREMENT_PLOT", "NO")).upper()
         is_increment = increment_flag in ["YES", "TRUE", "1"]
 
         if is_increment:

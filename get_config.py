@@ -25,19 +25,30 @@ class GetConfig:
         Get configuration parameters by dot-style access
         Usage:
           input YAML: config.yaml
-            parm:
+            params:
               model_option: A
-            path:
+            paths:
               input_path: ./
 
         cfg = GetConfig("config.yaml")
-        model_option = cfg.parm.model_option
-        input_path = cfg.path.input_path
+        model_option = cfg.params.model_option
+        input_path = cfg.paths.input_path
         """
-        value = self._config.get(name)
-        if isinstance(value, dict):
-            return Config.from_dict(value)
-        return value
+        # Top-level
+        if name in self._config:
+            value = self._config[name]
+            if isinstance(value, dict):
+                return GetConfig.from_dict(value)
+            return value
+    
+        # Fallback search
+        for section in ["paths", "filenames", "params", "flags"]:
+            if section in self._config:
+                sub = self._config[section]
+                if name in sub:
+                    return sub[name]
+    
+        raise AttributeError(f'''{name} not found in config''')
 
 
     @classmethod

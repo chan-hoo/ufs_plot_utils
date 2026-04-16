@@ -28,19 +28,19 @@ class PlotPipeline:
         lat, lon = self.data.get_geo_file()
 
         # Loop variables
-        for varname in self.cfg.var_list:
+        for varname in self.cfg.params.var_list:
             logger.info(f'''Processing: {varname}''')
             # Get data
             data_var, label = self.data.get_data(varname)
             # Set title
             title = self.names.build_title(
                 varname,
-                z_index=self.cfg.z_index
+                z_index=self.cfg.params.z_index
             )
             # Set filename
             filename = self.names.build_filename(
                 varname,
-                z_index=self.cfg.z_index
+                z_index=self.cfg.params.z_index
             )
             # Plot data
             fig = self.plotter.plot_data_tiles(

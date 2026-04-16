@@ -10,15 +10,8 @@ class LoggerConfig:
         """
         Set up basic configuration for logging.
         Usage:
-          YAML file:
-            logging_level: DEBUG
-
-          python script:
-            from logger_config import LoggerConfig
-            from config import Config
-            cfg = Config("config.yaml")
-            log_level = cfg.logging_level
-            LoggerConfig.setup(log_level)
+          plt.LoggerConfig.setup(args.log_level)
+          logger = logging.getLogger(__name__)
         """
         log_level_str = log_level_str.upper()
         try:

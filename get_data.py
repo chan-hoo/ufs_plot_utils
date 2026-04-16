@@ -20,7 +20,7 @@ class GetData:
         Open dataset only when needed (lazy loading)
         """
         if self.ds is None:
-            self.file_path = os.path.join(self.cfg.input_path, self.cfg.input_file)
+            self.file_path = os.path.join(self.cfg.paths.input_path, self.cfg.filenames.input_file)
             logger.info(f"Opening dataset: {self.file_path}")
             try:
                 self.ds = xr.open_dataset(self.file_path)
@@ -57,7 +57,7 @@ class GetData:
         self._open_dataset()
 
         logger.info(f'''Reading variable: {varname}''')
-        z_index = z_index if z_index is not None else getattr(self.cfg, "z_index", 0)
+        z_index = z_index if z_index is not None else getattr(self.cfg.params, "z_index", 0)
 
         da = self.ds[varname]
 
@@ -98,7 +98,7 @@ class GetData:
         import re
         import glob
     
-        input_file = getattr(self.cfg, "input_file")
+        input_file = getattr(self.cfg.filenames, "input_file")
         # Remove file extension
         base = os.path.splitext(input_file)[0]
         # Remove tile#
@@ -107,8 +107,8 @@ class GetData:
         else:
             prefix = base
     
-        input_path = getattr(self.cfg, "input_path")
-        z_index = z_index if z_index is not None else getattr(self.cfg, "z_index", 0)
+        input_path = getattr(self.cfg.paths, "input_path")
+        z_index = z_index if z_index is not None else getattr(self.cfg.params, "z_index", 0)
     
         # Collect files
         pattern = os.path.join(input_path, f"{prefix}.tile*.nc")
@@ -166,13 +166,13 @@ class GetData:
         """
         Extract latitude and longitude arrays.
         """    
-        use_input_geo = str(getattr(self.cfg, "INPUT_HAS_GEO", "YES")).upper()
+        use_input_geo = str(getattr(self.cfg.flags, "INPUT_HAS_GEO", "YES")).upper()
         if use_input_geo == "YES":
             logger.info(f'''Using input file for geo data''')
             self._open_dataset()
             ds_geo = self.ds
         else:
-            geo_path = os.path.join(self.cfg.geo_path, self.cfg.geo_file)
+            geo_path = os.path.join(self.cfg.paths.geo_path, self.cfg.filenames.geo_file)
             logger.info(f'''Opening separate geo file: {geo_path}''')
             try:
                 ds_geo = xr.open_dataset(geo_path)
