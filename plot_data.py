@@ -47,6 +47,9 @@ class PlotData:
         num_tiles = 6
         central_lon=-77.0369
 
+        # Handle NaNs (this is done for plotting here to save memory)
+        data_var = data_var.to_numpy()
+
         fig,ax=plt.subplots(1,1,subplot_kw=dict(projection=ccrs.Robinson(central_lon)))
         ax.set_global()
 

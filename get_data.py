@@ -1,5 +1,4 @@
 import logging
-from netCDF4 import Dataset
 import numpy as np
 import xarray as xr
 import os
@@ -13,17 +12,41 @@ class GetData:
 
     def __init__(self, cfg):
         self.cfg = cfg
+        self.ds = None  # lazy initialization
 
-        self.file_path = os.path.join(cfg.input_path, cfg.input_file)
-        logger.info(f'''Opening dataset once: {self.file_path}''')
-        try:
-            self.ds = xr.open_dataset(self.file_path)
-        except Exception as e:
-            raise FileNotFoundError(f'''Could NOT open file: {self.file_path}''') from e
+
+    def _open_dataset(self):
+        """
+        Open dataset only when needed (lazy loading)
+        """
+        if self.ds is None:
+            self.file_path = os.path.join(self.cfg.input_path, self.cfg.input_file)
+            logger.info(f"Opening dataset: {self.file_path}")
+            try:
+                self.ds = xr.open_dataset(self.file_path)
+            except Exception as e:
+                raise FileNotFoundError(f'''Could NOT open file: {self.file_path}''') from e
 
 
     def close(self):
-        self.ds.close()
+        if self.ds is not None:
+            self.ds.close()
+            self.ds = None
+
+
+# ======================================================================================= CHJ =====
+    def get_data(self, varname, z_index=None, time_index=0):
+        """
+        Auto-detect tile vs single file
+        """    
+        if "tile" in self.ds.dims:
+            return self.get_data_file(varname, z_index, time_index)
+    
+        # fallback: check tiled files exist
+        try:
+            return self.get_data_tiles(varname, z_index, time_index)
+        except:
+            return self.get_data_file(varname, z_index, time_index)
 
 
 # ======================================================================================= CHJ =====
@@ -31,13 +54,15 @@ class GetData:
         """
         Extract 2D or 2D+tile data for a given variable from a single NetCDF file.
         """
+        self._open_dataset()
+
         logger.info(f'''Reading variable: {varname}''')
         z_index = z_index if z_index is not None else getattr(self.cfg, "z_index", 0)
 
         da = self.ds[varname]
 
         logger.info(f'''{varname}:: dims = {da.dims}''')
-        logger.info(f'''{varname}:: shape = {da.shape}''')
+        logger.debug(f'''{varname}:: shape = {da.shape}''')
 
         # Extract info for the selected variable
         varname_long = da.attrs.get("long_name", "No long-name attribute found")
@@ -47,20 +72,8 @@ class GetData:
         logger.info(f'''{varname}:: unit = {varname_unit}''')
         logger.info(f'''{varname}:: cbar_label = {var_cbar_label}''')
 
-        # Select time dimension if exists ("time" or "Time")
-        time_dim = next((d for d in ["time", "Time"] if d in da.dims), None)
-        if time_dim:
-            if da.sizes[time_dim] > 1:
-                logger.warning(f'''{time_dim} dimension > 1, using first index''')
-            da = da.isel({time_dim: time_index})
-
-        # Select vertical level if exists
-        # pfull (1->127: high->low altitude: 127=near-surface, 76=505.65mb)
-        z_dims = ["pfull", "zaxis_1", "zaxis_2", "zaxis_3", "zaxis_4", "lev", "level", "depth", "z"]        
-        z_dim = next((d for d in z_dims if d in da.dims), None)
-        if z_dim:
-            logger.debug(f'''Using {z_dim} index = {z_index}''')
-            da = da.isel({z_dim: z_index})
+        # Slice time and z-level
+        da = self._slice_data(da, z_index, time_index)
 
         # Ensure 2D or 2D with 6 tiles
         if "tile" in da.dims:
@@ -71,19 +84,73 @@ class GetData:
             if da.ndim != 2:
                 raise ValueError(f'''{varname} is not 2D after slicing, dims={da.dims}''')
 
-        # Handle NaNs
-        data_var = da.to_numpy()
-        logger.info(f'''{varname}:: final shape = {data_var.shape}''')
+        logger.info(f'''{varname}:: final shape = {da.shape}''')
 
-        return data_var, var_cbar_label
+        return da, var_cbar_label
 
 
 # ======================================================================================= CHJ =====
-    def get_data_tiles(self):
+    def get_data_tiles(self, varname, z_index=None, time_index=0):
         """
-        Get metadata from multiple tiled files.
-        Example) FV3: six tiles for the global domain.
-        """
+        Read tiled NetCDF files using xarray (fast, lazy loading)
+            input_file: prefix of input tiled files (Ex. {input_file}.tile#.nc)
+        """    
+        import re
+        import glob
+    
+        input_file = getattr(self.cfg, "input_file")
+        # Remove file extension
+        base = os.path.splitext(input_file)[0]
+        # Remove tile#
+        if re.search(r'tile\d+$', base):
+            prefix = re.sub(r'(tile)\d+$', r'\1', base)
+        else:
+            prefix = base
+    
+        input_path = getattr(self.cfg, "input_path")
+        z_index = z_index if z_index is not None else getattr(self.cfg, "z_index", 0)
+    
+        # Collect files
+        pattern = os.path.join(input_path, f"{prefix}.tile*.nc")
+        files = sorted(glob.glob(pattern))
+    
+        if len(files) != 6:
+            raise ValueError(f'''Expected 6 tiles, found {len(files)}''')
+    
+        logger.info(f'''Opening tiled dataset (6 files)''')
+    
+        # Open all tiles at once
+        ds = xr.open_mfdataset(
+            files,
+            combine="nested",
+            concat_dim="tile"
+        )
+    
+        if varname not in ds:
+            raise ValueError(f'''{varname} not found in tiled dataset''')
+    
+        da = ds[varname]
+
+        logger.info(f'''{varname}:: dims = {da.dims}''')
+        logger.debug(f'''{varname}:: shape = {da.shape}''')
+    
+        # Slice time and z-level
+        da = self._slice_data(da, z_index, time_index)
+
+        # Ensure (tile, y, x)
+        if da.ndim != 3:
+            raise ValueError(f"{varname} is not (tile, y, x), dims={da.dims}")
+    
+        # Metadata
+        varname_long = da.attrs.get("long_name", "No long-name")
+        varname_unit = da.attrs.get("units", "No units")
+        var_cbar_label = f"{varname_long} ({varname_unit})"
+    
+        logger.info(f'''{varname}:: final tiled shape = {da.shape}''')
+    
+        ds.close()
+    
+        return da, var_cbar_label
 
 
 # ======================================================================================= CHJ =====
@@ -102,6 +169,7 @@ class GetData:
         use_input_geo = str(getattr(self.cfg, "INPUT_HAS_GEO", "YES")).upper()
         if use_input_geo == "YES":
             logger.info(f'''Using input file for geo data''')
+            self._open_dataset()
             ds_geo = self.ds
         else:
             geo_path = os.path.join(self.cfg.geo_path, self.cfg.geo_file)
@@ -127,13 +195,9 @@ class GetData:
         lat = ds_geo[lat_name]
         lon = ds_geo[lon_name]
     
-        logger.info(f"lat:: dims = {lat.dims}, shape = {lat.shape}")
-        logger.info(f"lon:: dims = {lon.dims}, shape = {lon.shape}")
-    
-        # Convert to numpy
-        lat = lat.to_numpy()
-        lon = lon.to_numpy()
-    
+        logger.info(f'''lat:: dims = {lat.dims}, shape = {lat.shape}''')
+        logger.info(f'''lon:: dims = {lon.dims}, shape = {lon.shape}''')
+        
         return lat, lon
 
 
@@ -142,4 +206,28 @@ class GetData:
         """
         Get longitudes and latitudes of the plotting target grid from a orography file.
         """
+
+
+
+# ======================================================================================= CHJ =====
+    def _slice_data(self, da, z_index, time_index):
+        """
+        Apply time + vertical slicing
+        """    
+        # time
+        time_dim = next((d for d in ["time", "Time"] if d in da.dims), None)
+        if time_dim:
+            if da.sizes[time_dim] > 1:
+                logger.warning(f"{time_dim} dimension > 1, using index {time_index}")
+            da = da.isel({time_dim: time_index})
+    
+        # vertical
+        # pfull (1->127: high->low altitude: 127=near-surface, 76=505.65mb)
+        z_dims = ["pfull", "zaxis_1", "zaxis_2", "zaxis_3",
+                  "zaxis_4", "lev", "level", "depth", "z"]
+        z_dim = next((d for d in z_dims if d in da.dims), None)
+        if z_dim:
+            da = da.isel({z_dim: z_index})
+    
+        return da
 

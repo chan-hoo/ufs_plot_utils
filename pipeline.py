@@ -31,7 +31,7 @@ class PlotPipeline:
         for varname in self.cfg.var_list:
             logger.info(f'''Processing: {varname}''')
             # Get data
-            data_var, label = self.data.get_data_file(varname)
+            data_var, label = self.data.get_data(varname)
             # Set title
             title = self.names.build_title(
                 varname,

@@ -1,14 +1,15 @@
 cartopy_ne_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/NaturalEarth
 cycle: t00z
 geo_file: cubed_sphere_grid_atminc.jedi.nc
-geo_path: /work2/noaa/epic/chjeon/ufsda_hercules/exp_case/anal_atmDA_3dvar_ecf/com_dir/ufsda.20240224
+geo_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
 INCREMENT_PLOT: 'YES'
 INPUT_HAS_GEO: 'YES'
 input_file: cubed_sphere_grid_atminc.jedi.nc
-input_path: /work2/noaa/epic/chjeon/ufsda_hercules/exp_case/anal_atmDA_3dvar_ecf/com_dir/ufsda.20240224
+input_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
 output_file_prefix: ufsda_test
 output_path: ./
 PDY: 20080901
+USE_FIXED_RANGE: 'YES'
 var_list:
   - tmp
   - ugrd
