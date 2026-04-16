@@ -64,13 +64,8 @@ class GetData:
         logger.info(f'''{varname}:: dims = {da.dims}''')
         logger.debug(f'''{varname}:: shape = {da.shape}''')
 
-        # Extract info for the selected variable
-        varname_long = da.attrs.get("long_name", "No long-name attribute found")
-        varname_unit = da.attrs.get("units", "No units attribute found")
-        var_cbar_label = f'''{varname_long} ({varname_unit})'''
-        logger.info(f'''{varname}:: long name = {varname_long}''')
-        logger.info(f'''{varname}:: unit = {varname_unit}''')
-        logger.info(f'''{varname}:: cbar_label = {var_cbar_label}''')
+        # Colorbar label
+        var_cbar_label = self._build_cbar_label(da, varname)
 
         # Slice time and z-level
         da = self._slice_data(da, z_index, time_index)
@@ -140,13 +135,9 @@ class GetData:
         # Ensure (tile, y, x)
         if da.ndim != 3:
             raise ValueError(f"{varname} is not (tile, y, x), dims={da.dims}")
-    
-        # Metadata
-        varname_long = da.attrs.get("long_name", "No long-name")
-        varname_unit = da.attrs.get("units", "No units")
-        var_cbar_label = f"{varname_long} ({varname_unit})"
-    
-        logger.info(f'''{varname}:: final tiled shape = {da.shape}''')
+
+        # Colorbar label
+        var_cbar_label = self._build_cbar_label(da, varname)
     
         ds.close()
     
@@ -230,4 +221,26 @@ class GetData:
             da = da.isel({z_dim: z_index})
     
         return da
+
+
+    def _build_cbar_label(self, da, varname):
+        """
+        Build colorbar label + handle increment flag + logging.
+        """    
+        varname_long = da.attrs.get("long_name", "No long-name attribute found")
+        varname_unit = da.attrs.get("units", "No units attribute found")
+        logger.debug(f"{varname}:: long name = {varname_long}")
+        logger.debug(f"{varname}:: unit = {varname_unit}")
+   
+        label = f"{varname_long} ({varname_unit})"
+    
+        # increment flag
+        increment_flag = str(getattr(self.cfg.flags, "INCREMENT_PLOT", "NO")).upper()
+        is_increment = increment_flag in ["YES", "TRUE", "1"]    
+        if is_increment:
+            label = f"Δ{label}"
+    
+        logger.info(f"{varname}:: cbar_label = {label}")
+    
+        return label
 
