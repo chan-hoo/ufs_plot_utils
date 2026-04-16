@@ -157,8 +157,9 @@ class GetData:
         """
         Extract latitude and longitude arrays.
         """    
-        use_input_geo = str(getattr(self.cfg.flags, "INPUT_HAS_GEO", "YES")).upper()
-        if use_input_geo == "YES":
+        input_geo_flag = str(getattr(self.cfg.flags, "INPUT_HAS_GEO", "YES")).upper()
+        use_input_geo = input_geo_flag in ["YES", "TRUE", "1", "ON"]
+        if use_input_geo:
             logger.info(f'''Using input file for geo data''')
             self._open_dataset()
             ds_geo = self.ds
@@ -209,7 +210,7 @@ class GetData:
         time_dim = next((d for d in ["time", "Time"] if d in da.dims), None)
         if time_dim:
             if da.sizes[time_dim] > 1:
-                logger.warning(f"{time_dim} dimension > 1, using index {time_index}")
+                logger.warning(f'''{time_dim} dimension > 1, using index {time_index}''')
             da = da.isel({time_dim: time_index})
     
         # vertical
@@ -223,24 +224,25 @@ class GetData:
         return da
 
 
+# ======================================================================================= CHJ =====
     def _build_cbar_label(self, da, varname):
         """
         Build colorbar label + handle increment flag + logging.
         """    
         varname_long = da.attrs.get("long_name", "No long-name attribute found")
         varname_unit = da.attrs.get("units", "No units attribute found")
-        logger.debug(f"{varname}:: long name = {varname_long}")
-        logger.debug(f"{varname}:: unit = {varname_unit}")
+        logger.debug(f'''{varname}:: long name = {varname_long}''')
+        logger.debug(f'''{varname}:: unit = {varname_unit}''')
    
-        label = f"{varname_long} ({varname_unit})"
+        label = f'''{varname_long} ({varname_unit})'''
     
         # increment flag
         increment_flag = str(getattr(self.cfg.flags, "INCREMENT_PLOT", "NO")).upper()
-        is_increment = increment_flag in ["YES", "TRUE", "1"]    
+        is_increment = increment_flag in ["YES", "TRUE", "1", "ON"]
         if is_increment:
-            label = f"Δ{label}"
+            label = f'''Δ{label}'''
     
-        logger.info(f"{varname}:: cbar_label = {label}")
+        logger.info(f'''{varname}:: cbar_label = {label}''')
     
         return label
 
