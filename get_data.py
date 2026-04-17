@@ -93,18 +93,8 @@ class GetData:
         input_file = self.cfg.input.data_file.filename
         logger.debug(f'''Tiles:: input_file = {input_file}''')
 
-        # Remove file extension
-        if input_file.endswith(".nc"):
-            base = os.path.splitext(input_file)[0]
-        else:
-            base = input_file
-        logger.debug(f'''Tiles:: base = {base}''')
-
-        # Remove tile#
-        if re.search(r'tile\d+$', base):
-            prefix = re.sub(r'(tile)\d+$', r'\1', base)
-        else:
-            prefix = base
+        # Remove file extension and tile#
+        prefix = self._get_tile_prefix(input_file)
         logger.info(f'''Tiles:: prefix = {prefix}''')
 
         input_path = self.cfg.input.data_file.path
@@ -211,20 +201,7 @@ class GetData:
         geo_path = self.cfg.input.geo_file.path
 
         # Remove file extension and tile#
-        if geo_file.endswith(".nc"):
-            ## Remove extension
-            base = os.path.splitext(geo_file)[0]
-            logger.debug(f'''OROG:: base = {base}''')
-            ## Remove tile#
-            if re.search(r'tile\d+$', base):
-                prefix = re.sub(r'.tile\d+$', '', base)
-            else:
-                prefix = base
-        elif geo_file.endswith(".tile"):
-            prefix = os.path.splitext(geo_file)[0]
-        else:
-            prefix = geo_file
-
+        prefix = self._get_tile_prefix(geo_file)
         logger.info(f'''OROG:: prefix = {prefix}''')
     
         lat_tiles = []
@@ -286,6 +263,35 @@ class GetData:
         logger.info(f'''{varname}:: cbar_label = {label}''')
     
         return label
+
+
+# ======================================================================================= CHJ =====
+    def _get_tile_prefix(self, filename):
+        """
+        Normalize filename to tile prefix:
+        - remove .nc extension
+        - remove .tile#
+        - remove trailing .tile
+        """
+        name = filename.strip()
+    
+        logger.debug(f'''File prefix: {name}''')
+        # Remove extension
+        if filename.endswith(".nc"):
+            base = os.path.splitext(name)[0]
+            logger.debug(f'''Remove extention: {base}''')
+            ## Remove ".tile<number>" if present
+            base = re.sub(r'\.tile\d+$', '', base)
+        # Remove trailing ".tile" if present
+        elif filename.endswith(".tile"):
+            base = os.path.splitext(name)[0]
+            logger.debug(f'''Remove .tile: {base}''')
+        else:
+            base = name
+
+        logger.debug(f'''File prefix final: {base}''')
+
+        return base
 
 
 # ======================================================================================= CHJ =====
