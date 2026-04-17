@@ -55,8 +55,15 @@ class PlotData:
 
         # Background plot
         self.plot_background(ax)
+
         # Colormap
-        cmap, vmin, vmax = self.cmap_helper.select_cmap(varname, data_var)
+        is_increment = bool(self.cfg.plot.increment)
+        cmap, vmin, vmax = self.cmap_helper.get_cmap_and_range(
+            varname,
+            data_var,
+            is_increment=is_increment
+        )
+
         # Title
         ax.set_title(output_title, fontsize=8)
 

@@ -79,6 +79,10 @@ class GetData:
 
         logger.info(f'''{varname}:: final shape = {da.shape}''')
 
+        data_min = np.nanmin(da.values)
+        data_max = np.nanmax(da.values)
+        logger.info(f"{varname}:: min={data_min}, max={data_max}")
+
         return da, var_cbar_label
 
 
@@ -136,7 +140,11 @@ class GetData:
         var_cbar_label = self._build_cbar_label(da, varname)
     
         ds.close()
-    
+
+        data_min = np.nanmin(da.values)
+        data_max = np.nanmax(da.values)
+        logger.info(f"{varname}:: min={data_min}, max={data_max}")
+
         return da, var_cbar_label
 
 

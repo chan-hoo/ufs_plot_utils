@@ -24,3 +24,22 @@ plot:
   cycle: t00z
   PDY: 20240224
 
+  colormap:
+    default: gist_ncar_r
+    T_inc: RdBu_r
+    u_inc: RdBu_r
+    v_inc: RdBu_r
+
+  range:
+    default:
+      vmin: null
+      vmax: null
+    T_inc:
+      vmin: null
+      vmax: null
+    u_inc:
+      vmin: null
+      vmax: null
+    v_inc:
+      vmin: null
+      vmax: null
