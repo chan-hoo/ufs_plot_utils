@@ -1,24 +1,26 @@
-flags:
-  INCREMENT_PLOT: 'YES'
-  INPUT_HAS_GEO: 'YES'
-  USE_FIXED_RANGE: 'NO'
+input:
+  geo_file:
+    path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
+    filename: cubed_sphere_grid_atminc.jedi.nc
+    type: file
 
-paths:
+  data_file:
+    path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
+    filename: cubed_sphere_grid_atminc.jedi.nc
+    type: file
+    var_list:
+      - tmp
+      - ugrd
+      - vgrd
+    z_index: 76
+
+output:
+  path: ./
+  filename_prefix: atminc_jedi
+
+plot:
   cartopy_ne_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/NaturalEarth
-  geo_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
-  input_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
-  output_path: ./
-
-filenames:
-  geo_file: cubed_sphere_grid_atminc.jedi.nc
-  input_file: cubed_sphere_grid_atminc.jedi.nc
-  output_file_prefix: atminc_jedi
-
-params:
+  increment: true
   cycle: t00z
   PDY: 20240224
-  var_list:
-    - tmp
-    - ugrd
-    - vgrd
-  z_index: 76
+

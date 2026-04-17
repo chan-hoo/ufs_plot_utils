@@ -2,6 +2,7 @@ import logging
 import numpy as np
 import xarray as xr
 import os
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +21,8 @@ class GetData:
         Open dataset only when needed (lazy loading)
         """
         if self.ds is None:
-            self.file_path = os.path.join(self.cfg.paths.input_path, self.cfg.filenames.input_file)
-            logger.info(f"Opening dataset: {self.file_path}")
+            self.file_path = os.path.join(self.cfg.input.data_file.path, self.cfg.input.data_file.filename)
+            logger.info(f'''Opening dataset: {self.file_path}''')
             try:
                 self.ds = xr.open_dataset(self.file_path)
             except Exception as e:
@@ -37,16 +38,13 @@ class GetData:
 # ======================================================================================= CHJ =====
     def get_data(self, varname, z_index=None, time_index=0):
         """
-        Auto-detect tile vs single file
-        """    
-        if any(d.lower() == "tile" for d in self.ds.dims):
+        Choose geo data reading method based on config parameter INPUT_DATA_TYPE
+        """
+        file_type = self.cfg.input.data_file.type.lower()    
+        if file_type == "file":
             return self.get_data_file(varname, z_index, time_index)
-    
-        # fallback: check tiled files exist
-        try:
+        else:
             return self.get_data_tiles(varname, z_index, time_index)
-        except:
-            return self.get_data_file(varname, z_index, time_index)
 
 
 # ======================================================================================= CHJ =====
@@ -57,7 +55,7 @@ class GetData:
         self._open_dataset()
 
         logger.info(f'''Reading variable: {varname}''')
-        z_index = z_index if z_index is not None else getattr(self.cfg.params, "z_index", 0)
+        z_index = z_index if z_index is not None else getattr(self.cfg.input.data_file, "z_index", 0)
 
         da = self.ds[varname]
 
@@ -90,10 +88,9 @@ class GetData:
         Read tiled NetCDF files using xarray (fast, lazy loading)
             input_file: prefix of input tiled files (Ex. {input_file}.tile#.nc)
         """    
-        import re
         import glob
     
-        input_file = getattr(self.cfg.filenames, "input_file")
+        input_file = self.cfg.input.data_file.filename
         # Remove file extension
         base = os.path.splitext(input_file)[0]
         # Remove tile#
@@ -102,8 +99,8 @@ class GetData:
         else:
             prefix = base
     
-        input_path = getattr(self.cfg.paths, "input_path")
-        z_index = z_index if z_index is not None else getattr(self.cfg.params, "z_index", 0)
+        input_path = self.cfg.input.data_file.path
+        z_index = z_index if z_index is not None else getattr(self.cfg.input.data_file, "z_index", 0)
     
         # Collect files
         pattern = os.path.join(input_path, f"{prefix}.tile*.nc")
@@ -155,11 +152,10 @@ class GetData:
 # ======================================================================================= CHJ =====
     def get_geo(self):
         """
-        Determine how geo data is obtained based on parameter INPUT_HAS_GEO
+        Choose geo data reading method based on config flag INPUT_HAS_GEO
         """
-        input_geo_flag = str(getattr(self.cfg.flags, "INPUT_HAS_GEO", "YES")).upper()
-        use_input_geo = input_geo_flag in ["YES", "TRUE", "1", "ON"]
-        if use_input_geo:
+        geo_type = self.cfg.input.geo_file.type.lower()    
+        if geo_type == "file":
             return self.get_geo_file()
         else:
             return self.get_geo_grid()
@@ -199,9 +195,59 @@ class GetData:
 # ======================================================================================= CHJ =====
     def get_geo_grid(self):
         """
-        Get longitudes and latitudes of the plotting target grid from tiled grid files
+        Read 6 grid tile files and return lat/lon arrays:
+            lat(tile, y, x), lon(tile, y, x)
         """
-
+        geo_file = self.cfg.input.geo_file.filename
+        geo_path = self.cfg.input.geo_file.path
+    
+        # Remove extension
+        base = os.path.splitext(geo_file)[0]
+    
+        # Extract prefix like "C96_grid.tile"
+        if re.search(r'tile\d+$', base):
+            prefix = re.sub(r'(tile)\d+$', r'\1', base)
+        else:
+            prefix = base
+        logger.info(f'''Using grid tile prefix: {prefix}''')
+    
+        lat_tiles = []
+        lon_tiles = []
+        for itile in range(1, 7):
+            fname = f'''{prefix}.tile{itile}.nc'''
+            fpath = os.path.join(geo_path, fname) 
+            if not os.path.exists(fpath):
+                raise FileNotFoundError(f"Grid tile file not found: {fpath}")
+    
+            logger.info(f'''Reading grid tile {itile}: {fpath}''')
+    
+            ds = xr.open_dataset(fpath)
+    
+            # Detect lat/lon names
+            lat_name = next((v for v in ["y", "lat", "latitude"] if v in ds.variables), None)
+            lon_name = next((v for v in ["x", "lon", "longitude"] if v in ds.variables), None)
+    
+            if lat_name is None or lon_name is None:
+                raise ValueError(f'''lat/lon not found in {fpath}''')
+    
+            lat = ds[lat_name]
+            lon = ds[lon_name]
+            logger.debug(f'''Tile {itile} lat shape: {lat.shape}''')
+            logger.debug(f'''Tile {itile} lon shape: {lon.shape}''')
+    
+            lat_tiles.append(lat)
+            lon_tiles.append(lon)
+    
+            ds.close()
+    
+        # Stack: (tile, y, x)
+        lat_all = np.stack(lat_tiles, axis=0)
+        lon_all = np.stack(lon_tiles, axis=0)
+    
+        logger.info(f'''Geo lat shape: {lat_all.shape}''')
+        logger.info(f'''Geo lon shape: {lon_all.shape}''')
+    
+        return lat_all, lon_all
 
 
 # ======================================================================================= CHJ =====
@@ -217,8 +263,7 @@ class GetData:
         label = f'''{varname_long} ({varname_unit})'''
     
         # increment flag
-        increment_flag = str(getattr(self.cfg.flags, "INCREMENT_PLOT", "NO")).upper()
-        is_increment = increment_flag in ["YES", "TRUE", "1", "ON"]
+        is_increment = bool(self.cfg.plot.increment)
         if is_increment:
             label = f'''Δ{label}'''
     

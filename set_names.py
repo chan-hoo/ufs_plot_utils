@@ -20,7 +20,7 @@ class SetNames:
         parts = []
 
         # File name prefix
-        prefix = getattr(self.cfg.filenames, "output_file_prefix")
+        prefix = self.cfg.output.filename_prefix
         parts.append(prefix)
 
         # Variable name
@@ -31,12 +31,12 @@ class SetNames:
             parts.append(f'''z{int(z_index):03d}''')
 
         # Date
-        pdy = getattr(self.cfg.params, "PDY", None)
+        pdy = str(self.cfg.plot.PDY)
         if pdy:
-            parts.append(str(pdy))
+            parts.append(pdy)
 
         # Cycle
-        cycle = getattr(self.cfg.params, "cycle", None)
+        cycle = self.cfg.plot.cycle
         if cycle:
             parts.append(cycle)
 
@@ -56,8 +56,7 @@ class SetNames:
         parts = []
     
         # Prefix
-        prefix = getattr(self.cfg.filenames, "output_file_prefix")
-        prefix = prefix.upper()
+        prefix = self.cfg.output.filename_prefix.upper()
         parts.append(prefix)
     
         # Variable name
@@ -66,14 +65,14 @@ class SetNames:
         # Vertical level
         if z_index is not None:
             parts.append(f'''z{int(z_index)}''')
-    
+
         # Date
-        pdy = getattr(self.cfg.params, "PDY", None)
+        pdy = str(self.cfg.plot.PDY)
         if pdy:
-            parts.append(str(pdy))
-    
+            parts.append(pdy)
+
         # Cycle
-        cycle = getattr(self.cfg.params, "cycle", None)
+        cycle = self.cfg.plot.cycle
         if cycle:
             parts.append(cycle)
     

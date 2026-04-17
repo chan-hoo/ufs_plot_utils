@@ -12,7 +12,7 @@ class OutputManager:
 
     def __init__(self, cfg):
         self.cfg = cfg
-        self.output_path = getattr(cfg.paths, "output_path", ".")
+        self.output_path = self.cfg.output.path
 
     def save_figure(self, fig, filename, dpi=300):
         """

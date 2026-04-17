@@ -19,7 +19,7 @@ class PlotData:
         self.cmap_helper = GetCmap(cfg)
 
         # Set Cartopy Natural Earth data path
-        cartopy_ne_path = getattr(cfg, "cartopy_ne_path", None)
+        cartopy_ne_path = self.cfg.plot.cartopy_ne_path
         if cartopy_ne_path:
             cartopy.config['data_dir'] = cartopy_ne_path
             logger.info(f'''Cartopy data_dir set to: {cartopy_ne_path}''')
