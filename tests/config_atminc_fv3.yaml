@@ -43,3 +43,11 @@ plot:
     v_inc:
       vmin: -5
       vmax: 5
+
+  background:
+    - coastline
+    #- states
+    #- borders
+    #- lakes
+    #- land
+

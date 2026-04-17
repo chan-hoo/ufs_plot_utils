@@ -103,57 +103,75 @@ class PlotData:
 # ======================================================================================= CHJ =====
     def plot_background(self, ax):
         """
-        Add background features (land, coastlines, borders, etc.)
-        """
-        logger.info(f'''Adding background features''')
+        Add background features (config-driven)
+        """    
+        enabled = set(getattr(self.cfg.plot, "background", []))
+        logger.info(f'''Background features: {enabled}''')
 
-        back_res = '50m'   # '110m' (faster) or '50m' (better)
+        back_res = "50m"
         fline_wd = 0.5
         falpha = 0.7
-
-        land = cfeature.NaturalEarthFeature(
-            'physical', 'land', back_res,
-            edgecolor='face',
-            facecolor=cfeature.COLORS['land'],
-            alpha=falpha
-        )
-
-        lakes = cfeature.NaturalEarthFeature(
-            'physical', 'lakes', back_res,
-            edgecolor='blue',
-            facecolor='none',
-            linewidth=fline_wd,
-            alpha=falpha
-        )
-
-        coastline = cfeature.NaturalEarthFeature(
-            'physical', 'coastline', back_res,
-            edgecolor='black',
-            facecolor='none',
-            linewidth=fline_wd,
-            alpha=falpha
-        )
-
-        states = cfeature.NaturalEarthFeature(
-            'cultural', 'admin_1_states_provinces', back_res,
-            edgecolor='green',
-            facecolor='none',
-            linewidth=fline_wd,
-            linestyle=':',
-            alpha=falpha
-        )
-
-        borders = cfeature.NaturalEarthFeature(
-            'cultural', 'admin_0_countries', back_res,
-            edgecolor='red',
-            facecolor='none',
-            linewidth=fline_wd,
-            alpha=falpha
-        )
-
-        #ax.add_feature(land)
-        #ax.add_feature(lakes)
-        #ax.add_feature(states)
-        #ax.add_feature(borders)
-        ax.add_feature(coastline)
+    
+        def feature(geom, cat="physical", **kwargs):
+            return cfeature.NaturalEarthFeature(
+                cat, geom, back_res,
+                **kwargs
+            )
+    
+        if "land" in enabled:
+            ax.add_feature(
+                feature(
+                    "land",
+                    edgecolor="face",
+                    facecolor=cfeature.COLORS["land"],
+                    alpha=falpha
+                )
+            )
+    
+        if "lakes" in enabled:
+            ax.add_feature(
+                feature(
+                    "lakes",
+                    edgecolor="blue",
+                    facecolor="none",
+                    linewidth=fline_wd,
+                    alpha=falpha
+                )
+            )
+    
+        if "coastline" in enabled:
+            ax.add_feature(
+                feature(
+                    "coastline",
+                    edgecolor="black",
+                    facecolor="none",
+                    linewidth=fline_wd,
+                    alpha=falpha
+                )
+            )
+    
+        if "states" in enabled:
+            ax.add_feature(
+                feature(
+                    "admin_1_states_provinces",
+                    cat="cultural",
+                    edgecolor="green",
+                    facecolor="none",
+                    linewidth=fline_wd,
+                    linestyle=":",
+                    alpha=falpha
+                )
+            )
+    
+        if "borders" in enabled:
+            ax.add_feature(
+                feature(
+                    "admin_0_countries",
+                    cat="cultural",
+                    edgecolor="red",
+                    facecolor="none",
+                    linewidth=fline_wd,
+                    alpha=falpha
+                )
+            )
 
