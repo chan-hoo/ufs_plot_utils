@@ -91,33 +91,42 @@ class GetData:
         import glob
     
         input_file = self.cfg.input.data_file.filename
+        logger.debug(f'''Tiles:: input_file = {input_file}''')
+
         # Remove file extension
-        base = os.path.splitext(input_file)[0]
+        if input_file.endswith(".nc"):
+            base = os.path.splitext(input_file)[0]
+        else:
+            base = input_file
+        logger.debug(f'''Tiles:: base = {base}''')
+
         # Remove tile#
         if re.search(r'tile\d+$', base):
             prefix = re.sub(r'(tile)\d+$', r'\1', base)
         else:
             prefix = base
-    
+        logger.info(f'''Tiles:: prefix = {prefix}''')
+
         input_path = self.cfg.input.data_file.path
         z_index = z_index if z_index is not None else getattr(self.cfg.input.data_file, "z_index", 0)
     
         # Collect files
         pattern = os.path.join(input_path, f"{prefix}.tile*.nc")
-        files = sorted(glob.glob(pattern))
-    
-        if len(files) != 6:
-            raise ValueError(f'''Expected 6 tiles, found {len(files)}''')
+        logger.debug(f'''Tiles:: pattern = {pattern}''')
+        file_list = sorted(glob.glob(pattern))
+        logger.debug(f'''Tiles:: file_list = {file_list}''')
+        if len(file_list) != 6:
+            raise ValueError(f'''Expected 6 tiles, found {len(file_list)}''')
     
         logger.info(f'''Opening tiled dataset (6 files)''')
     
-        # Open all tiles at once
-        ds = xr.open_mfdataset(
-            files,
-            combine="nested",
-            concat_dim="tile"
-        )
-    
+        datasets = []
+        for f in file_list:
+            ds = xr.open_dataset(f)
+            datasets.append(ds)
+        
+        ds = xr.concat(datasets, dim="tile")
+
         if varname not in ds:
             raise ValueError(f'''{varname} not found in tiled dataset''')
     
@@ -158,7 +167,7 @@ class GetData:
         if geo_type == "file":
             return self.get_geo_file()
         else:
-            return self.get_geo_grid()
+            return self.get_geo_orog()
 
 
 # ======================================================================================= CHJ =====
@@ -193,23 +202,30 @@ class GetData:
 
 
 # ======================================================================================= CHJ =====
-    def get_geo_grid(self):
+    def get_geo_orog(self):
         """
-        Read 6 grid tile files and return lat/lon arrays:
+        Read 6 orography tile files and return lat/lon arrays:
             lat(tile, y, x), lon(tile, y, x)
         """
         geo_file = self.cfg.input.geo_file.filename
         geo_path = self.cfg.input.geo_file.path
-    
-        # Remove extension
-        base = os.path.splitext(geo_file)[0]
-    
-        # Extract prefix like "C96_grid.tile"
-        if re.search(r'tile\d+$', base):
-            prefix = re.sub(r'(tile)\d+$', r'\1', base)
+
+        # Remove file extension and tile#
+        if geo_file.endswith(".nc"):
+            ## Remove extension
+            base = os.path.splitext(geo_file)[0]
+            logger.debug(f'''OROG:: base = {base}''')
+            ## Remove tile#
+            if re.search(r'tile\d+$', base):
+                prefix = re.sub(r'.tile\d+$', '', base)
+            else:
+                prefix = base
+        elif geo_file.endswith(".tile"):
+            prefix = os.path.splitext(geo_file)[0]
         else:
-            prefix = base
-        logger.info(f'''Using grid tile prefix: {prefix}''')
+            prefix = geo_file
+
+        logger.info(f'''OROG:: prefix = {prefix}''')
     
         lat_tiles = []
         lon_tiles = []
@@ -217,15 +233,15 @@ class GetData:
             fname = f'''{prefix}.tile{itile}.nc'''
             fpath = os.path.join(geo_path, fname) 
             if not os.path.exists(fpath):
-                raise FileNotFoundError(f"Grid tile file not found: {fpath}")
+                raise FileNotFoundError(f'''Orography tile file not found: {fpath}''')
     
-            logger.info(f'''Reading grid tile {itile}: {fpath}''')
+            logger.info(f'''Reading orography tile {itile}: {fpath}''')
     
             ds = xr.open_dataset(fpath)
     
             # Detect lat/lon names
-            lat_name = next((v for v in ["y", "lat", "latitude"] if v in ds.variables), None)
-            lon_name = next((v for v in ["x", "lon", "longitude"] if v in ds.variables), None)
+            lat_name = next((v for v in ["geolat", "y", "lat", "latitude"] if v in ds.variables), None)
+            lon_name = next((v for v in ["geolon", "x", "lon", "longitude"] if v in ds.variables), None)
     
             if lat_name is None or lon_name is None:
                 raise ValueError(f'''lat/lon not found in {fpath}''')
