@@ -11,9 +11,14 @@ class DataReader:
     """
     Read NetCDF data and extract 2D fields or 2D with tiles.
     """
+    def __init__(self, dataset_cfg):
+        self.cfg = dataset_cfg
+        self.path = dataset_cfg.path
+        self.filename = dataset_cfg.filename
+        self.file_type = dataset_cfg.type.lower()
+        self.var_list = getattr(dataset_cfg, "var_list", [])
+        self.z_index = getattr(dataset_cfg, "z_index", 0)
 
-    def __init__(self, cfg):
-        self.cfg = cfg
         self.ds = None  # lazy initialization
 
 
@@ -22,7 +27,7 @@ class DataReader:
         Open dataset only when needed (lazy loading)
         """
         if self.ds is None:
-            self.file_path = os.path.join(self.cfg.input.data_file.path, self.cfg.input.data_file.filename)
+            self.file_path = os.path.join(self.path, self.filename)
             logger.info(f'''Opening dataset: {self.file_path}''')
             try:
                 self.ds = xr.open_dataset(self.file_path)
@@ -39,10 +44,11 @@ class DataReader:
 # ======================================================================================= CHJ =====
     def get_data(self, varname, z_index=None, time_index=0):
         """
-        Choose geo data reading method based on config parameter INPUT_DATA_TYPE
+        Choose geo data reading method based on config
         """
-        file_type = self.cfg.input.data_file.type.lower()    
-        if file_type == "file":
+        z_index = z_index if z_index is not None else self.z_index
+
+        if self.file_type == "file":
             return self.get_data_file(varname, z_index, time_index)
         else:
             return self.get_data_tiles(varname, z_index, time_index)
@@ -56,15 +62,12 @@ class DataReader:
         self._open_dataset()
 
         logger.info(f'''Reading variable: {varname}''')
-        z_index = z_index if z_index is not None else getattr(self.cfg.input.data_file, "z_index", 0)
+        z_index = z_index if z_index is not None else getattr(self, "z_index", 0)
 
         da = self.ds[varname]
 
         logger.info(f'''{varname}:: dims = {da.dims}''')
         logger.debug(f'''{varname}:: shape = {da.shape}''')
-
-        # Colorbar label
-        var_cbar_label = self._build_cbar_label(da, varname)
 
         # Slice time and z-level
         da = self._slice_data(da, z_index, time_index)
@@ -84,7 +87,7 @@ class DataReader:
         data_max = np.nanmax(da.values)
         logger.info(f"{varname}:: min={data_min}, max={data_max}")
 
-        return da, var_cbar_label
+        return da
 
 
 # ======================================================================================= CHJ =====
@@ -95,15 +98,15 @@ class DataReader:
         """    
         import glob
     
-        input_file = self.cfg.input.data_file.filename
+        input_file = self.filename
         logger.debug(f'''Tiles:: input_file = {input_file}''')
 
         # Remove file extension and tile#
         prefix = extract_tile_prefix(input_file)
         logger.info(f'''Tiles:: prefix = {prefix}''')
 
-        input_path = self.cfg.input.data_file.path
-        z_index = z_index if z_index is not None else getattr(self.cfg.input.data_file, "z_index", 0)
+        input_path = self.path
+        z_index = z_index if z_index is not None else getattr(self, "z_index", 0)
     
         # Collect files
         pattern = os.path.join(input_path, f"{prefix}.tile*.nc")
@@ -136,47 +139,14 @@ class DataReader:
         # Ensure (tile, y, x)
         if da.ndim != 3:
             raise ValueError(f"{varname} is not (tile, y, x), dims={da.dims}")
-
-        # Colorbar label
-        var_cbar_label = self._build_cbar_label(da, varname)
-    
+   
         ds.close()
 
         data_min = np.nanmin(da.values)
         data_max = np.nanmax(da.values)
         logger.info(f"{varname}:: min={data_min}, max={data_max}")
 
-        return da, var_cbar_label
-
-
-# ======================================================================================= CHJ =====
-    def get_data_comp(self):
-        """
-        Get metadata from two files and set the difference between them.
-        """
-
-
-
-# ======================================================================================= CHJ =====
-    def _build_cbar_label(self, da, varname):
-        """
-        Build colorbar label + handle increment flag + logging.
-        """    
-        varname_long = da.attrs.get("long_name", "No long-name attribute found")
-        varname_unit = da.attrs.get("units", "No units attribute found")
-        logger.debug(f'''{varname}:: long name = {varname_long}''')
-        logger.debug(f'''{varname}:: unit = {varname_unit}''')
-   
-        label = f'''{varname_long} ({varname_unit})'''
-    
-        # increment flag
-        is_increment = bool(self.cfg.plot.increment)
-        if is_increment:
-            label = f'''Δ{label}'''
-    
-        logger.info(f'''{varname}:: cbar_label = {label}''')
-    
-        return label
+        return da
 
 
 # ======================================================================================= CHJ =====

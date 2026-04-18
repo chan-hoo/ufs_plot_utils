@@ -12,16 +12,20 @@ class NameBuilder:
 
 
 # ======================================================================================= CHJ =====
-    def build_filename(self, varname, z_index=None):
+    def build_filename(self, varname, dataset_name, z_index=None):
         """
         Build filename:
-        prefix_var_levXXX_PDY_cyc
+        prefix_dataset_var_levXXX_PDY_cyc
         """
         parts = []
 
         # File name prefix
         prefix = self.cfg.output.filename_prefix
         parts.append(prefix)
+
+        # Dataset name
+        if dataset_name:
+            parts.append(dataset_name)
 
         # Variable name
         parts.append(varname)
@@ -48,17 +52,20 @@ class NameBuilder:
 
 
 # ======================================================================================= CHJ =====
-    def build_title(self, varname, z_index=None):
+    def build_title(self, varname, dataset_name, z_index=None):
         """
         Build plot title:
-        prefix var (levXXX) PDY cyc
+        prefix::dataset::var::zXXX::PDY::cyc
         """    
         parts = []
     
         # Prefix
         prefix = self.cfg.output.filename_prefix.upper()
         parts.append(prefix)
-    
+
+        if dataset_name:
+            parts.append(dataset_name)
+
         # Variable name
         parts.append(varname)
     

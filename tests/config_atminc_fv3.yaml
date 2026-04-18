@@ -4,19 +4,20 @@ input:
     filename: C96.mx100_oro_data
     type: orog
 
-  data_file:
-    path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
-    filename: ufsda.t00z.atminc.cubed_sphere_grid
-    type: tile
-    var_list:
-      - T_inc
-      - u_inc
-      - v_inc
-    z_index: 76
+  datasets:
+    - name: fv3
+      path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
+      filename: ufsda.t00z.atminc.cubed_sphere_grid
+      type: tile
+      var_list:
+        - T_inc
+        - u_inc
+        - v_inc
+      z_index: 76
 
 output:
   path: ./
-  filename_prefix: atminc_fv3
+  filename_prefix: atminc
 
 plot:
   cartopy_ne_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/NaturalEarth

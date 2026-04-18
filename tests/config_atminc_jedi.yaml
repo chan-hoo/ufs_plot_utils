@@ -4,19 +4,20 @@ input:
     filename: cubed_sphere_grid_atminc.jedi.nc
     type: file
 
-  data_file:
-    path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
-    filename: cubed_sphere_grid_atminc.jedi.nc
-    type: file
-    var_list:
-      - tmp
-      - ugrd
-      - vgrd
-    z_index: 76
+  datasets:
+    - name: jedi
+      path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
+      filename: cubed_sphere_grid_atminc.jedi.nc
+      type: file
+      var_list:
+        - tmp
+        - ugrd
+        - vgrd
+      z_index: 76
 
 output:
   path: ./
-  filename_prefix: atminc_jedi
+  filename_prefix: atminc
 
 plot:
   cartopy_ne_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/NaturalEarth

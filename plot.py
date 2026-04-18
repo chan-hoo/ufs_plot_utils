@@ -26,17 +26,12 @@ class Plotter:
 
 
 # ======================================================================================= CHJ =====
-#    def plot_data_single(self):
-
-
-# ======================================================================================= CHJ =====
     def plot_data_tiles(
         self,
-        data_var,
+        da,
         lat,
         lon,
         varname,
-        var_cbar_label,
         output_title
     ):
         """
@@ -48,7 +43,7 @@ class Plotter:
         central_lon=-77.0369
 
         # Handle NaNs (this is done for plotting here to save memory)
-        data_var = data_var.to_numpy()
+        data_var = da.to_numpy()
 
         fig,ax=plt.subplots(1,1,subplot_kw=dict(projection=ccrs.Robinson(central_lon)))
         ax.set_global()
@@ -57,7 +52,7 @@ class Plotter:
         self.plot_background(ax)
 
         # Colormap
-        is_increment = bool(self.cfg.plot.increment)
+        is_increment = bool(getattr(self.cfg.plot, "increment", False))
         cmap, vmin, vmax = self.cmap_helper.get_cmap_and_range(
             varname,
             data_var,
@@ -90,6 +85,7 @@ class Plotter:
             )
 
         # Colorbar
+        var_cbar_label = self.build_cbar_label(da, varname, self.cfg)
         divider = make_axes_locatable(ax)
         ax_cb = divider.new_horizontal(size="3%", pad=0.1, axes_class=plt.Axes)
         fig.add_axes(ax_cb)
@@ -98,6 +94,23 @@ class Plotter:
         cbar.set_label(var_cbar_label, fontsize=7)
 
         return fig
+
+
+# ======================================================================================= CHJ =====
+    def build_cbar_label(self, da, varname, cfg):
+        varname_long = da.attrs.get("long_name", varname)
+        varname_unit = da.attrs.get("units", None)
+    
+        if varname_unit:
+            label = f"{varname_long} ({varname_unit})"
+        else:
+            label = varname_long
+    
+        is_increment = getattr(getattr(cfg, "plot", {}), "increment", False)
+        if is_increment:
+            label = f"Δ{label}"
+    
+        return label
 
 
 # ======================================================================================= CHJ =====
