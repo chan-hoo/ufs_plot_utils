@@ -6,7 +6,7 @@ import re
 
 logger = logging.getLogger(__name__)
 
-class GetData:
+class DataReader:
     """
     Read NetCDF data and extract 2D fields or 2D with tiles.
     """

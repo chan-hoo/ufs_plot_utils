@@ -1,23 +1,23 @@
 import logging
 
-from .get_data import GetData
-from .plot_data import PlotData
-from .output_manager import OutputManager
-from .set_names import SetNames
+from .data import DataReader
+from .plot import Plotter
+from .output import OutputManager
+from .naming import NameBuilder
 
 logger = logging.getLogger(__name__)
 
-class PlotPipeline:
+class Pipeline:
     """
     Full plotting pipeline
     """
     def __init__(self, cfg):
         self.cfg = cfg
 
-        self.data = GetData(cfg)
-        self.plotter = PlotData(cfg)
+        self.data = DataReader(cfg)
+        self.plotter = Plotter(cfg)
         self.output = OutputManager(cfg)
-        self.names = SetNames(cfg)
+        self.names = NameBuilder(cfg)
 
 # ======================================================================================= CHJ =====
     def run_inc_tiles(self):

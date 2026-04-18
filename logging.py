@@ -1,7 +1,7 @@
 import logging
 import sys
 
-class LoggerConfig:
+class LoggerSetup:
     """
     Dedicated logging module.
     """
@@ -10,7 +10,7 @@ class LoggerConfig:
         """
         Set up basic configuration for logging.
         Usage:
-          plt.LoggerConfig.setup(args.log_level)
+          plt.LoggerSetup.setup(args.log_level)
           logger = logging.getLogger(__name__)
         """
         log_level_str = log_level_str.upper()

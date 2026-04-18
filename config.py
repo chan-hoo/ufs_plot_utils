@@ -3,7 +3,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class GetConfig:
+class Config:
     """
     Read input YAML file and get configuration parameters.
     """
@@ -16,7 +16,7 @@ class GetConfig:
         with open(yaml_file, "r") as f:
             raw = yaml.safe_load(f)
 
-        obj = self.from_dict(raw)   # return GetConfig
+        obj = self.from_dict(raw)   # return Config
         self._config = obj._config  # unwrap
 
         logger.debug("===== Configuration loaded successfully =====")
@@ -33,7 +33,7 @@ class GetConfig:
             paths:
               input_path: ./
 
-        cfg = GetConfig("config.yaml")
+        cfg = Config("config.yaml")
         model_option = cfg.params.model_option
         input_path = cfg.paths.input_path
         """
@@ -66,7 +66,7 @@ class GetConfig:
 
 
 # ======================================================================================= CHJ =====
-# Outside class GetConfig
+# Outside class Config
 #     Functions that operate on multiple types: keep them outside classes
 #     Methods: operate on a specific object
 #     Following contains utilities functions (not object behavior)
@@ -74,7 +74,7 @@ class GetConfig:
 
 def to_dict(obj):
     """
-    Convert GetConfig or dict-like object to plain dict.
+    Convert Config or dict-like object to plain dict.
     """
     if isinstance(obj, dict):
         return obj

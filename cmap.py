@@ -1,11 +1,11 @@
 import logging
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
-from .get_config import to_dict, to_plain
+from .config import to_dict, to_plain
 
 logger = logging.getLogger(__name__)
 
-class GetCmap:
+class CmapManager:
     """
     Handle colormap selection logic.
     """

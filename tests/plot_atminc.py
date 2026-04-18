@@ -20,17 +20,17 @@ def main():
     args = plt.CLI().parse()
 
     # Set logger configuration
-    plt.LoggerConfig.setup(args.log_level)
+    plt.LoggerSetup.setup(args.log_level)
     #logger = logging.getLogger(__name__)
 
     # Read input configuration YAML file
-    cfg = plt.GetConfig(args.input_config)
+    cfg = plt.Config(args.input_config)
 
     # Print out configuration parameters
     cfg.log_config()
 
     # Run pipeline
-    pipeline = plt.PlotPipeline(cfg)
+    pipeline = plt.Pipeline(cfg)
     pipeline.run_inc_tiles()
 
 

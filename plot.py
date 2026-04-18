@@ -6,17 +6,17 @@ import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from .get_cmap import GetCmap
+from .cmap import CmapManager
 
 logger = logging.getLogger(__name__)
 
-class PlotData:
+class Plotter:
     """
     Plot data using Cartopy.
     """
     def __init__(self, cfg):
         self.cfg = cfg
-        self.cmap_helper = GetCmap(cfg)
+        self.cmap_helper = CmapManager(cfg)
 
         # Set Cartopy Natural Earth data path
         cartopy_ne_path = self.cfg.plot.cartopy_ne_path
