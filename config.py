@@ -1,5 +1,6 @@
 import yaml
 import logging
+from .utils import to_plain_dict
 
 logger = logging.getLogger(__name__)
 
@@ -63,42 +64,4 @@ class Config:
     
         for line in yaml.dump(plain_cfg, sort_keys=True).splitlines():
             logger.info(line)
-
-
-# ======================================================================================= CHJ =====
-# Outside class Config
-#     Functions that operate on multiple types: keep them outside classes
-#     Methods: operate on a specific object
-#     Following contains utilities functions (not object behavior)
-# ======================================================================================= CHJ =====
-
-def to_dict(obj):
-    """
-    Convert Config or dict-like object to plain dict.
-    """
-    if isinstance(obj, dict):
-        return obj
-    if hasattr(obj, "_config"):
-        return obj._config
-    return {}
-
-
-def to_plain_dict(obj):
-    if isinstance(obj, dict):
-        return {k: to_plain_dict(v) for k, v in obj.items()}
-    if hasattr(obj, "_config"):
-        return to_plain_dict(obj._config)
-    return obj
-
-
-def to_plain(obj):
-    if isinstance(obj, dict):
-        return {k: to_plain(v) for k, v in obj.items()}
-    if hasattr(obj, "_config"):
-        return to_plain(obj._config)
-    return obj
-
-
-def as_dict(self):
-    return self._config
 

@@ -1,9 +1,10 @@
 import logging
 
 from .data import DataReader
+from .geo import GeoData
+from .naming import NameBuilder
 from .plot import Plotter
 from .output import OutputManager
-from .naming import NameBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -15,18 +16,20 @@ class Pipeline:
         self.cfg = cfg
 
         self.data = DataReader(cfg)
+        self.geo = GeoData(cfg)
+        self.names = NameBuilder(cfg)
         self.plotter = Plotter(cfg)
         self.output = OutputManager(cfg)
-        self.names = NameBuilder(cfg)
+
+        # Geo data
+        self.lat, self.lon = self.geo.get_geo()
+        
 
 # ======================================================================================= CHJ =====
     def run_plot_tiles(self):
         """
         Execute full pipeline for FV3 tiled domain
         """
-        # Get geo
-        lat, lon = self.data.get_geo()
-
         # Loop variables
         for varname in self.cfg.input.data_file.var_list:
             logger.info(f'''Processing: {varname}''')
@@ -44,9 +47,9 @@ class Pipeline:
             )
             # Plot data
             fig = self.plotter.plot_data_tiles(
-                data_var=data_var,
-                lat=lat,
-                lon=lon,
+                data_var,
+                self.lat,
+                self.lon,
                 varname=varname,
                 var_cbar_label=label,
                 output_title=title

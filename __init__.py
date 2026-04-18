@@ -2,6 +2,7 @@ from .cli import CLI
 from .cmap import CmapManager
 from .config import Config
 from .data import DataReader
+from .geo import GeoData
 from .logging import LoggerSetup
 from .output import OutputManager
 from .pipeline import Pipeline

@@ -2,7 +2,7 @@ input:
   geo_file:
     path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_fix/FV3/Tiled/C96
     filename: C96.mx100_oro_data
-    type: tile
+    type: orog
 
   data_file:
     path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm

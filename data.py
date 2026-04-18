@@ -3,6 +3,7 @@ import numpy as np
 import xarray as xr
 import os
 import re
+from .utils import extract_tile_prefix
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +99,7 @@ class DataReader:
         logger.debug(f'''Tiles:: input_file = {input_file}''')
 
         # Remove file extension and tile#
-        prefix = self._get_tile_prefix(input_file)
+        prefix = extract_tile_prefix(input_file)
         logger.info(f'''Tiles:: prefix = {prefix}''')
 
         input_path = self.cfg.input.data_file.path
@@ -157,101 +158,6 @@ class DataReader:
 
 
 # ======================================================================================= CHJ =====
-    def get_geo(self):
-        """
-        Choose geo data reading method based on config flag INPUT_HAS_GEO
-        """
-        geo_type = self.cfg.input.geo_file.type.lower()    
-        if geo_type == "file":
-            return self.get_geo_file()
-        else:
-            return self.get_geo_orog()
-
-
-# ======================================================================================= CHJ =====
-    def get_geo_file(self):
-        """
-        Extract latitude and longitude arrays from input data file.
-        """    
-        logger.info(f'''Using input file for geo data''')
-        self._open_dataset()
-        ds_geo = self.ds
-    
-        # Detect lat/lon variable names
-        lat_candidates = ["lat", "latitude"]
-        lon_candidates = ["lon", "longitude"]
-    
-        lat_name = next((v for v in lat_candidates if v in ds_geo.variables), None)
-        lon_name = next((v for v in lon_candidates if v in ds_geo.variables), None)
-    
-        if lat_name is None or lon_name is None:
-            raise ValueError(f'''Could not find lat/lon variables in dataset or check candidate lists''')
-    
-        logger.info(f'''Using lat variable: {lat_name}''')
-        logger.info(f'''Using lon variable: {lon_name}''')
-    
-        lat = ds_geo[lat_name]
-        lon = ds_geo[lon_name]
-    
-        logger.info(f'''lat:: dims = {lat.dims}, shape = {lat.shape}''')
-        logger.info(f'''lon:: dims = {lon.dims}, shape = {lon.shape}''')
-        
-        return lat, lon
-
-
-# ======================================================================================= CHJ =====
-    def get_geo_orog(self):
-        """
-        Read 6 orography tile files and return lat/lon arrays:
-            lat(tile, y, x), lon(tile, y, x)
-        """
-        geo_file = self.cfg.input.geo_file.filename
-        geo_path = self.cfg.input.geo_file.path
-
-        # Remove file extension and tile#
-        prefix = self._get_tile_prefix(geo_file)
-        logger.info(f'''OROG:: prefix = {prefix}''')
-    
-        lat_tiles = []
-        lon_tiles = []
-        for itile in range(1, 7):
-            fname = f'''{prefix}.tile{itile}.nc'''
-            fpath = os.path.join(geo_path, fname) 
-            if not os.path.exists(fpath):
-                raise FileNotFoundError(f'''Orography tile file not found: {fpath}''')
-    
-            logger.info(f'''Reading orography tile {itile}: {fpath}''')
-    
-            ds = xr.open_dataset(fpath)
-    
-            # Detect lat/lon names
-            lat_name = next((v for v in ["geolat", "y", "lat", "latitude"] if v in ds.variables), None)
-            lon_name = next((v for v in ["geolon", "x", "lon", "longitude"] if v in ds.variables), None)
-    
-            if lat_name is None or lon_name is None:
-                raise ValueError(f'''lat/lon not found in {fpath}''')
-    
-            lat = ds[lat_name]
-            lon = ds[lon_name]
-            logger.debug(f'''Tile {itile} lat shape: {lat.shape}''')
-            logger.debug(f'''Tile {itile} lon shape: {lon.shape}''')
-    
-            lat_tiles.append(lat)
-            lon_tiles.append(lon)
-    
-            ds.close()
-    
-        # Stack: (tile, y, x)
-        lat_all = np.stack(lat_tiles, axis=0)
-        lon_all = np.stack(lon_tiles, axis=0)
-    
-        logger.info(f'''Geo lat shape: {lat_all.shape}''')
-        logger.info(f'''Geo lon shape: {lon_all.shape}''')
-    
-        return lat_all, lon_all
-
-
-# ======================================================================================= CHJ =====
     def _build_cbar_label(self, da, varname):
         """
         Build colorbar label + handle increment flag + logging.
@@ -271,35 +177,6 @@ class DataReader:
         logger.info(f'''{varname}:: cbar_label = {label}''')
     
         return label
-
-
-# ======================================================================================= CHJ =====
-    def _get_tile_prefix(self, filename):
-        """
-        Normalize filename to tile prefix:
-        - remove .nc extension
-        - remove .tile#
-        - remove trailing .tile
-        """
-        name = filename.strip()
-    
-        logger.debug(f'''File prefix: {name}''')
-        # Remove extension
-        if filename.endswith(".nc"):
-            base = os.path.splitext(name)[0]
-            logger.debug(f'''Remove extention: {base}''')
-            ## Remove ".tile<number>" if present
-            base = re.sub(r'\.tile\d+$', '', base)
-        # Remove trailing ".tile" if present
-        elif filename.endswith(".tile"):
-            base = os.path.splitext(name)[0]
-            logger.debug(f'''Remove .tile: {base}''')
-        else:
-            base = name
-
-        logger.debug(f'''File prefix final: {base}''')
-
-        return base
 
 
 # ======================================================================================= CHJ =====
