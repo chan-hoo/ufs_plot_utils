@@ -20,7 +20,7 @@ class Pipeline:
         self.names = NameBuilder(cfg)
 
 # ======================================================================================= CHJ =====
-    def run_inc_tiles(self):
+    def run_plot_tiles(self):
         """
         Execute full pipeline for increment in FV3 tiled domains
         """

@@ -31,7 +31,7 @@ def main():
 
     # Run pipeline
     pipeline = plt.Pipeline(cfg)
-    pipeline.run_inc_tiles()
+    pipeline.run_plot_tiles()
 
 
 # Main call ========================================================= CHJ =====
