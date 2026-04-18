@@ -22,7 +22,7 @@ class Pipeline:
 # ======================================================================================= CHJ =====
     def run_plot_tiles(self):
         """
-        Execute full pipeline for increment in FV3 tiled domains
+        Execute full pipeline for FV3 tiled domain
         """
         # Get geo
         lat, lon = self.data.get_geo()
