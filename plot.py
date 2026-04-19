@@ -26,6 +26,7 @@ class Plotter:
         self.cb_cfg    = plot_cfg.get("colorbar", {})
         self.title_cfg = plot_cfg.get("title", {})
         self.bg_cfg    = plot_cfg.get("background", {})
+        self.style_resolver = PlotStyleResolver(cfg)
 
         # Set Cartopy Natural Earth data path
         cartopy_ne_path = plot_cfg.get("cartopy_ne_path")
@@ -42,7 +43,7 @@ class Plotter:
         lon,
         da,
         varname,
-        dataset,
+        dataset_cfg,
         output_title
     ):
         """
@@ -60,7 +61,10 @@ class Plotter:
             "Mollweide": ccrs.Mollweide,
         }
         proj_class = proj_map.get(proj_name, ccrs.Robinson)
-        projection = proj_class(central_longitude=central_lon)
+        if proj_name == "PlateCarree":
+            projection = ccrs.PlateCarree()
+        else:
+            projection = proj_class(central_longitude=central_lon)
 
         figsize = self.fig_cfg.get("figsize", [10, 5])
         dpi = self.fig_cfg.get("dpi", 150)
@@ -78,12 +82,16 @@ class Plotter:
         self.plot_background(ax)
 
         # Colormap
-        resolver = PlotStyleResolver(dataset)        
-        cmap, vmin, vmax, cbar_label = resolver.resolve(
+        style = self.style_resolver.resolve(
             varname,
             data_var,
-            da
+            da,
+            dataset_cfg
         )
+        cmap = style.cmap
+        vmin = style.vmin
+        vmax = style.vmax
+        cbar_label = style.label
 
         # Title
         title_fs = self.title_cfg.get("fontsize", 8)
