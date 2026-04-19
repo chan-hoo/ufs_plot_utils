@@ -1,52 +1,71 @@
 input:
-  geo_file:
-    path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_fix/FV3/Tiled/C96
-    filename: C96.mx100_oro_data
-    type: tile
-
-  data_file:
-    path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
-    filename: ufsda.t00z.atminc.cubed_sphere_grid
-    type: tile
-    var_list:
-      - T_inc
-      - u_inc
-      - v_inc
-    z_index: 76
+  datasets:
+    - name: jedi
+      data_kind: increment   # increment | analysis | forecast | etc.
+      geo:
+        path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
+        filename: cubed_sphere_grid_atminc.jedi.nc
+        file_type: file
+      dataset:
+        path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
+        filename: cubed_sphere_grid_atminc.jedi.nc
+        file_type: file
+        var_list:
+          - tmp
+          - ugrd
+          - vgrd
+        z_index: 76
+        time_index: 0   # optional (default = 0)
+      colormap:
+        default: gist_ncar_r
+        tmp: RdBu_r
+        ugrd: RdBu_r
+        vgrd: RdBu_r
+      range:
+        default:
+          vmin: null
+          vmax: null
+        tmp:
+          vmin: -2.5
+          vmax: 2.5
+        ugrd:
+          vmin: -5
+          vmax: 5
+        vgrd:
+          vmin: -5
+          vmax: 5
 
 output:
   path: ./
-  filename_prefix: atminc_fv3
+  prefix: atminc
 
 plot:
   cartopy_ne_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/NaturalEarth
-  increment: true
+
   cycle: t00z
   PDY: 20240224
 
-  colormap:
-    default: gist_ncar_r
-    T_inc: RdBu_r
-    u_inc: RdBu_r
-    v_inc: RdBu_r
-
-  range:
-    default:
-      vmin: null
-      vmax: null
-    T_inc:
-      vmin: null
-      vmax: null
-    u_inc:
-      vmin: null
-      vmax: null
-    v_inc:
-      vmin: null
-      vmax: null
-
+  projection:
+    name: Robinson
+    central_longitude: -77.0369
+  figure:
+    figsize: [10, 5]
+    dpi: 150
+  colorbar:
+    size: "3%"
+    pad: 0.1
+    label_fontsize: 7
+    tick_fontsize: 6
+  title:
+    fontsize: 8
   background:
-    - coastline
-    #- states
-    #- borders
-    #- lakes
-    #- land
+    features:
+      - coastline
+      # - land
+      # - lakes
+      # - states
+      # - borders
+    resolution: 50m
+    linewidth: 0.5
+    alpha: 0.7
+

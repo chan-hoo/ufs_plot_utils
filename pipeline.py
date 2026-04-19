@@ -1,7 +1,8 @@
 import logging
 
 from .data import DataReader
-from .geo import GeoData
+from .dataset import Dataset
+from .geo import GeoReader
 from .naming import NameBuilder
 from .plot import Plotter
 from .output import OutputManager
@@ -15,17 +16,16 @@ class Pipeline:
     def __init__(self, cfg):
         self.cfg = cfg
 
+        # Dataset objects (NOT DataReader directly)
         self.datasets = [
-            DataReader(ds_cfg)
+            Dataset(ds_cfg)
             for ds_cfg in self.cfg.input.datasets
         ]
-        self.geo = GeoData(cfg)
+
+        # Shared utilities (these can stay global)
         self.names = NameBuilder(cfg)
         self.plotter = Plotter(cfg)
         self.output = OutputManager(cfg)
-
-        # Geo data
-        self.lat, self.lon = self.geo.get_geo()
         
 
 # ======================================================================================= CHJ =====
@@ -33,43 +33,47 @@ class Pipeline:
         """
         Execute pipeline for multiple datasets (no comparison yet)
         """
-    
         for ds in self.datasets:
-            logger.info(f'''Processing dataset: {ds.cfg.name}''')
+            logger.info(f'''Processing dataset: {ds.name}''')
+    
+            # GEO
+            geo_reader = GeoReader(ds.geo)
+            lat, lon = geo_reader.get_geo()
+    
+            # DATA
+            data_reader = DataReader(ds)
     
             for varname in ds.var_list:
-                logger.info(f'''Processing: {varname}''')
+                logger.info(f'''{ds.name} :: {varname}''')
     
-                # Get data
-                da = ds.get_data(varname)
+                da, data_var = data_reader.get_data(varname)
     
-                # Title
+                # TITLE
                 title = self.names.build_title(
                     varname,
-                    dataset_name=ds.cfg.name,
-                    z_index=ds.z_index
+                    z_index=ds.z_index,
+                    dataset_name=ds.name
                 )
     
-                # Filename
+                # FILENAME
                 filename = self.names.build_filename(
                     varname,
-                    dataset_name=ds.cfg.name,
-                    z_index=ds.z_index
+                    z_index=ds.z_index,
+                    dataset_name=ds.name
                 )
     
-                # Plot
+                # PLOT
                 fig = self.plotter.plot_data_tiles(
+                    data_var,
+                    lat,
+                    lon,
                     da,
-                    self.lat,
-                    self.lon,
-                    varname=varname,
+                    varname,
+                    ds,
                     output_title=title
                 )
     
-                # Save
                 self.output.save_figure(fig, filename)
     
-        # Close all datasets
-        for ds in self.datasets:
-            ds.close()
+            data_reader.close()
 

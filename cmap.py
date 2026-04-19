@@ -14,7 +14,14 @@ class CmapManager:
 
 
 # ======================================================================================= CHJ =====
-    def get_cmap_and_range(self, varname, data_var, is_increment=False):
+    def get_cmap_and_range(
+        self,
+        varname,
+        data_var,
+        cmap_cfg,
+        range_cfg,
+        is_increment=False
+    ):
         """
         Get colormap and range:
         1. User-defined (YAML)
@@ -26,24 +33,12 @@ class CmapManager:
         # =========================
         # 1. User-defined colormap
         # =========================
-        cmap_cfg = self.cfg.plot.colormap
+        cmap_cfg = to_dict(cmap_cfg)
         logger.debug(f'''colormap in config: {to_plain(cmap_cfg)}''')
-        cmap_name = getattr(
-            cmap_cfg,
-            varname,
-            getattr(cmap_cfg, "default", "viridis")
-        )
-    
-        if cmap_name:
-            try:
-                cmap = plt.get_cmap(cmap_name)
-                logger.info(f'''{varname}:: using user-defined colormap: {cmap_name}''')
-            except Exception:
-                logger.warning(f'''{varname}:: invalid cmap "{cmap_name}"''')
-                cmap = None
-        else:
-            cmap = None
-    
+        cmap = cmap_cfg.get(varname)        
+        if cmap is None:
+            cmap = cmap_cfg.get("default")
+
         # =========================
         # 2. Meteorology defaults
         # =========================
@@ -72,16 +67,11 @@ class CmapManager:
         # =========================
         # 3. Range handling
         # =========================
-        range_cfg = self.cfg.plot.range
+        range_cfg = to_dict(range_cfg)
         logger.debug(f'''range in config: {to_plain(range_cfg)}''') 
-        var_range = getattr(
-            range_cfg,
-            varname,
-            getattr(range_cfg, "default", None)
-        )
-        vmin = getattr(var_range, "vmin", None)
-        vmax = getattr(var_range, "vmax", None)
-    
+        var_range = range_cfg.get(varname, range_cfg.get("default", {}))
+        vmin = var_range.get("vmin")
+        vmax = var_range.get("vmax")
         if vmin is None or vmax is None:
             if is_increment:
                 vmax_auto = np.nanpercentile(np.abs(data_var), 98)

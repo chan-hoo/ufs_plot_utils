@@ -2,7 +2,8 @@ from .cli import CLI
 from .cmap import CmapManager
 from .config import Config
 from .data import DataReader
-from .geo import GeoData
+from .dataset import Dataset
+from .geo import GeoReader
 from .logging import LoggerSetup
 from .output import OutputManager
 from .pipeline import Pipeline

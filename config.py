@@ -28,11 +28,9 @@ class Config:
         if name in self._config:
             value = self._config[name]
     
-            # dict -> Config
             if isinstance(value, dict):
                 return Config.from_dict(value)
     
-            # list of dicts -> list of Config
             if isinstance(value, list):
                 return [
                     Config.from_dict(v) if isinstance(v, dict) else v

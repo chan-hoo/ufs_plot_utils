@@ -20,7 +20,7 @@ class NameBuilder:
         parts = []
 
         # File name prefix
-        prefix = self.cfg.output.filename_prefix
+        prefix = self.cfg.output.prefix
         parts.append(prefix)
 
         # Dataset name
@@ -60,7 +60,7 @@ class NameBuilder:
         parts = []
     
         # Prefix
-        prefix = self.cfg.output.filename_prefix.upper()
+        prefix = self.cfg.output.prefix.upper()
         parts.append(prefix)
 
         if dataset_name:

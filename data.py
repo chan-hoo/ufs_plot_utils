@@ -11,15 +11,16 @@ class DataReader:
     """
     Read NetCDF data and extract 2D fields or 2D with tiles.
     """
-    def __init__(self, dataset_cfg):
-        self.cfg = dataset_cfg
-        self.path = dataset_cfg.path
-        self.filename = dataset_cfg.filename
-        self.file_type = dataset_cfg.type.lower()
-        self.var_list = getattr(dataset_cfg, "var_list", [])
-        self.z_index = getattr(dataset_cfg, "z_index", 0)
+    def __init__(self, dataset):
+        self.dataset = dataset
 
-        self.ds = None  # lazy initialization
+        self.path = dataset.path
+        self.filename = dataset.filename
+        self.file_type = dataset.file_type
+        self.z_index = dataset.z_index
+        self.time_index = dataset.time_index
+
+        self.ds = None
 
 
     def _open_dataset(self):
@@ -87,7 +88,7 @@ class DataReader:
         data_max = np.nanmax(da.values)
         logger.info(f"{varname}:: min={data_min}, max={data_max}")
 
-        return da
+        return da, da.values
 
 
 # ======================================================================================= CHJ =====
@@ -146,7 +147,7 @@ class DataReader:
         data_max = np.nanmax(da.values)
         logger.info(f"{varname}:: min={data_min}, max={data_max}")
 
-        return da
+        return da, da.values
 
 
 # ======================================================================================= CHJ =====

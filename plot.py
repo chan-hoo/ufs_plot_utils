@@ -28,10 +28,12 @@ class Plotter:
 # ======================================================================================= CHJ =====
     def plot_data_tiles(
         self,
-        da,
+        data_var,
         lat,
         lon,
+        da,
         varname,
+        dataset,
         output_title
     ):
         """
@@ -42,9 +44,6 @@ class Plotter:
         num_tiles = 6
         central_lon=-77.0369
 
-        # Handle NaNs (this is done for plotting here to save memory)
-        data_var = da.to_numpy()
-
         fig,ax=plt.subplots(1,1,subplot_kw=dict(projection=ccrs.Robinson(central_lon)))
         ax.set_global()
 
@@ -52,10 +51,12 @@ class Plotter:
         self.plot_background(ax)
 
         # Colormap
-        is_increment = bool(getattr(self.cfg.plot, "increment", False))
+        is_increment = dataset.data_kind == "increment"
         cmap, vmin, vmax = self.cmap_helper.get_cmap_and_range(
             varname,
             data_var,
+            dataset.colormap,
+            dataset.range,
             is_increment=is_increment
         )
 
@@ -85,7 +86,7 @@ class Plotter:
             )
 
         # Colorbar
-        var_cbar_label = self.build_cbar_label(da, varname, self.cfg)
+        var_cbar_label = self.build_cbar_label(da, varname, dataset)
         divider = make_axes_locatable(ax)
         ax_cb = divider.new_horizontal(size="3%", pad=0.1, axes_class=plt.Axes)
         fig.add_axes(ax_cb)
@@ -97,17 +98,13 @@ class Plotter:
 
 
 # ======================================================================================= CHJ =====
-    def build_cbar_label(self, da, varname, cfg):
-        varname_long = da.attrs.get("long_name", varname)
-        varname_unit = da.attrs.get("units", None)
+    def build_cbar_label(self, da, varname, dataset):
+        long_name = da.attrs.get("long_name", varname)
+        units = da.attrs.get("units", "")
     
-        if varname_unit:
-            label = f"{varname_long} ({varname_unit})"
-        else:
-            label = varname_long
+        label = f"{long_name} ({units})" if units else long_name
     
-        is_increment = getattr(getattr(cfg, "plot", {}), "increment", False)
-        if is_increment:
+        if dataset.data_kind == "increment":
             label = f"Δ{label}"
     
         return label
@@ -118,7 +115,9 @@ class Plotter:
         """
         Add background features (config-driven)
         """    
-        enabled = set(getattr(self.cfg.plot, "background", []))
+        bg_cfg = getattr(self.cfg.plot, "background", {})
+        features = bg_cfg.get("features", []) if isinstance(bg_cfg, dict) else getattr(bg_cfg, "features", [])
+        enabled = set(features)
         logger.info(f'''Background features: {enabled}''')
 
         back_res = "50m"

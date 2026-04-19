@@ -7,22 +7,20 @@ from .utils import extract_tile_prefix
 logger = logging.getLogger(__name__)
 
 
-class GeoData:
+class GeoReader:
     """
     Handle geographic data (lat/lon), supports file or tile format.
     """
-
-    def __init__(self, cfg):
-        self.cfg = cfg
-
+    def __init__(self, geo_cfg):
+        self.geo_cfg = geo_cfg
 
 # ======================================================================================= CHJ =====
     def get_geo(self):
         """
         Choose geo data reading method based on config
         """
-        geo_cfg = self.cfg.input.geo_file
-        geo_type = geo_cfg.type.lower()
+        geo_cfg = self.geo_cfg
+        geo_type = geo_cfg.file_type.lower()
 
         if geo_type == "file":
             return self.get_geo_file()
@@ -37,7 +35,7 @@ class GeoData:
         """
         Extract latitude and longitude arrays from input geo file.
         """
-        geo_cfg = self.cfg.input.geo_file
+        geo_cfg = self.geo_cfg
         fpath = os.path.join(geo_cfg.path, geo_cfg.filename)
         logger.info(f'''Opening geo file: {fpath}''')
         try:
@@ -71,7 +69,7 @@ class GeoData:
         Read 6 orography tile files and return lat/lon arrays:
             lat(tile, y, x), lon(tile, y, x)
         """
-        geo_cfg = self.cfg.input.geo_file
+        geo_cfg = self.geo_cfg
         geo_file = geo_cfg.filename
         geo_path = geo_cfg.path
 
