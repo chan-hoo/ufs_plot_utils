@@ -12,17 +12,24 @@ class OutputManager:
 
     def __init__(self, cfg):
         self.cfg = cfg
-        self.output_path = self.cfg.output.path
+        self.output_path = self.cfg.get("output", "path", default="./")
 
-    def save_figure(self, fig, filename, dpi=300):
-        """
-        Save figure to output_path
-        """
+
+# ======================================================================================= CHJ =====
+    def save_figure(self, fig, filename, dpi=300, close=True):
         os.makedirs(self.output_path, exist_ok=True)
 
         full_path = os.path.join(self.output_path, filename)
 
+        if os.path.exists(full_path):
+            logger.warning(f'''Overwriting existing file: {full_path}''')
+
         fig.savefig(full_path, dpi=dpi, bbox_inches="tight")
-        plt.close(fig)
 
         logger.info(f'''Saved figure: {full_path}''')
+
+        if close:
+            plt.close(fig)
+
+        return full_path
+

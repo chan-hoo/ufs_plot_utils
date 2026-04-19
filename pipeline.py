@@ -9,38 +9,48 @@ from .output import OutputManager
 
 logger = logging.getLogger(__name__)
 
+
 class Pipeline:
     """
     Full plotting pipeline
     """
+
     def __init__(self, cfg):
         self.cfg = cfg
-
-        # Dataset objects (NOT DataReader directly)
+    
+        datasets_cfg = self.cfg.get("input", "datasets", default=[])
+    
+        if not datasets_cfg:
+            raise ValueError(f'''No datasets defined in config (input.datasets)''')
+    
         self.datasets = [
             Dataset(ds_cfg)
-            for ds_cfg in self.cfg.input.datasets
+            for ds_cfg in datasets_cfg
         ]
-
-        # Shared utilities (these can stay global)
+    
         self.names = NameBuilder(cfg)
         self.plotter = Plotter(cfg)
         self.output = OutputManager(cfg)
-        
+
 
 # ======================================================================================= CHJ =====
     def run_plot_tiles(self):
         """
-        Execute pipeline for multiple datasets (no comparison yet)
+        Execute pipeline for multiple datasets
         """
+
         for ds in self.datasets:
             logger.info(f'''Processing dataset: {ds.name}''')
-    
-            # GEO
+
+            # -------------------------
+            # GEO (load once per dataset)
+            # -------------------------
             geo_reader = GeoReader(ds.geo)
             lat, lon = geo_reader.get_geo()
-    
-            # DATA
+
+            # -------------------------
+            # DATA (context-managed)
+            # -------------------------
             data_reader = DataReader(ds)
     
             for varname in ds.var_list:
@@ -65,12 +75,11 @@ class Pipeline:
     
                 # PLOT
                 fig = self.plotter.plot_data_tiles(
-                    data_var,
-                    lat,
-                    lon,
                     da,
-                    varname,
-                    ds,
+                    lat=lat,
+                    lon=lon,
+                    varname=varname,
+                    dataset_cfg=ds,
                     output_title=title
                 )
     

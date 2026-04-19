@@ -5,8 +5,6 @@ from dataclasses import dataclass
 from matplotlib.colors import Colormap
 from matplotlib.colors import LinearSegmentedColormap
 
-from .utils import to_dict, to_plain
-
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -25,9 +23,8 @@ class PlotStyleResolver:
     def __init__(self, dataset):
         self.dataset = dataset
 
-        # Normalize configs ONCE
-        self.cmap_cfg = to_dict(getattr(dataset, "colormap", {}))
-        self.range_cfg = to_dict(getattr(dataset, "range", {}))
+        self.cmap_cfg = dataset.get("colormap", default={})
+        self.range_cfg = dataset.get("range", default={})
 
 
 # ======================================================================================= CHJ =====
@@ -51,23 +48,24 @@ class PlotStyleResolver:
 
 # ======================================================================================= CHJ =====
     def _resolve_cmap(self, varname, dataset_cfg=None):
+    
         # -------------------------
-        # 1. dataset override (HIGHEST PRIORITY)
+        # 1. dataset override
         # -------------------------
         if dataset_cfg is not None:
-            ds_cmap_cfg = to_dict(getattr(dataset_cfg, "colormap", {}))
+            ds_cmap_cfg = getattr(dataset_cfg, "colormap", {})
             cmap = ds_cmap_cfg.get(varname, ds_cmap_cfg.get("default"))
         else:
             cmap = None
     
         # -------------------------
-        # 2. global config fallback
+        # 2. global fallback
         # -------------------------
         if cmap is None:
             cmap = self.cmap_cfg.get(varname, self.cmap_cfg.get("default"))
     
         # -------------------------
-        # 3. convert string → cmap
+        # 3. string -> cmap
         # -------------------------
         if isinstance(cmap, str):
             try:
@@ -105,7 +103,7 @@ class PlotStyleResolver:
         # 1. dataset override (HIGHEST PRIORITY)
         # -------------------------
         if dataset_cfg is not None:
-            ds_range_cfg = to_dict(getattr(dataset_cfg, "range", {}))
+            ds_range_cfg = getattr(dataset_cfg, "range", {})
             var_range = ds_range_cfg.get(varname, ds_range_cfg.get("default", {}))
         else:
             var_range = {}

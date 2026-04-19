@@ -1,6 +1,8 @@
 import logging
+import re
 
 logger = logging.getLogger(__name__)
+
 
 class NameBuilder:
     """
@@ -10,41 +12,41 @@ class NameBuilder:
     def __init__(self, cfg):
         self.cfg = cfg
 
-
 # ======================================================================================= CHJ =====
-    def build_filename(self, varname, dataset_name, z_index=None):
-        """
-        Build filename:
-        prefix_dataset_var_levXXX_PDY_cyc
-        """
+    def _build_parts(self, varname, dataset_name, z_index):
         parts = []
 
-        # File name prefix
-        prefix = self.cfg.output.prefix
-        parts.append(prefix)
+        prefix = self.cfg.get("output", "prefix", default="")
+        if prefix:
+            parts.append(prefix)
 
-        # Dataset name
         if dataset_name:
             parts.append(dataset_name)
 
-        # Variable name
         parts.append(varname)
 
-        # Vertical level
         if z_index is not None:
             parts.append(f'''z{int(z_index):03d}''')
 
-        # Date
-        pdy = str(self.cfg.plot.PDY)
+        pdy = str(self.cfg.get("plot", "PDY", default=""))
         if pdy:
             parts.append(pdy)
 
-        # Cycle
-        cycle = self.cfg.plot.cycle
+        cycle = self.cfg.get("plot", "cycle", default="")
         if cycle:
             parts.append(cycle)
 
+        return parts
+
+
+# ======================================================================================= CHJ =====
+    def build_filename(self, varname, dataset_name, z_index=None):
+        parts = self._build_parts(varname, dataset_name, z_index)
+
         filename = "_".join(parts)
+
+        # sanitize filename
+        filename = re.sub(r'''[^a-zA-Z0-9._-]''', "", filename)
 
         logger.info(f'''Output filename: {filename}''')
 
@@ -53,38 +55,11 @@ class NameBuilder:
 
 # ======================================================================================= CHJ =====
     def build_title(self, varname, dataset_name, z_index=None):
-        """
-        Build plot title:
-        prefix::dataset::var::zXXX::PDY::cyc
-        """    
-        parts = []
-    
-        # Prefix
-        prefix = self.cfg.output.prefix.upper()
-        parts.append(prefix)
+        parts = self._build_parts(varname, dataset_name, z_index)
 
-        if dataset_name:
-            parts.append(dataset_name)
-
-        # Variable name
-        parts.append(varname)
-    
-        # Vertical level
-        if z_index is not None:
-            parts.append(f'''z{int(z_index)}''')
-
-        # Date
-        pdy = str(self.cfg.plot.PDY)
-        if pdy:
-            parts.append(pdy)
-
-        # Cycle
-        cycle = self.cfg.plot.cycle
-        if cycle:
-            parts.append(cycle)
-    
         title = " :: ".join(parts)
-    
+
         logger.info(f'''Plot title: {title}''')
-    
+
         return title
+

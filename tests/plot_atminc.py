@@ -6,7 +6,7 @@ from pathlib import Path
 parent_dir = Path(__file__).resolve().parents[2]
 sys.path.append(str(parent_dir))
 
-import ufs_plot_utils as plt
+import ufs_plot_utils as ufs
 import logging
 
 def main():
@@ -17,21 +17,23 @@ def main():
     ./[python_script] --help
     """
     # Read input arguments
-    args = plt.CLI().parse()
+    args = ufs.CLI().parse()
 
     # Set logger configuration
-    plt.LoggerSetup.setup(args.log_level)
-    #logger = logging.getLogger(__name__)
+    ufs.LoggerSetup.setup(args.log_level)
 
-    # Read input configuration YAML file
-    cfg = plt.Config(args.input_config)
+    try:
+        # Read input configuration YAML file
+        cfg = ufs.Config(args.input_config)
+        # Print out configuration parameters
+        cfg.log_config()
+        # Run pipeline
+        pipeline = ufs.Pipeline(cfg)
+        pipeline.run_plot_tiles()
 
-    # Print out configuration parameters
-    cfg.log_config()
-
-    # Run pipeline
-    pipeline = plt.Pipeline(cfg)
-    pipeline.run_plot_tiles()
+    except Exception:
+        logging.exception(f'''Pipeline failed''')
+        sys.exit(1)
 
 
 # Main call ========================================================= CHJ =====

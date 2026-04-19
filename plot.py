@@ -8,7 +8,6 @@ import cartopy.feature as cfeature
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from .cmap import PlotStyleResolver
-from .utils import to_dict
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +18,7 @@ class Plotter:
     def __init__(self, cfg):
         self.cfg = cfg
 
-        plot_cfg = to_dict(getattr(cfg, "plot", {}))
+        plot_cfg = cfg.get("plot", default={})
 
         self.proj_cfg  = plot_cfg.get("projection", {})
         self.fig_cfg   = plot_cfg.get("figure", {})
@@ -38,10 +37,9 @@ class Plotter:
 # ======================================================================================= CHJ =====
     def plot_data_tiles(
         self,
-        data_var,
+        da,
         lat,
         lon,
-        da,
         varname,
         dataset_cfg,
         output_title
@@ -49,65 +47,96 @@ class Plotter:
         """
         Plot cubed-sphere tiled data.
         """
-        logger.info("Plotting seamless global map")
-
-        num_tiles = 6
-
+        logger.info(f'''Plotting seamless global map''')
+    
+        # -------------------------
+        # Tiles (dynamic, not hardcoded)
+        # -------------------------
+        if "tile" not in da.dims:
+            raise ValueError(f'''Expected "tile" dimension, got {da.dims}''')
+    
+        num_tiles = da.sizes["tile"]
+    
+        # -------------------------
+        # Projection
+        # -------------------------
         proj_name = self.proj_cfg.get("name", "Robinson")
         central_lon = self.proj_cfg.get("central_longitude", -77.0369)
+    
         proj_map = {
             "Robinson": ccrs.Robinson,
             "PlateCarree": ccrs.PlateCarree,
             "Mollweide": ccrs.Mollweide,
         }
+    
         proj_class = proj_map.get(proj_name, ccrs.Robinson)
+    
         if proj_name == "PlateCarree":
             projection = ccrs.PlateCarree()
         else:
             projection = proj_class(central_longitude=central_lon)
-
+    
+        # -------------------------
+        # Figure
+        # -------------------------
         figsize = self.fig_cfg.get("figsize", [10, 5])
         dpi = self.fig_cfg.get("dpi", 150)
-        
+    
         fig, ax = plt.subplots(
             1, 1,
             figsize=figsize,
             dpi=dpi,
             subplot_kw=dict(projection=projection)
         )
-
+    
         ax.set_global()
-
-        # Background plot
+    
+        # -------------------------
+        # Background
+        # -------------------------
         self.plot_background(ax)
-
-        # Colormap
+    
+        # -------------------------
+        # Style (still needs numpy)
+        # -------------------------
+        data_values = da.values
+    
         style = self.style_resolver.resolve(
             varname,
-            data_var,
+            data_values,
             da,
             dataset_cfg
         )
+    
         cmap = style.cmap
         vmin = style.vmin
         vmax = style.vmax
         cbar_label = style.label
-
+    
+        # -------------------------
         # Title
+        # -------------------------
         title_fs = self.title_cfg.get("fontsize", 8)
         ax.set_title(output_title, fontsize=title_fs)
-
+    
+        # -------------------------
+        # Plot tiles
+        # -------------------------
         cs = None
+    
         for it in range(num_tiles):
-            lon_tile = np.array(lon[it, :, :])
-            lat_tile = np.array(lat[it, :, :])
-            var_tile = np.array(data_var[it, :, :])
-
-            # Wrap longitude consistently
+            lon_tile = np.asarray(lon[it, :, :])
+            lat_tile = np.asarray(lat[it, :, :])
+    
+            # Extract from xarray (not pre-converted numpy)
+            var_tile = da.isel(tile=it).values
+    
+            # Wrap longitude
             lon_tile = (lon_tile + 180) % 360 - 180
-            # Mask invalid values
+    
+            # Mask invalid
             var_tile = np.ma.masked_invalid(var_tile)
-
+    
             cs = ax.pcolormesh(
                 lon_tile,
                 lat_tile,
@@ -116,27 +145,26 @@ class Plotter:
                 vmin=vmin,
                 vmax=vmax,
                 transform=ccrs.PlateCarree(),
-                shading="auto"   # important for seamless edges
+                shading="auto"
             )
-
+    
+        # -------------------------
         # Colorbar
+        # -------------------------
         cb_extend = self.cb_cfg.get("extend", "both")
         cb_size = self.cb_cfg.get("size", "3%")
         cb_pad = self.cb_cfg.get("pad", 0.1)
         cb_label_fs = self.cb_cfg.get("label_fontsize", 7)
         cb_tick_fs = self.cb_cfg.get("tick_fontsize", 6)
-        
+    
         divider = make_axes_locatable(ax)
         ax_cb = divider.new_horizontal(size=cb_size, pad=cb_pad, axes_class=plt.Axes)
         fig.add_axes(ax_cb)
-        cbar = plt.colorbar(
-            cs,
-            cax=ax_cb,
-            extend=cb_extend
-        )
+    
+        cbar = plt.colorbar(cs, cax=ax_cb, extend=cb_extend)
         cbar.ax.tick_params(labelsize=cb_tick_fs)
         cbar.set_label(cbar_label, fontsize=cb_label_fs)
-
+    
         return fig
 
 

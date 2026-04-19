@@ -16,33 +16,14 @@ class DataReader:
         self.dataset = dataset
         self.ds = None
 
-        # I/O only shortcuts (safe + clean)
-        self.path = dataset.dataset.path
-        self.filename = dataset.dataset.filename
-        self.file_type = dataset.dataset.file_type
-
-        self.var_list = dataset.dataset.var_list
-        self.z_index = getattr(dataset.dataset, "z_index", None)
-        self.time_index = getattr(dataset.dataset, "time_index", 0)
-
-
-    def _open_dataset(self):
-        """
-        Open dataset only when needed (lazy loading)
-        """
-        if self.ds is None:
-            self.file_path = os.path.join(self.path, self.filename)
-            logger.info(f'''Opening dataset: {self.file_path}''')
-            try:
-                self.ds = xr.open_dataset(self.file_path)
-            except Exception as e:
-                raise FileNotFoundError(f'''Could NOT open file: {self.file_path}''') from e
-
-
-    def close(self):
-        if self.ds is not None:
-            self.ds.close()
-            self.ds = None
+        # I/O only shortcuts
+        self.path = dataset.dataset.get("path")
+        self.filename = dataset.dataset.get("filename")
+        self.file_type = dataset.dataset.get("file_type")
+        
+        self.var_list = dataset.dataset.get("var_list", [])
+        self.z_index = dataset.dataset.get("z_index")
+        self.time_index = dataset.dataset.get("time_index", 0)
 
 
 # ======================================================================================= CHJ =====
@@ -50,7 +31,7 @@ class DataReader:
         """
         Return raw DataArray (NO styling, NO plotting logic).
         """
-    
+        logger.debug(f'''data file type = {self.file_type}''') 
         if self.file_type == "tile":
             return self._get_data_tiles(varname)
     
@@ -107,15 +88,14 @@ class DataReader:
    
         prefix = extract_tile_prefix(self.filename)
         pattern = os.path.join(self.path, f'''{prefix}.tile*.nc''')
-    
+        logger.debug(f'''Tile pattern: {pattern}''')   
         file_list = sorted(glob.glob(pattern))
+        logger.debug(f'''Files found: {file_list}''')
     
         if len(file_list) != 6:
             raise ValueError(f'''Expected 6 tiles, found {len(file_list)}''')
     
         logger.info(f'''Opening 6 tiles for variable: {varname}''')
-        logger.debug(f'''Tile pattern: {pattern}''')
-        logger.debug(f'''Files found: {file_list}''')
     
         datasets = []
     
@@ -181,4 +161,25 @@ class DataReader:
             da = da.isel({z_dim: z_index})
     
         return da
+
+
+# ======================================================================================= CHJ =====
+    def _open_dataset(self):
+        """
+        Open dataset only when needed (lazy loading)
+        """
+        if self.ds is None:
+            self.file_path = os.path.join(self.path, self.filename)
+            logger.info(f'''Opening dataset: {self.file_path}''')
+            try:
+                self.ds = xr.open_dataset(self.file_path)
+            except Exception as e:
+                raise FileNotFoundError(f'''Could NOT open file: {self.file_path}''') from e
+
+
+# ======================================================================================= CHJ =====
+    def close(self):
+        if self.ds is not None:
+            self.ds.close()
+            self.ds = None
 
