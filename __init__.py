@@ -1,5 +1,5 @@
 from .cli import CLI
-from .cmap import CmapManager
+from .cmap import PlotStyleResolver
 from .config import Config
 from .data import DataReader
 from .dataset import Dataset

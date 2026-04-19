@@ -6,7 +6,8 @@ import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from .cmap import CmapManager
+
+from .cmap import PlotStyleResolver
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,6 @@ class Plotter:
     """
     def __init__(self, cfg):
         self.cfg = cfg
-        self.cmap_helper = CmapManager(cfg)
 
         # Set Cartopy Natural Earth data path
         cartopy_ne_path = self.cfg.plot.cartopy_ne_path
@@ -51,13 +51,11 @@ class Plotter:
         self.plot_background(ax)
 
         # Colormap
-        is_increment = dataset.data_kind == "increment"
-        cmap, vmin, vmax = self.cmap_helper.get_cmap_and_range(
+        resolver = PlotStyleResolver(dataset)        
+        cmap, vmin, vmax, cbar_label = resolver.resolve(
             varname,
             data_var,
-            dataset.colormap,
-            dataset.range,
-            is_increment=is_increment
+            da
         )
 
         # Title
@@ -86,28 +84,14 @@ class Plotter:
             )
 
         # Colorbar
-        var_cbar_label = self.build_cbar_label(da, varname, dataset)
         divider = make_axes_locatable(ax)
         ax_cb = divider.new_horizontal(size="3%", pad=0.1, axes_class=plt.Axes)
         fig.add_axes(ax_cb)
         cbar = plt.colorbar(cs, cax=ax_cb, extend="both")
         cbar.ax.tick_params(labelsize=6)
-        cbar.set_label(var_cbar_label, fontsize=7)
+        cbar.set_label(cbar_label, fontsize=7)
 
         return fig
-
-
-# ======================================================================================= CHJ =====
-    def build_cbar_label(self, da, varname, dataset):
-        long_name = da.attrs.get("long_name", varname)
-        units = da.attrs.get("units", "")
-    
-        label = f"{long_name} ({units})" if units else long_name
-    
-        if dataset.data_kind == "increment":
-            label = f"Δ{label}"
-    
-        return label
 
 
 # ======================================================================================= CHJ =====
