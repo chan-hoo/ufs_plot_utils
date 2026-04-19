@@ -50,15 +50,15 @@ plot:
     central_longitude: -77.0369
   figure:
     figsize: [5, 2.5]
-    dpi: 150
+    dpi: 300
   colorbar:
     extend: both   # neither | both | min | max
-    size: "3%"
-    pad: 0.1
-    label_fontsize: 7
-    tick_fontsize: 6
+    size: "3.5%"
+    pad: 0.08
+    label_fontsize: 8
+    tick_fontsize: 7
   title:
-    fontsize: 8
+    fontsize: 9
   background:
     features:
       - coastline

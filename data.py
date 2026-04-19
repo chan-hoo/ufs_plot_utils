@@ -14,11 +14,12 @@ class DataReader:
     def __init__(self, dataset):
         self.dataset = dataset
 
-        self.path = dataset.path
-        self.filename = dataset.filename
-        self.file_type = dataset.file_type
-        self.z_index = dataset.z_index
-        self.time_index = dataset.time_index
+        self.path = dataset.dataset.path
+        self.filename = dataset.dataset.filename
+        self.file_type = dataset.dataset.file_type
+
+        self.z_index = getattr(dataset.dataset, "z_index", None)
+        self.time_index = getattr(dataset.dataset, "time_index", 0)
 
         self.ds = None
 
