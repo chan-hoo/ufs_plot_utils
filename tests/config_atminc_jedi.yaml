@@ -49,15 +49,16 @@ plot:
     name: Robinson
     central_longitude: -77.0369
   figure:
-    figsize: [10, 5]
-    dpi: 150
+    figsize: [5, 2.5]
+    dpi: 300
   colorbar:
-    size: "3%"
+    extend: both   # neither | both | min | max
+    size: "3.5%"
     pad: 0.1
-    label_fontsize: 7
-    tick_fontsize: 6
+    label_fontsize: 8
+    tick_fontsize: 7
   title:
-    fontsize: 8
+    fontsize: 9
   background:
     features:
       - coastline

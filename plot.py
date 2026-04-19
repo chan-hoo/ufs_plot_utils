@@ -51,9 +51,27 @@ class Plotter:
         logger.info("Plotting seamless global map")
 
         num_tiles = 6
-        central_lon=-77.0369
 
-        fig,ax=plt.subplots(1,1,subplot_kw=dict(projection=ccrs.Robinson(central_lon)))
+        proj_name = self.proj_cfg.get("name", "Robinson")
+        central_lon = self.proj_cfg.get("central_longitude", -77.0369)
+        proj_map = {
+            "Robinson": ccrs.Robinson,
+            "PlateCarree": ccrs.PlateCarree,
+            "Mollweide": ccrs.Mollweide,
+        }
+        proj_class = proj_map.get(proj_name, ccrs.Robinson)
+        projection = proj_class(central_longitude=central_lon)
+
+        figsize = self.fig_cfg.get("figsize", [10, 5])
+        dpi = self.fig_cfg.get("dpi", 150)
+        
+        fig, ax = plt.subplots(
+            1, 1,
+            figsize=figsize,
+            dpi=dpi,
+            subplot_kw=dict(projection=projection)
+        )
+
         ax.set_global()
 
         # Background plot
@@ -68,7 +86,8 @@ class Plotter:
         )
 
         # Title
-        ax.set_title(output_title, fontsize=8)
+        title_fs = self.title_cfg.get("fontsize", 8)
+        ax.set_title(output_title, fontsize=title_fs)
 
         cs = None
         for it in range(num_tiles):
@@ -93,12 +112,22 @@ class Plotter:
             )
 
         # Colorbar
+        cb_extend = self.cb_cfg.get("extend", "both")
+        cb_size = self.cb_cfg.get("size", "3%")
+        cb_pad = self.cb_cfg.get("pad", 0.1)
+        cb_label_fs = self.cb_cfg.get("label_fontsize", 7)
+        cb_tick_fs = self.cb_cfg.get("tick_fontsize", 6)
+        
         divider = make_axes_locatable(ax)
-        ax_cb = divider.new_horizontal(size="3%", pad=0.1, axes_class=plt.Axes)
+        ax_cb = divider.new_horizontal(size=cb_size, pad=cb_pad, axes_class=plt.Axes)
         fig.add_axes(ax_cb)
-        cbar = plt.colorbar(cs, cax=ax_cb, extend="both")
-        cbar.ax.tick_params(labelsize=6)
-        cbar.set_label(cbar_label, fontsize=7)
+        cbar = plt.colorbar(
+            cs,
+            cax=ax_cb,
+            extend=cb_extend
+        )
+        cbar.ax.tick_params(labelsize=cb_tick_fs)
+        cbar.set_label(cbar_label, fontsize=cb_label_fs)
 
         return fig
 
