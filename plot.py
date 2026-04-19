@@ -8,6 +8,7 @@ import cartopy.feature as cfeature
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from .cmap import PlotStyleResolver
+from .utils import to_dict
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +19,16 @@ class Plotter:
     def __init__(self, cfg):
         self.cfg = cfg
 
+        plot_cfg = to_dict(getattr(cfg, "plot", {}))
+
+        self.proj_cfg  = plot_cfg.get("projection", {})
+        self.fig_cfg   = plot_cfg.get("figure", {})
+        self.cb_cfg    = plot_cfg.get("colorbar", {})
+        self.title_cfg = plot_cfg.get("title", {})
+        self.bg_cfg    = plot_cfg.get("background", {})
+
         # Set Cartopy Natural Earth data path
-        cartopy_ne_path = self.cfg.plot.cartopy_ne_path
+        cartopy_ne_path = plot_cfg.get("cartopy_ne_path")
         if cartopy_ne_path:
             cartopy.config['data_dir'] = cartopy_ne_path
             logger.info(f'''Cartopy data_dir set to: {cartopy_ne_path}''')
@@ -98,76 +107,49 @@ class Plotter:
     def plot_background(self, ax):
         """
         Add background features (config-driven)
-        """    
-        bg_cfg = getattr(self.cfg.plot, "background", {})
-        features = bg_cfg.get("features", []) if isinstance(bg_cfg, dict) else getattr(bg_cfg, "features", [])
-        enabled = set(features)
-        logger.info(f'''Background features: {enabled}''')
-
-        back_res = "50m"
-        fline_wd = 0.5
-        falpha = 0.7
+        """
+        features = set(self.bg_cfg.get("features", []))
+        res = self.bg_cfg.get("resolution", "50m")
+        lw = self.bg_cfg.get("linewidth", 0.5)
+        alpha = self.bg_cfg.get("alpha", 0.7)
     
-        def feature(geom, cat="physical", **kwargs):
-            return cfeature.NaturalEarthFeature(
-                cat, geom, back_res,
-                **kwargs
-            )
+        logger.info(f'''Background features: {features}''')
     
-        if "land" in enabled:
+        if "coastline" in features:
             ax.add_feature(
-                feature(
-                    "land",
-                    edgecolor="face",
-                    facecolor=cfeature.COLORS["land"],
-                    alpha=falpha
-                )
+                cfeature.COASTLINE.with_scale(res),
+                linewidth=lw,
+                alpha=alpha
             )
     
-        if "lakes" in enabled:
+        if "borders" in features:
             ax.add_feature(
-                feature(
-                    "lakes",
-                    edgecolor="blue",
-                    facecolor="none",
-                    linewidth=fline_wd,
-                    alpha=falpha
-                )
+                cfeature.BORDERS.with_scale(res),
+                linewidth=lw,
+                alpha=alpha
             )
     
-        if "coastline" in enabled:
+        if "states" in features:
             ax.add_feature(
-                feature(
-                    "coastline",
-                    edgecolor="black",
-                    facecolor="none",
-                    linewidth=fline_wd,
-                    alpha=falpha
-                )
+                cfeature.STATES.with_scale(res),
+                linewidth=lw,
+                linestyle=":",
+                alpha=alpha
             )
     
-        if "states" in enabled:
+        if "lakes" in features:
             ax.add_feature(
-                feature(
-                    "admin_1_states_provinces",
-                    cat="cultural",
-                    edgecolor="green",
-                    facecolor="none",
-                    linewidth=fline_wd,
-                    linestyle=":",
-                    alpha=falpha
-                )
+                cfeature.LAKES.with_scale(res),
+                linewidth=lw,
+                facecolor="none",
+                edgecolor="blue",
+                alpha=alpha
             )
     
-        if "borders" in enabled:
+        if "land" in features:
             ax.add_feature(
-                feature(
-                    "admin_0_countries",
-                    cat="cultural",
-                    edgecolor="red",
-                    facecolor="none",
-                    linewidth=fline_wd,
-                    alpha=falpha
-                )
+                cfeature.LAND.with_scale(res),
+                facecolor=cfeature.COLORS["land"],
+                edgecolor="face",
+                alpha=alpha
             )
-
