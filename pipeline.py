@@ -46,8 +46,9 @@ class Pipeline:
             for varname in ds.var_list:
                 logger.info(f'''{ds.name} :: {varname}''')
     
-                da, data_var = data_reader.get_data(varname)
-    
+                da = data_reader.get_data(varname)
+                data_var = da.values
+
                 # TITLE
                 title = self.names.build_title(
                     varname,
