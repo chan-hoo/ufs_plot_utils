@@ -63,18 +63,10 @@ class Pipeline:
                 data_var = da.values
 
                 # Title
-                title = self.names.build_title(
-                    varname,
-                    z_index=ds.z_index,
-                    dataset_name=ds.name
-                )
+                title = self.names.build_title(varnam,dataset_name=ds.name,z_index=ds.z_index)
     
                 # Filename
-                filename = self.names.build_filename(
-                    varname,
-                    z_index=ds.z_index,
-                    dataset_name=ds.name
-                )
+                filename = self.names.build_filename(varnam,dataset_name=ds.name,z_index=ds.z_index)
     
                 # Plot
                 fig = self.plotter.plot_data_tiles(
@@ -142,63 +134,61 @@ class Pipeline:
     
                 da_base = reader_base.get_data(var_base)
                 da_minus = reader_minus.get_data(var_minus)
-                logger.info(f'''Before nomalization:: da_base dims: {da_base.dims}''')
-                logger.info(f'''Before nomalization:: da_base shape: {da_base.shape}''')
-                logger.info(f'''Before nomalization:: da_minus dims: {da_minus.dims}''')
-                logger.info(f'''Before nomalization:: da_minus shape: {da_minus.shape}''')
+                logger.info(f'''Original:: da_base : {da_base.dims} = {da_base.shape}''')
+                logger.info(f'''Original:: da_minus: {da_minus.dims} = {da_minus.shape}''')
 
                 # Normalize BEFORE math
                 da_base  = normalize_tile_dims(da_base)
                 da_minus = normalize_tile_dims(da_minus)
-                logger.info(f'''After normalization:: da_base dims: {da_base.dims}''')
-                logger.info(f'''After nomalization:: da_base shape: {da_base.shape}''')
-                logger.info(f'''After normalization:: da_minus dims: {da_minus.dims}''')
-                logger.info(f'''After nomalization:: da_minus shape: {da_minus.shape}''')
-
-                da_base  = da_base.rename({"y": "y", "x": "x"})
-                da_minus = da_minus.rename({"y": "y", "x": "x"})
-                logger.info(f'''After rename:: da_base dims: {da_base.dims}''')
-                logger.info(f'''After rename:: da_base shape: {da_base.shape}''')
-                logger.info(f'''After rename:: da_minus dims: {da_minus.dims}''')
-                logger.info(f'''After rename:: da_minus shape: {da_minus.shape}''')
+                logger.info(f'''Normalized:: da_base : {da_base.dims} = {da_base.shape}''')
+                logger.info(f'''Normalized:: da_minus: {da_minus.dims} = {da_minus.shape}''')
 
                 # Align
                 da_base, da_minus = xr.align(da_base, da_minus, join="override")
     
                 # Difference
                 da_diff = da_base - da_minus
-                logger.info(f'''da_diff dims: {da_diff.dims}''')
-                logger.info(f'''da_diff shape: {da_diff.shape}''')
+                logger.info(f'''da_diff: {da_diff.dims} = {da_diff.shape}''')
     
                 # =========================
                 # 1. PLOT BASE
                 # =========================
+                # Title
+                title_base = self.names.build_title(varname=var_base,dataset_name=base_ds.name,z_index=base_ds.z_index)
+                # Filename
+                filename_base = self.names.build_filename(varname=var_base,dataset_name=base_ds.name,z_index=base_ds.z_index)
+                # Plot
                 fig1 = self.plotter.plot_data_tiles(
                     lat=lat,
                     lon=lon,
                     da=da_base,
                     varname=var_base,
-                    output_title=f'''{base_name}: {var_base}''',
+                    output_title=title_base,
                     dataset=base_ds
                 )
-    
-                self.output.save_figure(fig1, f'''{name}_{base_name}_{var_base}''')
+                # Save
+                self.output.save_figure(fig1, filename_base)
     
                 # =========================
                 # 2. PLOT MINUS
                 # =========================
                 self.plotter.set_style_resolver(PlotStyleResolver(minus_ds))
-    
+
+                # Title
+                title_minus = self.names.build_title(varname=var_minus,dataset_name=minus_ds.name,z_index=base_ds.z_index)
+                # Filename
+                filename_minus = self.names.build_filename(varname=var_minus,dataset_name=minus_ds.name,z_index=base_ds.z_index)
+
                 fig2 = self.plotter.plot_data_tiles(
                     lat=lat,
                     lon=lon,
                     da=da_minus,
                     varname=var_minus,
-                    output_title=f'''{minus_name}: {var_minus}''',
+                    output_title=title_minus,
                     dataset=minus_ds
                 )
     
-                self.output.save_figure(fig2, f'''{name}_{minus_name}_{var_minus}''')
+                self.output.save_figure(fig2, filename_minus)
     
                 # =========================
                 # 3. PLOT DIFFERENCE
@@ -208,17 +198,22 @@ class Pipeline:
                 diff_ds.data_kind = "increment"
     
                 self.plotter.set_style_resolver(PlotStyleResolver(diff_ds))
-    
+
+                # Title
+                title_diff = self.names.build_title(varname=var_base,dataset_name=name,z_index=base_ds.z_index)
+                # Filename
+                filename_diff = self.names.build_filename(varname=var_base,dataset_name=name,z_index=base_ds.z_index)
+
                 fig3 = self.plotter.plot_data_tiles(
                     lat=lat,
                     lon=lon,
                     da=da_diff,
                     varname=var_base,
-                    output_title=f'''{base_name} - {minus_name}: {var_base}''',
+                    output_title=title_diff,
                     dataset=diff_ds
                 )
     
-                self.output.save_figure(fig3, f'''{name}_diff_{var_base}''')
+                self.output.save_figure(fig3, filename_diff)
     
             reader_base.close()
             reader_minus.close()

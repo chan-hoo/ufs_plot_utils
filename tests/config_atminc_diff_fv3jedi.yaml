@@ -70,6 +70,15 @@ input:
           vmin: -5
           vmax: 5
 
+  differences:
+    - name: fv3-jedi
+      base: fv3
+      minus: jedi
+      var_map:
+        T_inc: tmp
+        u_inc: ugrd
+        v_inc: vgrd
+
 output:
   path: ./
   prefix: atminc

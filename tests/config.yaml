@@ -71,7 +71,7 @@ input:
           vmax: 5
 
   differences:
-    - name: fv3_minus_jedi
+    - name: fv3-jedi
       base: fv3
       minus: jedi
       var_map:
