@@ -15,7 +15,7 @@ input:
           - u_inc
           - v_inc
         z_index: 76
-        time_index: 0   # optional (default = 0)
+        time_index: 0
       colormap:
         default: gist_ncar_r
         T_inc: RdBu_r
@@ -34,6 +34,50 @@ input:
         v_inc:
           vmin: -5
           vmax: 5
+
+    - name: jedi
+      data_kind: increment   # increment | analysis | forecast | etc.
+      geo:
+        path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
+        filename: cubed_sphere_grid_atminc.jedi.nc
+        file_type: file      # file | orog
+      data:
+        path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
+        filename: cubed_sphere_grid_atminc.jedi.nc
+        file_type: file      # file | tile
+        var_list:
+          - tmp
+          - ugrd
+          - vgrd
+        z_index: 76
+        time_index: 0
+      colormap:
+        default: gist_ncar_r
+        tmp: RdBu_r
+        ugrd: RdBu_r
+        vgrd: RdBu_r
+      range:
+        default:
+          vmin: null
+          vmax: null
+        tmp:
+          vmin: -2.5
+          vmax: 2.5
+        ugrd:
+          vmin: -5
+          vmax: 5
+        vgrd:
+          vmin: -5
+          vmax: 5
+
+  differences:
+    - name: fv3_minus_jedi
+      base: fv3
+      minus: jedi
+      var_map:
+        T_inc: tmp
+        u_inc: ugrd
+        v_inc: vgrd
 
 output:
   path: ./

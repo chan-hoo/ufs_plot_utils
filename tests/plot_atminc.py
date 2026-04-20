@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+import os
 from pathlib import Path
 # Get the path two levels up
 parent_dir = Path(__file__).resolve().parents[2]
@@ -29,7 +30,13 @@ def main():
         cfg.log_config()
         # Run pipeline
         pipeline = ufs.Pipeline(cfg)
-        pipeline.run_plot_tiles()
+
+        ## Select type of pipeline based on configuration
+        input_cfg = cfg.get("input")
+        if input_cfg and input_cfg.get("differences"):
+            pipeline.run_differences()
+        else:
+            pipeline.run_plot_tiles()
 
     except Exception:
         logging.exception(f'''Pipeline failed''')
