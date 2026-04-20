@@ -1,5 +1,6 @@
 import logging
 
+from .cmap import PlotStyleResolver
 from .data import DataReader
 from .dataset import Dataset
 from .geo import GeoReader
@@ -41,11 +42,12 @@ class Pipeline:
 
         for ds in self.datasets:
             logger.info(f'''Processing dataset: {ds.name}''')
-
+            style_resolver = PlotStyleResolver(ds)
+            self.plotter.set_style_resolver(style_resolver)
             # -------------------------
             # GEO (load once per dataset)
             # -------------------------
-            geo_reader = GeoReader(ds.geo)
+            geo_reader = GeoReader(ds)
             lat, lon = geo_reader.get_geo()
 
             # -------------------------
@@ -75,12 +77,12 @@ class Pipeline:
     
                 # PLOT
                 fig = self.plotter.plot_data_tiles(
-                    da,
                     lat=lat,
                     lon=lon,
+                    da=da,
                     varname=varname,
-                    dataset_cfg=ds,
-                    output_title=title
+                    output_title=title,
+                    dataset=ds
                 )
     
                 self.output.save_figure(fig, filename)

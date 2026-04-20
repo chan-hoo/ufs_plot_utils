@@ -23,21 +23,24 @@ class PlotStyleResolver:
     def __init__(self, dataset):
         self.dataset = dataset
 
-        self.cmap_cfg = dataset.get("colormap", default={})
-        self.range_cfg = dataset.get("range", default={})
+        # Direct access (Dataset is now the contract)
+        self.cmap_cfg = getattr(dataset, "colormap", {}) or {}
+        self.range_cfg = getattr(dataset, "range", {}) or {}
 
 
 # ======================================================================================= CHJ =====
-    def resolve(self, varname, data_var, da, dataset_cfg=None):
-        cmap = self._resolve_cmap(varname, dataset_cfg)
-        vmin, vmax = self._resolve_range(varname, data_var, dataset_cfg)
-        label = self._build_label(da, varname, dataset_cfg)
+    def resolve(self, varname, da):
+        data_var = da.values
 
+        cmap = self._resolve_cmap(varname)
+        vmin, vmax = self._resolve_range(varname, data_var)
+        label = self._build_label(da, varname)
+    
         logger.info(
             f'''{varname}:: cmap={getattr(cmap, 'name', type(cmap).__name__)}, '''
             f'''vmin={vmin}, vmax={vmax}'''
-            )
-
+        )
+    
         return PlotStyle(
             cmap=cmap,
             vmin=vmin,
@@ -47,25 +50,14 @@ class PlotStyleResolver:
 
 
 # ======================================================================================= CHJ =====
-    def _resolve_cmap(self, varname, dataset_cfg=None):
+    def _resolve_cmap(self, varname):
+        """
+        Set up colormap
+        """
+        cmap = self.cmap_cfg.get(varname, self.cmap_cfg.get("default"))
     
         # -------------------------
-        # 1. dataset override
-        # -------------------------
-        if dataset_cfg is not None:
-            ds_cmap_cfg = getattr(dataset_cfg, "colormap", {})
-            cmap = ds_cmap_cfg.get(varname, ds_cmap_cfg.get("default"))
-        else:
-            cmap = None
-    
-        # -------------------------
-        # 2. global fallback
-        # -------------------------
-        if cmap is None:
-            cmap = self.cmap_cfg.get(varname, self.cmap_cfg.get("default"))
-    
-        # -------------------------
-        # 3. string -> cmap
+        # string -> cmap
         # -------------------------
         if isinstance(cmap, str):
             try:
@@ -75,7 +67,7 @@ class PlotStyleResolver:
                 cmap = plt.get_cmap("viridis")
     
         # -------------------------
-        # 4. meteorology fallback
+        # meteorology fallback
         # -------------------------
         if cmap is None:
             var = varname.lower()
@@ -97,36 +89,22 @@ class PlotStyleResolver:
 
 
 # ======================================================================================= CHJ =====
-    def _resolve_range(self, varname, data_var, dataset_cfg=None):
+    def _resolve_range(self, varname, data_var):
     
         # -------------------------
-        # 1. dataset override (HIGHEST PRIORITY)
+        # 1. dataset config
         # -------------------------
-        if dataset_cfg is not None:
-            ds_range_cfg = getattr(dataset_cfg, "range", {})
-            var_range = ds_range_cfg.get(varname, ds_range_cfg.get("default", {}))
-        else:
-            var_range = {}
+        var_range = self.range_cfg.get(varname, self.range_cfg.get("default", {})) or {}
     
         vmin = var_range.get("vmin")
         vmax = var_range.get("vmax")
     
         # -------------------------
-        # 2. global fallback if missing
+        # 2. auto fallback
         # -------------------------
-        if vmin is None or vmax is None:
-            global_range = self.range_cfg.get(varname, self.range_cfg.get("default", {}))
-    
-            if vmin is None:
-                vmin = global_range.get("vmin")
-            if vmax is None:
-                vmax = global_range.get("vmax")
-    
-        # -------------------------
-        # 3. auto-range fallback
-        # -------------------------
-        if vmin is None or vmax is None:
-            if self._is_increment():
+        if vmin is None or vmax is None:    
+            is_increment = getattr(self.dataset, "data_kind", None) == "increment"
+            if is_increment:
                 vmax_auto = np.nanpercentile(np.abs(data_var), 98)
                 vmin, vmax = -vmax_auto, vmax_auto
             else:
@@ -137,24 +115,15 @@ class PlotStyleResolver:
 
 
 # ======================================================================================= CHJ =====
-    def _build_label(self, da, varname, dataset_cfg=None):
-    
+    def _build_label(self, da, varname):
+
         long_name = da.attrs.get("long_name", varname)
         units = da.attrs.get("units", "")
     
-        label = f"{long_name} ({units})" if units else long_name
+        label = f'''{long_name} ({units})''' if units else long_name
     
-        # dataset-aware increment flag
-        is_increment = False
-        if dataset_cfg is not None:
-            is_increment = getattr(dataset_cfg, "data_kind", None) == "increment"
-    
-        if is_increment:
-            label = f"Δ{label}"
-    
+        if self.dataset.data_kind == "increment":
+            label = f'''Δ{label}'''
+
         return label
 
-
-# ======================================================================================= CHJ =====
-    def _is_increment(self):
-        return getattr(self.dataset, "data_kind", "") == "increment"

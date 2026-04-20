@@ -15,20 +15,21 @@ def extract_tile_prefix(filename):
     - remove trailing .tile
     """
     name = filename.strip()
+    logger.debug(f'''File prefix input: {name}''')
 
-    logger.debug(f'''File prefix: {name}''')
-    # Remove extension
-    if filename.endswith(".nc"):
-        base = os.path.splitext(name)[0]
-        logger.debug(f'''Remove extention: {base}''')
-        ## Remove ".tile<number>" if present
-        base = re.sub(r'\.tile\d+$', '', base)
-    # Remove trailing ".tile" if present
-    elif filename.endswith(".tile"):
-        base = os.path.splitext(name)[0]
-        logger.debug(f'''Remove .tile: {base}''')
+    # Remove extension if present
+    base, ext = os.path.splitext(name)
+
+    if ext == ".nc":
+        logger.debug(f'''Remove extension: {base}''')
     else:
-        base = name
+        base = name  # keep original if no extension
+
+    # Remove ".tile<number>" if present
+    base = re.sub(r'\.tile\d+$', '', base)
+
+    # Remove trailing ".tile"
+    base = re.sub(r'\.tile$', '', base)
 
     logger.debug(f'''File prefix final: {base}''')
 

@@ -25,7 +25,7 @@ class Plotter:
         self.cb_cfg    = plot_cfg.get("colorbar", {})
         self.title_cfg = plot_cfg.get("title", {})
         self.bg_cfg    = plot_cfg.get("background", {})
-        self.style_resolver = PlotStyleResolver(cfg)
+        self.style_resolver = None
 
         # Set Cartopy Natural Earth data path
         cartopy_ne_path = plot_cfg.get("cartopy_ne_path")
@@ -33,22 +33,27 @@ class Plotter:
             cartopy.config['data_dir'] = cartopy_ne_path
             logger.info(f'''Cartopy data_dir set to: {cartopy_ne_path}''')
 
+    def set_style_resolver(self, resolver):
+        self.style_resolver = resolver
+
 
 # ======================================================================================= CHJ =====
     def plot_data_tiles(
         self,
-        da,
         lat,
         lon,
+        da,
         varname,
-        dataset_cfg,
-        output_title
+        output_title,
+        dataset
     ):
         """
         Plot cubed-sphere tiled data.
         """
         logger.info(f'''Plotting seamless global map''')
-    
+        if self.style_resolver is None:
+            raise RuntimeError("StyleResolver not set. Call set_style_resolver(ds) before plotting.")
+
         # -------------------------
         # Tiles (dynamic, not hardcoded)
         # -------------------------
@@ -103,9 +108,7 @@ class Plotter:
     
         style = self.style_resolver.resolve(
             varname,
-            data_values,
-            da,
-            dataset_cfg
+            da
         )
     
         cmap = style.cmap

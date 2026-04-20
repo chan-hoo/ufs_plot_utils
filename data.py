@@ -11,19 +11,36 @@ class DataReader:
     """
     Read NetCDF data and extract fields (I/O layer only).
     """
-
     def __init__(self, dataset):
+        # -------------------------
+        # Config (immutable)
+        # -------------------------
         self.dataset = dataset
+
+        self.path = dataset.path
+        self.filename = dataset.filename
+        self.file_type = dataset.file_type
+
+        self.z_index = dataset.z_index
+        self.time_index = dataset.time_index
+
+        # -------------------------
+        # Runtime (xarray dataset)
+        # -------------------------
         self.ds = None
 
-        # I/O only shortcuts
-        self.path = dataset.dataset.get("path")
-        self.filename = dataset.dataset.get("filename")
-        self.file_type = dataset.dataset.get("file_type")
-        
-        self.var_list = dataset.dataset.get("var_list", [])
-        self.z_index = dataset.dataset.get("z_index")
-        self.time_index = dataset.dataset.get("time_index", 0)
+
+# ======================================================================================= CHJ =====
+    def _open_dataset(self):
+        """
+        Open dataset only when needed (lazy loading)
+        """
+        if self.ds is None:
+            file_path = os.path.join(self.path, self.filename)
+
+            logger.info(f'''Opening dataset: {file_path}''')
+
+            self.ds = xr.open_dataset(file_path, engine="netcdf4")
 
 
 # ======================================================================================= CHJ =====
@@ -31,23 +48,23 @@ class DataReader:
         """
         Return raw DataArray (NO styling, NO plotting logic).
         """
-        logger.debug(f'''data file type = {self.file_type}''') 
+        logger.debug(f'''data file type = {self.file_type}''')
+
         if self.file_type == "tile":
             return self._get_data_tiles(varname)
-    
+
         elif self.file_type == "file":
             return self._get_data_file(varname)
-    
+
         else:
             raise ValueError(f'''Unsupported file_type: {self.file_type}''')
 
 
 # ======================================================================================= CHJ =====
-    def _get_data_file(self, varname, z_index=None, time_index=0):
+    def _get_data_file(self, varname):
         """
         Read single NetCDF file and return DataArray.
-        """
-    
+        """    
         self._open_dataset()
     
         logger.info(f'''Reading variable: {varname}''')
@@ -62,7 +79,7 @@ class DataReader:
     
         # apply slicing (data-layer only)
         da = self._slice_data(da, self.z_index, self.time_index)
-    
+
         # -------------------------
         # validation
         # -------------------------
@@ -80,7 +97,7 @@ class DataReader:
 
 
 # ======================================================================================= CHJ =====
-    def _get_data_tiles(self, varname, z_index=None, time_index=0):
+    def _get_data_tiles(self, varname):
         """
         Read 6-tile NetCDF and return DataArray (tile, y, x).
         """    
@@ -115,7 +132,7 @@ class DataReader:
     
             # apply slicing (data layer only)
             da = self._slice_data(da, self.z_index, self.time_index)
-    
+
             if da.ndim != 3:
                 raise ValueError(f'''{varname} expected (tile, y, x), got {da.dims}''')
     
@@ -161,20 +178,6 @@ class DataReader:
             da = da.isel({z_dim: z_index})
     
         return da
-
-
-# ======================================================================================= CHJ =====
-    def _open_dataset(self):
-        """
-        Open dataset only when needed (lazy loading)
-        """
-        if self.ds is None:
-            self.file_path = os.path.join(self.path, self.filename)
-            logger.info(f'''Opening dataset: {self.file_path}''')
-            try:
-                self.ds = xr.open_dataset(self.file_path)
-            except Exception as e:
-                raise FileNotFoundError(f'''Could NOT open file: {self.file_path}''') from e
 
 
 # ======================================================================================= CHJ =====
