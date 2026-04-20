@@ -16,17 +16,17 @@ class Dataset:
         self.geo_file_type = geo_cfg.get("file_type", "file")
 
         # -------------------------
-        # Dataset block (FLATTEN HERE)
+        # Data block (FLATTEN HERE)
         # -------------------------
-        ds_cfg = cfg.get("dataset", {})
+        data_cfg = cfg.get("data", {})
 
-        self.path = ds_cfg.get("path")
-        self.filename = ds_cfg.get("filename")
-        self.file_type = ds_cfg.get("file_type", "file")
+        self.path = data_cfg.get("path")
+        self.filename = data_cfg.get("filename")
+        self.file_type = data_cfg.get("file_type", "file")
 
-        self.var_list = ds_cfg.get("var_list", [])
-        self.z_index = ds_cfg.get("z_index")
-        self.time_index = ds_cfg.get("time_index", 0)
+        self.var_list = data_cfg.get("var_list", [])
+        self.z_index = data_cfg.get("z_index")
+        self.time_index = data_cfg.get("time_index", 0)
 
         # -------------------------
         # Style (top-level)

@@ -6,7 +6,7 @@ input:
         path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
         filename: cubed_sphere_grid_atminc.jedi.nc
         file_type: file
-      dataset:
+      data:
         path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
         filename: cubed_sphere_grid_atminc.jedi.nc
         file_type: file

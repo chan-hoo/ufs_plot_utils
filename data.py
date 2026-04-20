@@ -11,23 +11,23 @@ class DataReader:
     """
     Read NetCDF data and extract fields (I/O layer only).
     """
-    def __init__(self, dataset):
+    def __init__(self, data):
         # -------------------------
         # Config (immutable)
         # -------------------------
-        self.dataset = dataset
+        self.data = data
 
-        self.path = dataset.path
-        self.filename = dataset.filename
-        self.file_type = dataset.file_type
+        self.path = data.path
+        self.filename = data.filename
+        self.file_type = data.file_type
 
-        self.z_index = dataset.z_index
-        self.time_index = dataset.time_index
+        self.z_index = data.z_index
+        self.time_index = data.time_index
 
         # -------------------------
         # Runtime (xarray dataset)
         # -------------------------
-        self.ds = None
+        self.xr_ds = None
 
 
 # ======================================================================================= CHJ =====
@@ -35,12 +35,12 @@ class DataReader:
         """
         Open dataset only when needed (lazy loading)
         """
-        if self.ds is None:
+        if self.xr_ds is None:
             file_path = os.path.join(self.path, self.filename)
 
-            logger.info(f'''Opening dataset: {file_path}''')
+            logger.info(f'''Opening data: {file_path}''')
 
-            self.ds = xr.open_dataset(file_path, engine="netcdf4")
+            self.xr_ds = xr.open_dataset(file_path, engine="netcdf4")
 
 
 # ======================================================================================= CHJ =====
@@ -69,10 +69,10 @@ class DataReader:
     
         logger.info(f'''Reading variable: {varname}''')
     
-        if varname not in self.ds:
+        if varname not in self.xr_ds:
             raise ValueError(f'''{varname} not found in dataset''')
     
-        da = self.ds[varname]
+        da = self.xr_ds[varname]
     
         logger.debug(f'''{varname} dims = {da.dims}''')
         logger.debug(f'''{varname} shape = {da.shape}''')
@@ -182,7 +182,7 @@ class DataReader:
 
 # ======================================================================================= CHJ =====
     def close(self):
-        if self.ds is not None:
-            self.ds.close()
-            self.ds = None
+        if self.xr_ds is not None:
+            self.xr_ds.close()
+            self.xr_ds = None
 
