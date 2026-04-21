@@ -102,15 +102,41 @@ class PlotStyleResolver:
         # -------------------------
         # 2. auto fallback
         # -------------------------
-        if vmin is None or vmax is None:    
-            is_increment = getattr(self.dataset, "data_kind", None) == "increment"
+        if vmin is None or vmax is None:
+            is_increment = (
+                getattr(self, "is_difference", False)
+                or self.dataset.data_kind == "increment"
+            )
+        
             if is_increment:
                 vmax_auto = np.nanpercentile(np.abs(data_var), 98)
+        
+                # fallback if data is tiny / all zeros
+                if vmax_auto == 0 or np.isnan(vmax_auto):
+                    vmax_auto = np.nanmax(np.abs(data_var))
+        
                 vmin, vmax = -vmax_auto, vmax_auto
+        
             else:
                 vmin = np.nanpercentile(data_var, 2)
                 vmax = np.nanpercentile(data_var, 98)
+
+        # Enforce symmetry for differences (optional but recommended)
+        if getattr(self, "is_difference", False):
+            vmax = max(abs(vmin), abs(vmax))
+            vmin = -vmax
     
+        # Final safeguard
+        if vmin == vmax:
+            scale = np.nanmax(np.abs(data_var))
+            if scale == 0 or np.isnan(scale):
+                scale = 1e-6
+            else:
+                scale *= 0.01
+    
+            logger.warning(f'''{varname}:: degenerate range -> using ±{scale}''')
+            vmin, vmax = -scale, scale
+
         return vmin, vmax
 
 

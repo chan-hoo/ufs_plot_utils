@@ -86,6 +86,7 @@ class Pipeline:
 # ======================================================================================= CHJ =====
     def run_differences(self):
         import copy
+        import numpy as np
     
         diff_cfgs = self.cfg.get("input", "differences", default=[])
         if not diff_cfgs:
@@ -149,6 +150,11 @@ class Pipeline:
                 # Difference
                 da_diff = da_base - da_minus
                 logger.info(f'''da_diff: {da_diff.dims} = {da_diff.shape}''')
+                vals = da_diff.values
+                logger.info(
+                    f'''[{base_name} - {minus_name}] {var_base}:: '''
+                    f'''min={np.nanmin(vals):.6g}, max={np.nanmax(vals):.6g}'''
+                )
     
                 # =========================
                 # 1. PLOT BASE
@@ -204,6 +210,7 @@ class Pipeline:
                     cmap_cfg=diff_cmap,
                     range_cfg=diff_range
                 )
+                resolver.is_difference = True
                 self.plotter.set_style_resolver(resolver)
 
                 # Title
