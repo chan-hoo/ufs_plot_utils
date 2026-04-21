@@ -6,9 +6,10 @@ Plotting utilities for UFS applications
 1. Set up the conda/python environment:
 ```
 cd env
+
 vim build_conda_env.sh
 (or)
-build_venv.sh)
+vim build_venv.sh
 (follow the steps)
 ```
 
