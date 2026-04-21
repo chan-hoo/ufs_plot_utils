@@ -1,6 +1,12 @@
 import pytest
 import numpy as np
 import xarray as xr
+import sys
+from pathlib import Path
+
+# Add project root to PYTHONPATH
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 
 @pytest.fixture
