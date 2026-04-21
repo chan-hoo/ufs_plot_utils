@@ -1,6 +1,10 @@
-numpy
-xarray
-netcdf4
-matplotlib
-pytest
 # cartopy   #comment out for CI stability
+matplotlib
+netcdf4
+numpy
+pytest
+PyYAML
+scipy
+seaborn
+xarray
+
