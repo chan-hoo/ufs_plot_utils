@@ -1,0 +1,10 @@
+cartopy
+matplotlib
+netcdf4
+numpy
+pytest
+PyYAML
+scipy
+seaborn
+xarray
+
