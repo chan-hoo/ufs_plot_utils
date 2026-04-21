@@ -37,7 +37,7 @@ input:
 
 output:
   path: ./
-  prefix: atminc
+  prefix: atmdata
 
 plot:
   cartopy_ne_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/NaturalEarth

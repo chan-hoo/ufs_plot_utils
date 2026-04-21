@@ -63,10 +63,10 @@ class Pipeline:
                 data_var = da.values
 
                 # Title
-                title = self.names.build_title(varnam,dataset_name=ds.name,z_index=ds.z_index)
+                title = self.names.build_title(varname,dataset_name=ds.name,z_index=ds.z_index)
     
                 # Filename
-                filename = self.names.build_filename(varnam,dataset_name=ds.name,z_index=ds.z_index)
+                filename = self.names.build_filename(varname,dataset_name=ds.name,z_index=ds.z_index)
     
                 # Plot
                 fig = self.plotter.plot_data_tiles(
