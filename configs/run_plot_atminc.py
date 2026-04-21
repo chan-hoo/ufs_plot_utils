@@ -3,8 +3,8 @@
 import sys
 import os
 from pathlib import Path
-# Get the path two levels up
-parent_dir = Path(__file__).resolve().parents[2]
+# Get the path one level up
+parent_dir = Path(__file__).resolve().parents[1]
 sys.path.append(str(parent_dir))
 
 import ufs_plot_utils as ufs

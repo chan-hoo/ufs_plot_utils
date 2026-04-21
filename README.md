@@ -3,7 +3,8 @@ Plotting utilities for UFS applications
 
 ## Quick-start-guide
 ```
-cd tests
+cd modulefiles
 source load_py_env.[platform]
-./plot_test.py -i config.yaml -l INFO
+cd ../configs
+./run_plot_[case].py -i config_[case].yaml -l INFO
 ```
