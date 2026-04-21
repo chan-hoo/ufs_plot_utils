@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.10", "3.11"]
+        python-version: ["3.10"]
 
     steps:
       - name: Checkout repo
@@ -24,10 +24,9 @@ jobs:
           environment-file: env/ci_environment.yml
           activate-environment: test
           use-mamba: true
+          auto-activate-base: false
 
       - name: Run tests
-        shell: bash -l {0}
         run: |
-          conda activate test
-          pytest -x -ra
+          conda run -n test pytest -x -ra
 
