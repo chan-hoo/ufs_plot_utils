@@ -196,8 +196,15 @@ class Pipeline:
                 # use BASE style but force increment behavior
                 diff_ds = copy.copy(base_ds)
                 diff_ds.data_kind = "increment"
-    
-                self.plotter.set_style_resolver(PlotStyleResolver(diff_ds))
+
+                diff_cmap = diff_cfg.get("colormap", {})
+                diff_range = diff_cfg.get("range", {})                
+                resolver = PlotStyleResolver(
+                    dataset=base_ds,          # needed for data_kind etc.
+                    cmap_cfg=diff_cmap,
+                    range_cfg=diff_range
+                )
+                self.plotter.set_style_resolver(resolver)
 
                 # Title
                 title_diff = self.names.build_title(varname=var_base,dataset_name=name,z_index=base_ds.z_index)

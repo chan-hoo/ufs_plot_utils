@@ -20,12 +20,12 @@ class PlotStyleResolver:
     Unified handler for colormap, range, and label.
     """
 
-    def __init__(self, dataset):
+    def __init__(self, dataset, cmap_cfg=None, range_cfg=None):
         self.dataset = dataset
 
-        # Direct access (Dataset is now the contract)
-        self.cmap_cfg = getattr(dataset, "colormap", {}) or {}
-        self.range_cfg = getattr(dataset, "range", {}) or {}
+        # allow override (difference case)
+        self.cmap_cfg = cmap_cfg if cmap_cfg is not None else getattr(dataset, "colormap", {}) or {}
+        self.range_cfg = range_cfg if range_cfg is not None else getattr(dataset, "range", {}) or {}
 
 
 # ======================================================================================= CHJ =====

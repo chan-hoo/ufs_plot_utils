@@ -78,6 +78,24 @@ input:
         T_inc: tmp
         u_inc: ugrd
         v_inc: vgrd
+      colormap:
+        default: RdBu_r
+        T_inc: RdBu_r
+        u_inc: RdBu_r
+        v_inc: RdBu_r
+      range:
+        default:
+          vmin: null
+          vmax: null
+        T_inc:
+          vmin: -0.1
+          vmax: 0.1
+        u_inc:
+          vmin: -0.1
+          vmax: 0.1
+        v_inc:
+          vmin: -0.1
+          vmax: 0.1
 
 output:
   path: ./
