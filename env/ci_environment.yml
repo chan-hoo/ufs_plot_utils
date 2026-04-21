@@ -9,3 +9,5 @@ dependencies:
   - cartopy
   - matplotlib
   - pytest
+  - PyYAML
+  - pip

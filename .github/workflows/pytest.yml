@@ -21,9 +21,9 @@ jobs:
       - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: 3.10
           environment-file: env/ci_environment.yml
           activate-environment: test
+          use-mamba: true
 
       - name: Run tests
         run: |
