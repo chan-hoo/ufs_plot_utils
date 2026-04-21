@@ -88,14 +88,14 @@ input:
           vmin: null
           vmax: null
         T_inc:
-          vmin: -0.1
-          vmax: 0.1
+          vmin: null
+          vmax: null
         u_inc:
-          vmin: -0.1
-          vmax: 0.1
+          vmin: null
+          vmax: null
         v_inc:
-          vmin: -0.1
-          vmax: 0.1
+          vmin: null
+          vmax: null
 
 output:
   path: ./
