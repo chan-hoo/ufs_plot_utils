@@ -54,8 +54,10 @@ class PlotStyleResolver:
         """
         Set up colormap
         """
-        cmap = self.cmap_cfg.get(varname, self.cmap_cfg.get("default"))
-    
+        cmap = self.cmap_cfg.get(varname)
+        if cmap is None:
+            cmap = self.cmap_cfg.get("default")
+
         # -------------------------
         # string -> cmap
         # -------------------------
