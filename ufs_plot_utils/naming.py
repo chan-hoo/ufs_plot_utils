@@ -28,11 +28,13 @@ class NameBuilder:
         if z_index is not None:
             parts.append(f'''z{int(z_index):03d}''')
 
-        pdy = str(self.cfg.get("plot", "PDY", default=""))
+        params = self.cfg.get("input", "parameters", default="")
+        cycle = params.get("cycle")
+        pdy = str(params.get("PDY"))
+
         if pdy:
             parts.append(pdy)
 
-        cycle = self.cfg.get("plot", "cycle", default="")
         if cycle:
             parts.append(cycle)
 

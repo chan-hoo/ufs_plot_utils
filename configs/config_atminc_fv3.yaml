@@ -1,4 +1,8 @@
 input:
+  parameters:
+    cycle: t00z
+    PDY: 20240224
+
   datasets:
     - name: fv3
       data_kind: increment   # increment | analysis | forecast | etc.
@@ -41,10 +45,6 @@ output:
 
 plot:
   cartopy_ne_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/NaturalEarth
-
-  cycle: t00z
-  PDY: 20240224
-
   projection:
     name: Robinson    # Robinson | PlateCarree | Mollweide 
     central_longitude: -77.0369  # D.C.
