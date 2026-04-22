@@ -108,8 +108,8 @@ plot:
   PDY: 20240224
 
   projection:
-    name: Robinson
-    central_longitude: -77.0369
+    name: Robinson    # Robinson | PlateCarree | Mollweide 
+    central_longitude: -77.0369  # D.C.
   figure:
     figsize: [5, 2.5]
     dpi: 300
