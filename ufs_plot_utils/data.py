@@ -183,6 +183,7 @@ class DataReader:
 # ======================================================================================= CHJ =====
     def close(self):
         if self.xr_ds is not None:
-            self.xr_ds.close()
-            self.xr_ds = None
-
+            try:
+                self.xr_ds.close()
+            finally:
+                self.xr_ds = None

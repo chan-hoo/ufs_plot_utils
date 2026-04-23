@@ -35,10 +35,13 @@ class Dataset:
         self.range = cfg.get("range", {})
 
         # -------------------------
-        # Validation (VERY IMPORTANT)
+        # Validation
         # -------------------------
         if not self.filename:
             raise ValueError(f'''Dataset "{self.name}" missing filename''')
 
         if not self.var_list:
             raise ValueError(f'''Dataset "{self.name}" missing var_list''')
+
+        if not self.path:
+            raise ValueError(f'''Dataset "{self.path}" missing path''')

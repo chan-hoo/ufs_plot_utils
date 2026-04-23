@@ -7,11 +7,11 @@ input:
     - name: before
       data_kind: analysis   # increment | analysis | forecast | etc.
       geo:
-        path: /scratch4/NAGAPE/epic/Chan-hoo.Jeon/ufsda_test/ufs-da-workflow/fix/DATA_fix/FV3/Tiled/C96
+        path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_fix/FV3/Tiled/C96
         filename: C96.mx100_oro_data
         file_type: orog      # file | orog
       data:
-        path: /scratch4/NAGAPE/epic/Chan-hoo.Jeon/ufsda_test/ufs-da-workflow/fix/DATA_ref/land
+        path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_ref/land
         filename: 20250121.000000.sfc_data.before
         file_type: tile      # file | tile
         var_list:
@@ -37,11 +37,11 @@ input:
     - name: after
       data_kind: analysis   # increment | analysis | forecast | etc.
       geo:
-        path: /scratch4/NAGAPE/epic/Chan-hoo.Jeon/ufsda_test/ufs-da-workflow/fix/DATA_fix/FV3/Tiled/C96
+        path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_fix/FV3/Tiled/C96
         filename: C96.mx100_oro_data
         file_type: orog      # file | orog
       data:
-        path: /scratch4/NAGAPE/epic/Chan-hoo.Jeon/ufsda_test/ufs-da-workflow/fix/DATA_ref/land
+        path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_ref/land
         filename: 20250121.000000.sfc_data.after
         file_type: tile      # file | tile
         var_list:
@@ -91,7 +91,7 @@ output:
   prefix: snowAnal
 
 plot:
-  cartopy_ne_path: /scratch4/NAGAPE/epic/Chan-hoo.Jeon/ufsda_test/ufs-da-workflow/fix/NaturalEarth
+  cartopy_ne_path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/NaturalEarth
   projection:
     name: Robinson    # Robinson | PlateCarree | Mollweide 
     central_longitude: -77.0369  # D.C.

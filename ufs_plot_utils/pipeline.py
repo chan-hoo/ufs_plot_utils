@@ -206,7 +206,7 @@ class Pipeline:
                 diff_cmap = diff_cfg.get("colormap", {})
                 diff_range = diff_cfg.get("range", {})                
                 resolver = PlotStyleResolver(
-                    dataset=base_ds,          # needed for data_kind etc.
+                    dataset=diff_ds,          # needed for data_kind etc.
                     cmap_cfg=diff_cmap,
                     range_cfg=diff_range
                 )
