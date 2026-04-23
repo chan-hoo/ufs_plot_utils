@@ -56,12 +56,24 @@ class NameBuilder:
 
 
 # ======================================================================================= CHJ =====
-    def build_title(self, varname, dataset_name, z_index=None):
+    def build_title(self, varname, dataset_name, z_index=None, dataset=None):
+    
+        # -------------------------
+        # 1. User-defined title
+        # -------------------------
+        if dataset is not None and dataset.title:
+            title = dataset.title
+            logger.info(f'''Using custom title: {title}''')
+            return title
+    
+        # -------------------------
+        # 2. Default behavior
+        # -------------------------
         parts = self._build_parts(varname, dataset_name, z_index)
-
+    
         title = " :: ".join(parts)
-
+    
         logger.info(f'''Plot title: {title}''')
-
+    
         return title
 

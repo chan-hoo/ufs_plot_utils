@@ -4,7 +4,8 @@ class Dataset:
         # Top-level
         # -------------------------
         self.name = cfg.get("name")
-        self.data_kind = cfg.get("data_kind", "analysis")
+        self.data_kind = cfg.get("data_kind", "increment")
+        self.title = cfg.get("title")
 
         # -------------------------
         # GEO (FLATTEN)

@@ -33,6 +33,7 @@ input:
         smc:
           vmin: null
           vmax: null
+      title: "snow-DA: before analysis"
 
     - name: after
       data_kind: analysis   # increment | analysis | forecast | restart | observation | etc.
@@ -63,6 +64,7 @@ input:
         smc:
           vmin: null
           vmax: null
+      title: "snow-DA: after analysis"
 
   differences:
     - name: A-B
@@ -85,6 +87,7 @@ input:
         smc:
           vmin: null
           vmax: null
+      title: "snow-DA: after-before"
 
 output:
   path: ./

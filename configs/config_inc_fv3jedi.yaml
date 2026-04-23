@@ -38,6 +38,7 @@ input:
         v_inc:
           vmin: -5
           vmax: 5
+      title: "fv3 increment"
 
     - name: jedi
       data_kind: increment   # increment | analysis | forecast | restart | observation | etc.
@@ -73,6 +74,7 @@ input:
         vgrd:
           vmin: -5
           vmax: 5
+      title: "jedi increment"
 
 output:
   path: ./

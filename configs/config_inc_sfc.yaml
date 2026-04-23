@@ -33,6 +33,7 @@ input:
         soilm:
           vmin: null
           vmax: null
+      title: "user custom title"
 
 output:
   path: ./

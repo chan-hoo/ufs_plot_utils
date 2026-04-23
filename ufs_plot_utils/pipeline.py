@@ -1,6 +1,8 @@
 import logging
 import xarray as xr
 
+from types import SimpleNamespace
+
 from .cmap import PlotStyleResolver
 from .data import DataReader
 from .dataset import Dataset
@@ -63,7 +65,12 @@ class Pipeline:
                 data_var = da.values
 
                 # Title
-                title = self.names.build_title(varname,dataset_name=ds.name,z_index=ds.z_index)
+                title = self.names.build_title(
+                    varname,
+                    dataset_name=ds.name,
+                    z_index=ds.z_index,
+                    dataset=ds
+                )
     
                 # Filename
                 filename = self.names.build_filename(varname,dataset_name=ds.name,z_index=ds.z_index)
@@ -101,7 +108,9 @@ class Pipeline:
             base_name = diff_cfg["base"]
             minus_name = diff_cfg["minus"]
             var_map = diff_cfg.get("var_map", {})
-    
+            diff_title = diff_cfg.get("title")
+            diff_obj = SimpleNamespace(title=diff_title) if diff_title else None
+
             logger.info(f'''Running difference: {name}''')
     
             base_ds = ds_map[base_name]
@@ -160,7 +169,13 @@ class Pipeline:
                 # 1. PLOT BASE
                 # =========================
                 # Title
-                title_base = self.names.build_title(varname=var_base,dataset_name=base_ds.name,z_index=base_ds.z_index)
+                title_base = self.names.build_title(
+                    varname=var_base,
+                    dataset_name=base_ds.name,
+                    z_index=base_ds.z_index,
+                    dataset=base_ds
+                )
+
                 # Filename
                 filename_base = self.names.build_filename(varname=var_base,dataset_name=base_ds.name,z_index=base_ds.z_index)
                 # Plot
@@ -181,7 +196,13 @@ class Pipeline:
                 self.plotter.set_style_resolver(PlotStyleResolver(minus_ds))
 
                 # Title
-                title_minus = self.names.build_title(varname=var_minus,dataset_name=minus_ds.name,z_index=base_ds.z_index)
+                title_minus = self.names.build_title(
+                    varname=var_minus,
+                    dataset_name=minus_ds.name,
+                    z_index=minus_ds.z_index,
+                    dataset=minus_ds
+                )
+
                 # Filename
                 filename_minus = self.names.build_filename(varname=var_minus,dataset_name=minus_ds.name,z_index=base_ds.z_index)
 
@@ -214,9 +235,15 @@ class Pipeline:
                 self.plotter.set_style_resolver(resolver)
 
                 # Title
-                title_diff = self.names.build_title(varname=var_base,dataset_name=name,z_index=base_ds.z_index)
+                title_diff = self.names.build_title(
+                    varname=var_base,
+                    dataset_name=diff_ds.name,
+                    z_index=diff_ds.z_index,
+                    dataset=diff_obj
+                )
+
                 # Filename
-                filename_diff = self.names.build_filename(varname=var_base,dataset_name=name,z_index=base_ds.z_index)
+                filename_diff = self.names.build_filename(varname=var_base,dataset_name=name,z_index=diff_ds.z_index)
 
                 fig3 = self.plotter.plot_data_tiles(
                     lat=lat,
@@ -224,7 +251,7 @@ class Pipeline:
                     da=da_diff,
                     varname=var_base,
                     output_title=title_diff,
-                    dataset=diff_ds
+                    dataset=None
                 )
     
                 self.output.save_figure(fig3, filename_diff)
@@ -236,4 +263,5 @@ class Pipeline:
 # ======================================================================================= CHJ =====
     def _build_dataset_map(self):
         return {ds.name: ds for ds in self.datasets}
+
 
