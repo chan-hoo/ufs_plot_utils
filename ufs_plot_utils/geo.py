@@ -133,6 +133,7 @@ class GeoReader:
             lat(tile, y, x), lon(tile, y, x)
         """
         import glob
+        import re
     
         geo_file = self.dataset.geo_filename
         geo_path = self.dataset.geo_path
@@ -145,18 +146,43 @@ class GeoReader:
     
         logger.info(f'''GEO TILE pattern: {pattern}''')
     
-        file_list = sorted(glob.glob(pattern))
-    
-        if len(file_list) != 6:
-            raise ValueError(f'''Expected 6 geo tiles, found {len(file_list)}''')
-    
+        file_list = sorted(glob.glob(pattern))       
+        if not file_list:
+            raise ValueError(f'''No geo tile files found: {pattern}''')
+        
+        # -------------------------
+        # Group by forecast hour
+        # -------------------------
+        fhr_map = {}
+        for f in file_list:
+            m = re.search(r'''\.f(\d{3})\.''', f)
+            if m:
+                fhr = m.group(1)
+            else:
+                fhr = "static"  # no forecast in filename
+        
+            fhr_map.setdefault(fhr, []).append(f)
+        
+        # -------------------------
+        # Select one fhr (first)
+        # -------------------------
+        selected_fhr = sorted(fhr_map.keys())[0]
+        selected_files = sorted(fhr_map[selected_fhr])
+        
+        logger.info(f'''Geo using forecast hour: {selected_fhr}''')
+        
+        if len(selected_files) != 6:
+            raise ValueError(
+                f'''Expected 6 tiles for f{selected_fhr}, found {len(selected_files)}'''
+            )
+
         # -------------------------
         # Read lat/lon
         # -------------------------
         lat_tiles = []
         lon_tiles = []
     
-        for f in file_list:
+        for f in selected_files:
             logger.info(f'''Reading geo tile: {f}''')
     
             ds = xr.open_dataset(f)

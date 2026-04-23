@@ -206,7 +206,7 @@ class DataReader:
 
 
 # ======================================================================================= CHJ =====
-    def detect_forecast_hours(self):
+    def detect_fhrs(self):
         """
         Detect forecast hours from filename pattern.
         Works for:
@@ -248,19 +248,45 @@ class DataReader:
     def resolve_filenames_for_fhr(self, fhr):
         """
         Return list of matching files for a given forecast hour.
-        """
-        pattern = self.filename
-        # Replace f* with exact fXXX
-        pattern = re.sub(r"f\*", f"f{fhr}", pattern)
+        """   
+        # -------------------------
+        # Replace wildcard with fhr
+        # -------------------------
+        pattern = self.filename.replace("*", fhr)
     
-        # Expand tile pattern
-        pattern = pattern.replace("[1-6]", "*")
+        # -------------------------
+        # Detect tile pattern
+        # -------------------------
+        if "tile1" in pattern:
+            files = [
+                os.path.join(
+                    self.path,
+                    pattern.replace("tile1", f'''tile{i}''')
+                )
+                for i in range(1, 7)
+            ]
     
-        search_path = os.path.join(self.path, pattern)
+        elif "tile" in pattern:
+            # handle generic "tile" case
+            files = [
+                os.path.join(
+                    self.path,
+                    re.sub(r'''tile\d+''', f'''tile{i}''', pattern)
+                )
+                for i in range(1, 7)
+            ]
     
-        files = sorted(glob.glob(search_path))
-        if not files:
-            raise ValueError(f'''No files found for fhr={fhr}: {search_path}''')
+        else:
+            raise ValueError(f'''Cannot resolve tile pattern from: {pattern}''')
+    
+        # -------------------------
+        # Validate existence (important)
+        # -------------------------
+        missing = [f for f in files if not os.path.exists(f)]
+        if missing:
+            raise FileNotFoundError(
+                f'''Missing tile files for f{fhr}: {missing}'''
+            )
     
         return files
 

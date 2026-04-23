@@ -57,35 +57,73 @@ class Pipeline:
             # DATA (context-managed)
             # -------------------------
             data_reader = DataReader(ds)
-    
-            for varname in ds.var_list:
-                logger.info(f'''{ds.name} :: {varname}''')
-    
-                da = data_reader.get_data(varname)
-                data_var = da.values
 
-                # Title
-                title = self.names.build_title(
-                    varname,
-                    dataset_name=ds.name,
-                    z_index=ds.z_index,
-                    dataset=ds
-                )
+            if ds.data_kind == "forecast":            
+                fhrs = data_reader.detect_fhrs()
+                for fhr in fhrs:
+                    logger.info(f'''Processing forecast hour: f{fhr}''')
+                    for varname in ds.var_list:
+            
+                        da = data_reader.get_data(varname, fhr=fhr)
+            
+                        title = self.names.build_title(
+                            varname,
+                            dataset_name=ds.name,
+                            z_index=ds.z_index,
+                            dataset=ds
+                        )
+                        title = f'''{title} :: f{fhr}'''
+            
+                        filename = self.names.build_filename(
+                            varname,
+                            dataset_name=ds.name,
+                            z_index=ds.z_index
+                        )
+                        filename = f'''{filename}_f{fhr}'''
+            
+                        fig = self.plotter.plot_data_tiles(
+                            lat=lat,
+                            lon=lon,
+                            da=da,
+                            varname=varname,
+                            output_title=title,
+                            dataset=ds
+                        )
+            
+                        self.output.save_figure(fig, filename)
+            
+            else:
+                for varname in ds.var_list:
+                    logger.info(f'''{ds.name} :: {varname}''')        
+                    da = data_reader.get_data(varname)
+                    data_var = da.values
     
-                # Filename
-                filename = self.names.build_filename(varname,dataset_name=ds.name,z_index=ds.z_index)
-    
-                # Plot
-                fig = self.plotter.plot_data_tiles(
-                    lat=lat,
-                    lon=lon,
-                    da=da,
-                    varname=varname,
-                    output_title=title,
-                    dataset=ds
-                )
-    
-                self.output.save_figure(fig, filename)
+                    # Title
+                    title = self.names.build_title(
+                        varname,
+                        dataset_name=ds.name,
+                        z_index=ds.z_index,
+                        dataset=ds
+                    )
+        
+                    # Filename
+                    filename = self.names.build_filename(
+                        varname,
+                        dataset_name=ds.name,
+                        z_index=ds.z_index
+                    )
+        
+                    # Plot
+                    fig = self.plotter.plot_data_tiles(
+                        lat=lat,
+                        lon=lon,
+                        da=da,
+                        varname=varname,
+                        output_title=title,
+                        dataset=ds
+                    )
+        
+                    self.output.save_figure(fig, filename)
     
             data_reader.close()
 

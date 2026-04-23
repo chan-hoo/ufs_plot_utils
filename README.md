@@ -24,7 +24,7 @@ source env/plot_pyenv/bin/activate
 2. Run a sample script:
 ```
 cd ../configs
-./run_plot_[case].py -i config_[case].yaml -l INFO
+./run_plot_task.py -i config_[case].yaml -l INFO
 ```
 
 3. Deactivate the conda/python environment:

@@ -1,26 +1,28 @@
 input:
   parameters:
     cycle: t00z
-    PDY: 20250121
+    PDY: 20240224
 
   datasets:
     - name: sfc
-      data_kind: forecast   # increment | analysis | forecast | etc.
+      data_kind: single   # increment | analysis | forecast | restart | observation | etc.
       geo:
         path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_ref/forecast
-        filename: ufsda.t00z.sfc.f*.c96.tile1.nc
-        file_type: tile      # file | orog | tile
+        filename: ufsda.t00z.sfc.f000.c96
+        file_type: tile   # file | orog | tile
       data:
         path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_ref/forecast
-        filename: ufsda.t00z.sfc.f*.c96.tile1.nc
-        file_type: tile      # file | tile
+        filename: ufsda.t00z.sfc.f000.c96
+        file_type: tile   # file | tile
         var_list:
           - snod
+          - soilm
         z_index: 0
-        time_index: 0
+        time_index: 0   # optional (default = 0)
       colormap:
         default: gist_ncar_r
         snod: null
+        soilm: null
       range:
         default:
           vmin: null
@@ -28,14 +30,17 @@ input:
         snod:
           vmin: null
           vmax: null
-      title: "forecast sfc"
+        soilm:
+          vmin: null
+          vmax: null
+      title: "user custom title"
 
 output:
   path: ./
-  prefix: fcst
+  prefix: sfcdata
 
 plot:
-  cartopy_ne_path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/NaturalEarth
+  cartopy_ne_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/NaturalEarth
   projection:
     name: Robinson    # Robinson | PlateCarree | Mollweide 
     central_longitude: -77.0369  # D.C.
