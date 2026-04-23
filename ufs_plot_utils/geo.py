@@ -26,6 +26,8 @@ class GeoReader:
             return self._get_geo_file()
         elif geo_type == "orog":
             return self._get_geo_orog()
+        elif geo_type == "tile":
+            return self._get_geo_tile()
         else:
             raise ValueError(f'''Unknown geo type: {geo_type}''')
 
@@ -108,4 +110,82 @@ class GeoReader:
         logger.info(f'''Geo lon shape: {lon_all.shape}''')
     
         return lat_all, lon_all
-   
+  
+
+# ======================================================================================= CHJ =====
+    def _get_geo_tile(self):
+        """
+        Extract lat/lon from tiled data files (grid_xt/grid_yt or similar).
+        Returns:
+            lat(tile, y, x), lon(tile, y, x)
+        """
+        import glob
+    
+        geo_file = self.dataset.geo_filename
+        geo_path = self.dataset.geo_path
+    
+        # -------------------------
+        # Build tile file list
+        # -------------------------
+        prefix = extract_tile_prefix(geo_file)
+        pattern = os.path.join(geo_path, f'''{prefix}.tile*.nc''')
+    
+        logger.info(f'''GEO TILE pattern: {pattern}''')
+    
+        file_list = sorted(glob.glob(pattern))
+    
+        if len(file_list) != 6:
+            raise ValueError(f'''Expected 6 geo tiles, found {len(file_list)}''')
+    
+        # -------------------------
+        # Read lat/lon
+        # -------------------------
+        lat_tiles = []
+        lon_tiles = []
+    
+        for f in file_list:
+            logger.info(f'''Reading geo tile: {f}''')
+    
+            ds = xr.open_dataset(f)
+    
+            # -------------------------
+            # Candidate variable names
+            # -------------------------
+            lat_candidates = [
+                "grid_yt", "lat", "latitude", "y"
+            ]
+            lon_candidates = [
+                "grid_xt", "lon", "longitude", "x"
+            ]
+    
+            lat_name = next((v for v in lat_candidates if v in ds.variables), None)
+            lon_name = next((v for v in lon_candidates if v in ds.variables), None)
+    
+            if lat_name is None or lon_name is None:
+                raise ValueError(f'''lat/lon not found in {f}''')
+    
+            lat = ds[lat_name]
+            lon = ds[lon_name]
+    
+            # -------------------------
+            # Handle 1D -> 2D mesh
+            # -------------------------
+            if lat.ndim == 1 and lon.ndim == 1:
+                lon2d, lat2d = np.meshgrid(lon.values, lat.values)
+            else:
+                lat2d = lat.values
+                lon2d = lon.values
+    
+            lat_tiles.append(lat2d)
+            lon_tiles.append(lon2d)
+    
+            ds.close()
+    
+        lat_all = np.stack(lat_tiles, axis=0)
+        lon_all = np.stack(lon_tiles, axis=0)
+    
+        logger.info(f'''Geo lat shape: {lat_all.shape}''')
+        logger.info(f'''Geo lon shape: {lon_all.shape}''')
+    
+        return lat_all, lon_all
+

@@ -2,6 +2,7 @@ import logging
 import numpy as np
 import xarray as xr
 import os
+import glob
 import re
 from .utils import extract_tile_prefix
 
@@ -44,18 +45,32 @@ class DataReader:
 
 
 # ======================================================================================= CHJ =====
-    def get_data(self, varname):
+    def get_data(self, varname, fhr=None):
         """
         Return raw DataArray (NO styling, NO plotting logic).
         """
         logger.debug(f'''data file type = {self.file_type}''')
-
-        if self.file_type == "tile":
-            return self._get_data_tiles(varname)
-
+    
+        if self.file_type == "tile":    
+            # -------------------------
+            # FORECAST
+            # -------------------------
+            if self.data.data_kind == "forecast": 
+                if fhr is None:
+                    raise ValueError(f'''Forecast data requires fhr''')
+    
+                files = self.resolve_filenames_for_fhr(fhr)
+                return self._get_data_tiles(varname, files)
+    
+            # -------------------------
+            # INCREMENT / ANALYSIS
+            # -------------------------
+            else:
+                return self._get_data_tiles(varname)
+    
         elif self.file_type == "file":
             return self._get_data_file(varname)
-
+    
         else:
             raise ValueError(f'''Unsupported file_type: {self.file_type}''')
 
@@ -97,27 +112,38 @@ class DataReader:
 
 
 # ======================================================================================= CHJ =====
-    def _get_data_tiles(self, varname):
+    def _get_data_tiles(self, varname, files=None):
         """
         Read 6-tile NetCDF and return DataArray (tile, y, x).
         """    
-        import glob
-   
-        prefix = extract_tile_prefix(self.filename)
-        pattern = os.path.join(self.path, f'''{prefix}.tile*.nc''')
-        logger.debug(f'''Tile pattern: {pattern}''')   
-        file_list = sorted(glob.glob(pattern))
-        logger.debug(f'''Files found: {file_list}''')
+        # -------------------------
+        # FORECAST: files already resolved
+        # -------------------------
+        if files is not None:
+            if len(files) != 6:
+                raise ValueError(f'''Expected 6 tiles, found {len(files)}''')
+            logger.debug(f'''Tile files: {files}''')
     
-        if len(file_list) != 6:
-            raise ValueError(f'''Expected 6 tiles, found {len(file_list)}''')
+        # -------------------------
+        # INCREMENT / ANALYSIS: use prefix
+        # -------------------------
+        else:
+            prefix = extract_tile_prefix(self.filename)
+            pattern = os.path.join(self.path, f'''{prefix}.tile*.nc''')
+            logger.debug(f'''Tile pattern: {pattern}''')
     
+            files = sorted(glob.glob(pattern))
+            if len(files) != 6:
+                raise ValueError(f'''Expected 6 tiles, found {len(files)}''')
+            logger.debug(f'''Files found: {files}''')
+    
+        # -------------------------
+        # COMMON PROCESSING
+        # -------------------------
         logger.info(f'''Opening 6 tiles for variable: {varname}''')
-    
         datasets = []
-    
         try:
-            for f in file_list:
+            for f in files:
                 datasets.append(xr.open_dataset(f))
     
             ds = xr.concat(datasets, dim="tile")
@@ -129,15 +155,15 @@ class DataReader:
     
             logger.debug(f'''{varname} dims = {da.dims}''')
             logger.debug(f'''{varname} shape = {da.shape}''')
-    
-            # apply slicing (data layer only)
-            da = self._slice_data(da, self.z_index, self.time_index)
 
+            da = self._slice_data(da, self.z_index, self.time_index)
+    
             if da.ndim != 3:
                 raise ValueError(f'''{varname} expected (tile, y, x), got {da.dims}''')
     
+            vals = da.values
             logger.info(f'''{varname} final shape = {da.shape}''')
-            logger.info(f'''{varname} min={np.nanmin(da.values)}, max={np.nanmax(da.values)}''')
+            logger.info(f'''{varname} min={np.nanmin(vals)}, max={np.nanmax(vals)}''')
     
             return da
     
@@ -153,8 +179,7 @@ class DataReader:
     def _slice_data(self, da, z_index=None, time_index=0):
         """
         Apply time + vertical slicing (data-layer only).
-        """
-    
+        """ 
         # -------------------------
         # time slicing
         # -------------------------
@@ -178,6 +203,66 @@ class DataReader:
             da = da.isel({z_dim: z_index})
     
         return da
+
+
+# ======================================================================================= CHJ =====
+    def detect_forecast_hours(self):
+        """
+        Detect forecast hours from filename pattern.
+        Works for:
+          - f*
+          - any glob pattern containing fXXX
+        """
+        pattern = self.filename
+        # Convert pattern to glob
+        glob_pattern = pattern
+    
+        # If user used [1-6], reduce to tile1 for detection
+        glob_pattern = re.sub(r"\[1-6\]", "1", glob_pattern)
+        search_path = os.path.join(self.path, glob_pattern)
+        logger.info(f'''Detecting forecast files: {search_path}''')
+    
+        files = glob.glob(search_path)
+        if not files:
+            raise ValueError(f'''No files found for pattern: {search_path}''')
+    
+        fhrs = set() 
+        for f in files:
+            fname = os.path.basename(f)
+            # robust match: f000, f012, f120 etc.
+            match = re.search(r"\.f(\d{2,4})\.", fname)
+            if match:
+                fhrs.add(match.group(1))
+    
+        if not fhrs:
+            raise ValueError("Could not detect forecast hours from filenames")
+    
+        fhrs = sorted(fhrs)
+    
+        logger.info(f'''Detected forecast hours: {fhrs}''')
+    
+        return fhrs
+
+
+# ======================================================================================= CHJ =====
+    def resolve_filenames_for_fhr(self, fhr):
+        """
+        Return list of matching files for a given forecast hour.
+        """
+        pattern = self.filename
+        # Replace f* with exact fXXX
+        pattern = re.sub(r"f\*", f"f{fhr}", pattern)
+    
+        # Expand tile pattern
+        pattern = pattern.replace("[1-6]", "*")
+    
+        search_path = os.path.join(self.path, pattern)
+    
+        files = sorted(glob.glob(search_path))
+        if not files:
+            raise ValueError(f'''No files found for fhr={fhr}: {search_path}''')
+    
+        return files
 
 
 # ======================================================================================= CHJ =====
