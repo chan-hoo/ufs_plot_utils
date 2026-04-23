@@ -5,7 +5,7 @@ input:
 
   datasets:
     - name: sfc
-      data_kind: single   # increment | analysis | forecast | etc.
+      data_kind: single   # increment | analysis | forecast | restart | observation | etc.
       geo:
         path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_ref/forecast
         filename: ufsda.t00z.sfc.f000.c96

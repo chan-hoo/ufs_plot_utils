@@ -5,7 +5,7 @@ input:
 
   datasets:
     - name: before
-      data_kind: analysis   # increment | analysis | forecast | etc.
+      data_kind: analysis   # increment | analysis | forecast | restart | observation | etc.
       geo:
         path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_fix/FV3/Tiled/C96
         filename: C96.mx100_oro_data
@@ -35,7 +35,7 @@ input:
           vmax: null
 
     - name: after
-      data_kind: analysis   # increment | analysis | forecast | etc.
+      data_kind: analysis   # increment | analysis | forecast | restart | observation | etc.
       geo:
         path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_fix/FV3/Tiled/C96
         filename: C96.mx100_oro_data

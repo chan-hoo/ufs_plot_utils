@@ -97,3 +97,51 @@ def normalize_tile_dims(da):
     da = da.transpose("tile", "y", "x")
 
     return da
+
+
+# ======================================================================================= CHJ =====
+def normalize_geo_dims(lat, lon):
+    """
+    Normalize lat/lon to shape (tile, y, x)
+
+    Accepts:
+        - numpy arrays or xarray DataArray
+        - 1D or 2D per tile
+    """
+
+    import numpy as np
+    import xarray as xr
+
+    # -------------------------
+    # Convert to numpy
+    # -------------------------
+    if isinstance(lat, xr.DataArray):
+        lat = lat.values
+    if isinstance(lon, xr.DataArray):
+        lon = lon.values
+
+    # -------------------------
+    # Ensure tile dimension exists
+    # -------------------------
+    if lat.ndim == 2:
+        # single tile → promote
+        lat = lat[np.newaxis, ...]
+        lon = lon[np.newaxis, ...]
+
+    if lat.ndim != 3:
+        raise ValueError(f'''Geo must be 2D or 3D, got shape={lat.shape}''')
+
+    # -------------------------
+    # Final safety check
+    # -------------------------
+    if lat.shape != lon.shape:
+        raise ValueError(f'''lat/lon shape mismatch: {lat.shape} vs {lon.shape}''')
+
+    # -------------------------
+    # Enforce (tile, y, x)
+    # -------------------------
+    # We assume last two dims are spatial (already true from your readers)
+    # So just ensure ordering is correct (no-op for numpy)
+
+    return lat, lon
+

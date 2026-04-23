@@ -2,7 +2,7 @@ import os
 import logging
 import numpy as np
 import xarray as xr
-from .utils import extract_tile_prefix
+from .utils import extract_tile_prefix, normalize_geo_dims
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +58,16 @@ class GeoReader:
     
         lat = ds_geo[lat_name]
         lon = ds_geo[lon_name]
+
+        # Handle 1D case
+        if lat.ndim == 1 and lon.ndim == 1:
+            lon2d, lat2d = np.meshgrid(lon.values, lat.values)
+        else:
+            lat2d = lat.values
+            lon2d = lon.values
+
+        # Normalize geo dimensions
+        lat_all, lon_all = normalize_geo_dims(lat2d, lon2d)
     
         logger.info(f'''lat shape={lat.shape}, lon shape={lon.shape}''')
     
@@ -105,6 +115,9 @@ class GeoReader:
     
         lat_all = np.stack(lat_tiles, axis=0)
         lon_all = np.stack(lon_tiles, axis=0)
+
+        # Normalize geo dimensions
+        lat_all, lon_all = normalize_geo_dims(lat_all, lon_all)
     
         logger.info(f'''Geo lat shape: {lat_all.shape}''')
         logger.info(f'''Geo lon shape: {lon_all.shape}''')
@@ -183,7 +196,10 @@ class GeoReader:
     
         lat_all = np.stack(lat_tiles, axis=0)
         lon_all = np.stack(lon_tiles, axis=0)
-    
+
+        # Normalize geo dimensions
+        lat_all, lon_all = normalize_geo_dims(lat_all, lon_all)
+
         logger.info(f'''Geo lat shape: {lat_all.shape}''')
         logger.info(f'''Geo lon shape: {lon_all.shape}''')
     

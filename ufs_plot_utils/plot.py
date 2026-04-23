@@ -54,6 +54,11 @@ class Plotter:
         if self.style_resolver is None:
             raise RuntimeError("StyleResolver not set. Call set_style_resolver(ds) before plotting.")
 
+        if lat.shape != da.shape:
+            raise ValueError(
+                f'''Geo/data mismatch: lat={lat.shape}, data={da.shape}'''
+            )
+
         # -------------------------
         # Tiles (dynamic, not hardcoded)
         # -------------------------
