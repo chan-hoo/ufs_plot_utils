@@ -4,35 +4,35 @@ input:
     PDY: 20250121
 
   datasets:
-    - name: sfc
-      data_kind: forecast   # increment | analysis | forecast | etc.
+    - name: sfc_data
+      data_kind: restart   # increment | analysis | forecast | restart | observation etc.
       geo:
-        path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_ref/forecast
-        filename: ufsda.t00z.sfc.f*.c96.tile1.nc
-        file_type: tile      # file | orog | tile
+        path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_fix/FV3/Tiled/C96
+        filename: C96.mx100_oro_data
+        file_type: orog      # file | orog | tile
       data:
-        path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_ref/forecast
-        filename: ufsda.t00z.sfc.f*.c96.tile1.nc
+        path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_ref/restart
+        filename: '*.sfc_data.tile1.nc'
         file_type: tile      # file | tile
         var_list:
-          - snod
+          - snwdph
         z_index: 0
         time_index: 0
       colormap:
         default: gist_ncar_r
-        snod: null
+        snwdph: null
       range:
         default:
           vmin: null
           vmax: null
-        snod:
+        snwdph:
           vmin: null
           vmax: null
-      title: "forecast sfc"
+      title: "restart sfc_data"
 
 output:
   path: ./
-  prefix: fcst
+  prefix: rst
 
 plot:
   cartopy_ne_path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/NaturalEarth

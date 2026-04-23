@@ -45,34 +45,56 @@ class DataReader:
 
 
 # ======================================================================================= CHJ =====
-    def get_data(self, varname, fhr=None):
+    def get_data(self, varname, fhr=None, rtag=None):
         """
         Return raw DataArray (NO styling, NO plotting logic).
         """
         logger.debug(f'''data file type = {self.file_type}''')
-    
-        if self.file_type == "tile":    
-            # -------------------------
-            # FORECAST
-            # -------------------------
-            if self.data.data_kind == "forecast": 
-                if fhr is None:
-                    raise ValueError(f'''Forecast data requires fhr''')
-    
-                files = self.resolve_filenames_for_fhr(fhr)
+
+        # -------------------------
+        # FORECAST
+        # -------------------------
+        if self.data.data_kind == "forecast":
+            if fhr is None:
+                raise ValueError(f'''Forecast data requires fhr''')
+        
+            files = self.resolve_filenames_for_fhr(fhr)
+        
+            if self.file_type == "tile":
                 return self._get_data_tiles(varname, files)
-    
-            # -------------------------
-            # INCREMENT / ANALYSIS
-            # -------------------------
+            elif self.file_type == "file":
+                return self._get_data_file(varname, files)
             else:
-                return self._get_data_tiles(varname)
-    
-        elif self.file_type == "file":
-            return self._get_data_file(varname)
-    
+                raise ValueError(f'''Unsupported file_type: {self.file_type}''')
+        
+        # -------------------------
+        # RESTART
+        # -------------------------
+        elif self.data.data_kind == "restart":
+            if rtag is None:
+                raise ValueError(f'''Restart data requires rtag''')
+        
+            files = self.resolve_filenames_for_restart(rtag)
+        
+            if self.file_type == "tile":
+                return self._get_data_tiles(varname, files)
+            elif self.file_type == "file":
+                return self._get_data_file(varname, files)
+            else:
+                raise ValueError(f'''Unsupported file_type: {self.file_type}''')
+        
+        # -------------------------
+        # DEFAULT
+        # -------------------------
         else:
-            raise ValueError(f'''Unsupported file_type: {self.file_type}''')
+            if self.file_type == "tile":
+                return self._get_data_tiles(varname)
+        
+            elif self.file_type == "file":
+                return self._get_data_file(varname)
+        
+            else:
+                raise ValueError(f'''Unsupported file_type: {self.file_type}''')
 
 
 # ======================================================================================= CHJ =====
@@ -206,7 +228,7 @@ class DataReader:
 
 
 # ======================================================================================= CHJ =====
-    def detect_fhrs(self):
+    def detect_forecast_hours(self):
         """
         Detect forecast hours from filename pattern.
         Works for:
@@ -287,6 +309,56 @@ class DataReader:
             raise FileNotFoundError(
                 f'''Missing tile files for f{fhr}: {missing}'''
             )
+    
+        return files
+
+
+# ======================================================================================= CHJ =====
+    def detect_restart_tags(self):
+    
+        pattern = os.path.join(self.path, self.filename)
+        files = glob.glob(pattern)
+    
+        if not files:
+            raise ValueError(f'''No restart files found: {pattern}''')
+    
+        tags = set()
+    
+        for f in files:
+            base = os.path.basename(f)
+    
+            # match leading timestamp like 20250121.000000
+            m = re.match(r'''(\d{8}\.\d{6})''', base)
+            if m:
+                tags.add(m.group(1))
+            else:
+                # fallback: grab HHMM before ".sfc_data"
+                m2 = re.search(r'''(\d{4})\.sfc_data''', base)
+                if m2:
+                    tags.add(m2.group(1))
+    
+        tags = sorted(tags)
+    
+        logger.info(f'''Detected restart tags: {tags}''')
+    
+        return tags
+
+
+# ======================================================================================= CHJ =====
+    def resolve_filenames_for_restart(self, tag):
+    
+        pattern = self.filename.replace("*", tag)
+    
+        if "tile1" in pattern:
+            files = [
+                os.path.join(
+                    self.path,
+                    pattern.replace("tile1", f'''tile{i}''')
+                )
+                for i in range(1, 7)
+            ]
+        else:
+            raise ValueError(f'''Invalid restart tile pattern: {pattern}''')
     
         return files
 

@@ -10,7 +10,7 @@ from .geo import GeoReader
 from .naming import NameBuilder
 from .plot import Plotter
 from .output import OutputManager
-from .utils import normalize_tile_dims
+from .utils import normalize_tile_dims, format_rtag
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +58,11 @@ class Pipeline:
             # -------------------------
             data_reader = DataReader(ds)
 
+            # -------------------------
+            # FORECAST
+            # -------------------------
             if ds.data_kind == "forecast":            
-                fhrs = data_reader.detect_fhrs()
+                fhrs = data_reader.detect_forecast_hours()
                 for fhr in fhrs:
                     logger.info(f'''Processing forecast hour: f{fhr}''')
                     for varname in ds.var_list:
@@ -91,7 +94,45 @@ class Pipeline:
                         )
             
                         self.output.save_figure(fig, filename)
-            
+
+            # -------------------------
+            # RESTART
+            # -------------------------
+            elif ds.data_kind == "restart":
+                rtags = data_reader.detect_restart_tags()
+                for rtag in rtags:
+                    logger.info(f'''Processing restart tag: {rtag}''')
+                    for varname in ds.var_list:
+
+                        da = data_reader.get_data(varname, rtag=rtag)
+
+                        title = self.names.build_title(
+                            varname,
+                            dataset_name=ds.name,
+                            z_index=ds.z_index,
+                            dataset=ds
+                        )
+                        title = f'''{title} :: {format_rtag(rtag)}'''
+
+                        filename = self.names.build_filename(
+                            varname,
+                            dataset_name=ds.name,
+                            z_index=ds.z_index
+                        )
+                        safe_rtag = format_rtag(rtag).replace(".", "")
+                        filename = f'''{filename}_{safe_rtag}'''
+
+                        fig = self.plotter.plot_data_tiles(
+                            lat=lat,
+                            lon=lon,
+                            da=da,
+                            varname=varname,
+                            output_title=title,
+                            dataset=ds
+                        )
+
+                        self.output.save_figure(fig, filename)
+
             else:
                 for varname in ds.var_list:
                     logger.info(f'''{ds.name} :: {varname}''')        

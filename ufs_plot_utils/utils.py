@@ -145,3 +145,28 @@ def normalize_geo_dims(lat, lon):
 
     return lat, lon
 
+
+# ======================================================================================= CHJ =====
+def format_rtag(rtag):
+    """
+    Ensure format:
+        YYYYMMDD.HH  (minimum)
+    Trim trailing zeros beyond HH.
+    """
+
+    if "." not in rtag:
+        return rtag
+
+    date, time = rtag.split(".", 1)
+
+    # Ensure at least HH exists
+    if len(time) < 2:
+        time = time.ljust(2, "0")
+
+    hh = time[:2]
+    rest = time[2:]
+
+    # Trim trailing zeros ONLY from the rest
+    rest = rest.rstrip("0")
+
+    return f'''{date}.{hh}{rest}'''
