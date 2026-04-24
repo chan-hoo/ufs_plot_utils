@@ -1,36 +1,24 @@
-from ufs_plot_utils.config import Config
 import tempfile
 import yaml
+from ufs_plot_utils.config import Config
 
 
 def test_config_load():
-    cfg_dict = {
-        "input": {
-            "datasets": []
-        }
-    }
+    data = {"input": {"datasets": []}}
 
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-        yaml.dump(cfg_dict, f)
-        fname = f.name
-
-    cfg = Config(fname)
+        yaml.dump(data, f)
+        cfg = Config(f.name)
 
     assert cfg.get("input") is not None
 
 
-def test_config_nested_get():
-    cfg_dict = {
-        "input": {
-            "datasets": [{"name": "fv3"}]
-        }
-    }
+def test_config_nested():
+    data = {"input": {"datasets": [{"name": "x"}]}}
 
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-        yaml.dump(cfg_dict, f)
-        fname = f.name
+        yaml.dump(data, f)
+        cfg = Config(f.name)
 
-    cfg = Config(fname)
+    assert isinstance(cfg.get("input", "datasets"), list)
 
-    datasets = cfg.get("input", "datasets")
-    assert isinstance(datasets, list)

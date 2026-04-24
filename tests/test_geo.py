@@ -4,9 +4,10 @@ from ufs_plot_utils.geo import GeoReader
 class Dummy:
     geo_file_type = "file"
     geo_path = "."
-    geo_filename = "dummy.nc"
+    geo_filename = "file.nc"
 
 
-def test_geo_reader_init():
+def test_init():
     g = GeoReader(Dummy())
-    assert g.dataset is not None
+    assert g.dataset.geo_file_type == "file"
+
