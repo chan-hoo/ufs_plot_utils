@@ -26,6 +26,9 @@ jobs:
           use-mamba: true
           auto-activate-base: false
 
+      - name: Install package
+        run: pip install -e .
+
       - name: Run tests
         run: |
           conda run -n test pytest -x -ra
