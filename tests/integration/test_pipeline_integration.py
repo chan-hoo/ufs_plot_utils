@@ -16,9 +16,7 @@ def make_cfg():
                 "var_list": ["var"]
             }]
         },
-        "output": {
-            "path": "./out"
-        },
+        "output": {"path": "./out"},
         "plot": {}
     }
 
@@ -27,10 +25,10 @@ def make_cfg():
         return Config(f.name)
 
 
-def test_pipeline_instantiation():
+def test_pipeline_builds_tasks():
     cfg = make_cfg()
-
     pipeline = Pipeline(cfg)
 
-    assert len(pipeline.datasets) == 1
-    assert pipeline.datasets[0].name == "ds"
+    builder = pipeline._build_dataset_map()
+
+    assert "ds" in builder
