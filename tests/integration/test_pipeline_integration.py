@@ -1,28 +1,41 @@
 import tempfile
 import yaml
-from ufs_plot_utils.config import Config
 from ufs_plot_utils.pipeline import Pipeline
 
 
 def make_cfg():
-    data = {
+    return {
         "input": {
-            "datasets": [{
-                "name": "ds",
-                "data_kind": "analysis",
-                "path": ".",
-                "filename": "f.nc",
-                "file_type": "file",
-                "var_list": ["var"]
-            }]
-        },
-        "output": {"path": "./out"},
-        "plot": {}
-    }
+            "datasets": [
+                {
+                    "name": "ds",
+                    "data_kind": "analysis",
 
-    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-        yaml.dump(data, f)
-        return Config(f.name)
+                    "data": {
+                        "path": ".",
+                        "filename": "f.nc",
+                        "file_type": "file",
+                        "var_list": ["var"],
+                        "z_index": None,
+                        "time_index": 0
+                    },
+
+                    "geo": {
+                        "path": ".",
+                        "filename": "geo.nc",
+                        "file_type": "file"
+                    },
+
+                    "colormap": {},
+                    "range": {}
+                }
+            ]
+        },
+        "plot": {},
+        "output": {
+            "path": "./out"
+        }
+    }
 
 
 def test_pipeline_builds_tasks():
