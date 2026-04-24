@@ -176,7 +176,7 @@ class Pipeline:
     
         diff_cfgs = self.cfg.get("input", "differences", default=[])
         if not diff_cfgs:
-            logger.info("No differences configured. Skipping.")
+            logger.info(f'''No differences configured. Skipping.''')
             return
     
         ds_map = self._build_dataset_map()
@@ -306,7 +306,7 @@ class Pipeline:
                 diff_cmap = diff_cfg.get("colormap", {})
                 diff_range = diff_cfg.get("range", {})                
                 resolver = PlotStyleResolver(
-                    dataset=diff_ds,          # needed for data_kind etc.
+                    dataset=diff_ds,
                     cmap_cfg=diff_cmap,
                     range_cfg=diff_range
                 )

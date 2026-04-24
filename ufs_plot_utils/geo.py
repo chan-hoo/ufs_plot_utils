@@ -44,20 +44,19 @@ class GeoReader:
     
         logger.info(f'''Opening geo file: {fpath}''')
     
-        ds_geo = xr.open_dataset(fpath)
-
-        # Detect lat/lon variable names
-        lat_candidates = ["lat", "latitude"]
-        lon_candidates = ["lon", "longitude"]
+        with xr.open_dataset(fpath) as ds_geo:
+            # Detect lat/lon variable names
+            lat_candidates = ["lat", "latitude"]
+            lon_candidates = ["lon", "longitude"]
+        
+            lat_name = next((v for v in lat_candidates if v in ds_geo.variables), None)
+            lon_name = next((v for v in lon_candidates if v in ds_geo.variables), None)
     
-        lat_name = next((v for v in lat_candidates if v in ds_geo.variables), None)
-        lon_name = next((v for v in lon_candidates if v in ds_geo.variables), None)
-
-        if lat_name is None or lon_name is None:
-            raise ValueError(f'''Could not find lat/lon variables''')
-    
-        lat = ds_geo[lat_name]
-        lon = ds_geo[lon_name]
+            if lat_name is None or lon_name is None:
+                raise ValueError(f'''Could not find lat/lon variables''')
+        
+            lat = ds_geo[lat_name]
+            lon = ds_geo[lon_name]
 
         # Handle 1D case
         if lat.ndim == 1 and lon.ndim == 1:
@@ -71,9 +70,7 @@ class GeoReader:
     
         logger.info(f'''lat shape={lat.shape}, lon shape={lon.shape}''')
     
-        ds_geo.close()
-    
-        return lat, lon
+        return lat_all, lon_all
 
 
 # ======================================================================================= CHJ =====
@@ -100,18 +97,15 @@ class GeoReader:
     
             logger.info(f'''Reading orography tile {itile}: {fpath}''')
     
-            ds = xr.open_dataset(fpath)
-    
-            lat_name = next((v for v in ["geolat", "y", "lat", "latitude"] if v in ds.variables), None)
-            lon_name = next((v for v in ["geolon", "x", "lon", "longitude"] if v in ds.variables), None)
-    
-            if lat_name is None or lon_name is None:
-                raise ValueError(f'''lat/lon not found in {fpath}''')
-    
-            lat_tiles.append(ds[lat_name].values)
-            lon_tiles.append(ds[lon_name].values)
-    
-            ds.close()
+            with xr.open_dataset(fpath) as ds:    
+                lat_name = next((v for v in ["geolat", "y", "lat", "latitude"] if v in ds.variables), None)
+                lon_name = next((v for v in ["geolon", "x", "lon", "longitude"] if v in ds.variables), None)
+        
+                if lat_name is None or lon_name is None:
+                    raise ValueError(f'''lat/lon not found in {fpath}''')
+        
+                lat_tiles.append(ds[lat_name].values)
+                lon_tiles.append(ds[lon_name].values)
     
         lat_all = np.stack(lat_tiles, axis=0)
         lon_all = np.stack(lon_tiles, axis=0)
@@ -185,26 +179,25 @@ class GeoReader:
         for f in selected_files:
             logger.info(f'''Reading geo tile: {f}''')
     
-            ds = xr.open_dataset(f)
-    
-            # -------------------------
-            # Candidate variable names
-            # -------------------------
-            lat_candidates = [
-                "grid_yt", "lat", "latitude", "y"
-            ]
-            lon_candidates = [
-                "grid_xt", "lon", "longitude", "x"
-            ]
-    
-            lat_name = next((v for v in lat_candidates if v in ds.variables), None)
-            lon_name = next((v for v in lon_candidates if v in ds.variables), None)
-    
-            if lat_name is None or lon_name is None:
-                raise ValueError(f'''lat/lon not found in {f}''')
-    
-            lat = ds[lat_name]
-            lon = ds[lon_name]
+            with xr.open_dataset(f) as ds:    
+                # -------------------------
+                # Candidate variable names
+                # -------------------------
+                lat_candidates = [
+                    "grid_yt", "lat", "latitude", "y"
+                ]
+                lon_candidates = [
+                    "grid_xt", "lon", "longitude", "x"
+                ]
+        
+                lat_name = next((v for v in lat_candidates if v in ds.variables), None)
+                lon_name = next((v for v in lon_candidates if v in ds.variables), None)
+        
+                if lat_name is None or lon_name is None:
+                    raise ValueError(f'''lat/lon not found in {f}''')
+        
+                lat = ds[lat_name]
+                lon = ds[lon_name]
     
             # -------------------------
             # Handle 1D -> 2D mesh
@@ -217,8 +210,6 @@ class GeoReader:
     
             lat_tiles.append(lat2d)
             lon_tiles.append(lon2d)
-    
-            ds.close()
     
         lat_all = np.stack(lat_tiles, axis=0)
         lon_all = np.stack(lon_tiles, axis=0)

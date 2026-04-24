@@ -28,7 +28,7 @@ class NameBuilder:
         if z_index is not None:
             parts.append(f'''z{int(z_index):03d}''')
 
-        params = self.cfg.get("input", "parameters", default="")
+        params = self.cfg.get("input", "parameters", default={}) or {}
         cycle = params.get("cycle")
         pdy = str(params.get("PDY"))
 
