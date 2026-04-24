@@ -63,37 +63,51 @@ class Pipeline:
     
         ds_map = self._build_dataset_map()
     
-        for diff_cfg in diff_cfgs:
-    
+        for diff_cfg in diff_cfgs: 
             base_ds = ds_map[diff_cfg["base"]]
-            minus_ds = ds_map[diff_cfg["minus"]]
+            target_ds = ds_map[diff_cfg["target"]]
     
             geo = GeoReader(base_ds).get_geo()
     
             reader_base = DataReader(base_ds)
-            reader_minus = DataReader(minus_ds)
-    
-            for var_base in base_ds.var_list:
-    
-                var_minus = diff_cfg.get("var_map", {}).get(var_base, var_base)
-    
+            reader_target = DataReader(target_ds)
+
+            var_pairs = diff_cfg.get("var_pairs", [])
+            logger.info(f'''var_pairs = {var_pairs}''')
+            
+            # fallback
+            if not var_pairs:
+                var_pairs = [
+                    {"base": v, "target": v}
+                    for v in base_ds.var_list
+                ]
+                logger.warning(f'''No var_pairs defined for {name}, using identity mapping''')
+            
+            for pair in var_pairs:
+                var_base = pair.get("base")
+                var_target = pair.get("target")
+            
+                if not var_base or not var_target:
+                    raise ValueError(f'''Invalid var_pairs entry: {pair}''')
+                logger.info(f'''Running DifferenceTask:: base={var_base}, target={var_target}''')
+            
                 task = DifferenceTask(
                     base_ds,
-                    minus_ds,
+                    target_ds,
                     var_base,
-                    var_minus,
-                    readers=(reader_base, reader_minus),
+                    var_target,
+                    readers=(reader_base, reader_target),
                     geo=geo,
                     plotter=self.plotter,
                     output=self.output,
                     namer=self.names,
                     diff_cfg=diff_cfg,
                 )
-    
+            
                 task.run()
     
             reader_base.close()
-            reader_minus.close()
+            reader_target.close()
 
 
 # ======================================================================================= CHJ =====

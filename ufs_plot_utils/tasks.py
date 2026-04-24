@@ -114,9 +114,9 @@ class DifferenceTask(BaseTask):
     def __init__(
         self,
         base_ds,
-        minus_ds,
+        target_ds,
         var_base,
-        var_minus,
+        var_target,
         readers,
         geo,
         plotter,
@@ -125,10 +125,10 @@ class DifferenceTask(BaseTask):
         diff_cfg,
     ):
         self.base_ds = base_ds
-        self.minus_ds = minus_ds
+        self.target_ds = target_ds
         self.var_base = var_base
-        self.var_minus = var_minus
-        self.reader_base, self.reader_minus = readers
+        self.var_target = var_target
+        self.reader_base, self.reader_target = readers
         self.lat, self.lon = geo
         self.plotter = plotter
         self.output = output
@@ -137,34 +137,34 @@ class DifferenceTask(BaseTask):
 
     def run(self):
         logger.info(
-            f'''DifferenceTask:: {self.var_base} ({self.base_ds.name} - {self.minus_ds.name})'''
+            f'''DifferenceTask:: {self.var_base} ({self.target_ds.name} - {self.base_ds.name})'''
         )
     
         # -------------------------
         # Read
         # -------------------------
         da_base = self.reader_base.get_data(self.var_base)
-        da_minus = self.reader_minus.get_data(self.var_minus)
+        da_target = self.reader_target.get_data(self.var_target)
     
         logger.info(f'''Original:: base  dims={da_base.dims}, shape={da_base.shape}''')
-        logger.info(f'''Original:: minus dims={da_minus.dims}, shape={da_minus.shape}''')
+        logger.info(f'''Original:: target dims={da_target.dims}, shape={da_target.shape}''')
     
         # -------------------------
         # Normalize + Align
         # -------------------------
         da_base  = normalize_tile_dims(da_base)
-        da_minus = normalize_tile_dims(da_minus)
+        da_target = normalize_tile_dims(da_target)
     
-        da_base, da_minus = xr.align(da_base, da_minus, join="override")
+        da_base, da_target = xr.align(da_base, da_target, join="override")
     
         # -------------------------
         # Compute difference (B - A)
         # -------------------------
-        da_diff = da_minus - da_base
+        da_diff = da_target - da_base
     
         vals = da_diff.values
         logger.info(
-            f'''Difference:: ({self.minus_ds.name} - {self.base_ds.name}) {self.var_base} '''
+            f'''Difference:: ({self.target_ds.name} - {self.base_ds.name}) {self.var_base} '''
             f'''min={np.nanmin(vals):.6g}, max={np.nanmax(vals):.6g}'''
         )
     
@@ -200,35 +200,35 @@ class DifferenceTask(BaseTask):
         self.output.save_figure(fig_base, filename_base)
     
         # ============================================================
-        # 2. PLOT MINUS (B)
+        # 2. PLOT TARGET (B)
         # ============================================================
         self.plotter.set_style_resolver(
-            PlotStyleResolver(self.minus_ds)
+            PlotStyleResolver(self.target_ds)
         )
     
-        title_minus = self.namer.build_title(
-            varname=self.var_minus,
-            dataset_name=self.minus_ds.name,
-            z_index=self.minus_ds.z_index,
-            dataset=self.minus_ds,
+        title_target = self.namer.build_title(
+            varname=self.var_target,
+            dataset_name=self.target_ds.name,
+            z_index=self.target_ds.z_index,
+            dataset=self.target_ds,
         )
     
-        filename_minus = self.namer.build_filename(
-            varname=self.var_minus,
-            dataset_name=self.minus_ds.name,
-            z_index=self.minus_ds.z_index,
+        filename_target = self.namer.build_filename(
+            varname=self.var_target,
+            dataset_name=self.target_ds.name,
+            z_index=self.target_ds.z_index,
         )
     
-        fig_minus = self.plotter.plot_data_tiles(
+        fig_target = self.plotter.plot_data_tiles(
             lat=self.lat,
             lon=self.lon,
-            da=da_minus,
-            varname=self.var_minus,
-            output_title=title_minus,
-            dataset=self.minus_ds,
+            da=da_target,
+            varname=self.var_target,
+            output_title=title_target,
+            dataset=self.target_ds,
         )
     
-        self.output.save_figure(fig_minus, filename_minus)
+        self.output.save_figure(fig_target, filename_target)
     
         # ============================================================
         # 3. PLOT DIFFERENCE (B - A)

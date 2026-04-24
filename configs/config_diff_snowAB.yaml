@@ -68,11 +68,13 @@ input:
 
   differences:
     - name: A-B
-      base: after
-      minus: before
-      var_map:
-        snwdph: snwdph
-        smc: smc
+      base: before
+      target: after
+      var_pairs:
+        - base: snwdph
+          target: snwdph
+        - base: smc
+          target: smc
       colormap:
         default: RdBu_r
         snwdph: RdBu_r

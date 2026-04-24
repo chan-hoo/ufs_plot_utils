@@ -77,13 +77,16 @@ input:
       title: "jedi increment"
 
   differences:
-    - name: fv3-jedi
+    - name: jedi-fv3
       base: fv3
-      minus: jedi
-      var_map:
-        T_inc: tmp
-        u_inc: ugrd
-        v_inc: vgrd
+      target: jedi
+      var_pairs:
+        - base: T_inc
+          target: tmp
+        - base: u_inc
+          target: ugrd
+        - base: v_inc
+          target: vgrd
       colormap:
         default: RdBu_r
         T_inc: RdBu_r
