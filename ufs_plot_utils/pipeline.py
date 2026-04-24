@@ -11,6 +11,7 @@ from .naming import NameBuilder
 from .plot import Plotter
 from .output import OutputManager
 from .utils import normalize_tile_dims, format_rtag
+from .tasks import TaskBuilder, DifferenceTask
 
 logger = logging.getLogger(__name__)
 
@@ -38,143 +39,24 @@ class Pipeline:
         self.output = OutputManager(cfg)
 
 
-# ======================================================================================= CHJ =====
+# ======================================================================================= CHJ =====   
     def run_plot_tiles(self):
         """
-        Execute pipeline for multiple datasets
+        Pipeline for multiple datasets
         """
-        for ds in self.datasets:
-            logger.info(f'''Processing dataset: {ds.name}''')
-            style_resolver = PlotStyleResolver(ds)
-            self.plotter.set_style_resolver(style_resolver)
-            # -------------------------
-            # GEO (load once per dataset)
-            # -------------------------
-            geo_reader = GeoReader(ds)
-            lat, lon = geo_reader.get_geo()
-
-            # -------------------------
-            # DATA (context-managed)
-            # -------------------------
-            data_reader = DataReader(ds)
-
-            # -------------------------
-            # FORECAST
-            # -------------------------
-            if ds.data_kind == "forecast":            
-                fhrs = data_reader.detect_forecast_hours()
-                for fhr in fhrs:
-                    logger.info(f'''Processing forecast hour: f{fhr}''')
-                    for varname in ds.var_list:
-            
-                        da = data_reader.get_data(varname, fhr=fhr)
-            
-                        title = self.names.build_title(
-                            varname,
-                            dataset_name=ds.name,
-                            z_index=ds.z_index,
-                            dataset=ds
-                        )
-                        title = f'''{title} :: f{fhr}'''
-            
-                        filename = self.names.build_filename(
-                            varname,
-                            dataset_name=ds.name,
-                            z_index=ds.z_index
-                        )
-                        filename = f'''{filename}_f{fhr}'''
-            
-                        fig = self.plotter.plot_data_tiles(
-                            lat=lat,
-                            lon=lon,
-                            da=da,
-                            varname=varname,
-                            output_title=title,
-                            dataset=ds
-                        )
-            
-                        self.output.save_figure(fig, filename)
-
-            # -------------------------
-            # RESTART
-            # -------------------------
-            elif ds.data_kind == "restart":
-                rtags = data_reader.detect_restart_tags()
-                for rtag in rtags:
-                    logger.info(f'''Processing restart tag: {rtag}''')
-                    for varname in ds.var_list:
-
-                        da = data_reader.get_data(varname, rtag=rtag)
-
-                        title = self.names.build_title(
-                            varname,
-                            dataset_name=ds.name,
-                            z_index=ds.z_index,
-                            dataset=ds
-                        )
-                        title = f'''{title} :: {format_rtag(rtag)}'''
-
-                        filename = self.names.build_filename(
-                            varname,
-                            dataset_name=ds.name,
-                            z_index=ds.z_index
-                        )
-                        safe_rtag = format_rtag(rtag).replace(".", "")
-                        filename = f'''{filename}_{safe_rtag}'''
-
-                        fig = self.plotter.plot_data_tiles(
-                            lat=lat,
-                            lon=lon,
-                            da=da,
-                            varname=varname,
-                            output_title=title,
-                            dataset=ds
-                        )
-
-                        self.output.save_figure(fig, filename)
-
-            else:
-                for varname in ds.var_list:
-                    logger.info(f'''{ds.name} :: {varname}''')        
-                    da = data_reader.get_data(varname)
-                    data_var = da.values
-    
-                    # Title
-                    title = self.names.build_title(
-                        varname,
-                        dataset_name=ds.name,
-                        z_index=ds.z_index,
-                        dataset=ds
-                    )
-        
-                    # Filename
-                    filename = self.names.build_filename(
-                        varname,
-                        dataset_name=ds.name,
-                        z_index=ds.z_index
-                    )
-        
-                    # Plot
-                    fig = self.plotter.plot_data_tiles(
-                        lat=lat,
-                        lon=lon,
-                        da=da,
-                        varname=varname,
-                        output_title=title,
-                        dataset=ds
-                    )
-        
-                    self.output.save_figure(fig, filename)
-    
-            data_reader.close()
+        builder = TaskBuilder(self)
+        tasks = builder.build_plot_tasks()
+        for task in tasks:
+            task.run()
 
 
 # ======================================================================================= CHJ =====
     def run_differences(self):
-        import copy
-        import numpy as np
-    
+        """
+        Pipeline for difference plot of two datasets
+        """
         diff_cfgs = self.cfg.get("input", "differences", default=[])
+    
         if not diff_cfgs:
             logger.info(f'''No differences configured. Skipping.''')
             return
@@ -183,157 +65,32 @@ class Pipeline:
     
         for diff_cfg in diff_cfgs:
     
-            name = diff_cfg["name"]
-            base_name = diff_cfg["base"]
-            minus_name = diff_cfg["minus"]
-            var_map = diff_cfg.get("var_map", {})
-            diff_title = diff_cfg.get("title")
-            diff_obj = SimpleNamespace(title=diff_title) if diff_title else None
-
-            logger.info(f'''Running difference: {name}''')
+            base_ds = ds_map[diff_cfg["base"]]
+            minus_ds = ds_map[diff_cfg["minus"]]
     
-            base_ds = ds_map[base_name]
-            minus_ds = ds_map[minus_name]
+            geo = GeoReader(base_ds).get_geo()
     
-            # -------------------------
-            # GEO (use base as reference)
-            # -------------------------
-            geo_reader = GeoReader(base_ds)
-            lat, lon = geo_reader.get_geo()
-    
-            # -------------------------
-            # DATA READERS
-            # -------------------------
             reader_base = DataReader(base_ds)
             reader_minus = DataReader(minus_ds)
     
-            # -------------------------
-            # STYLE
-            # -------------------------
-            self.plotter.set_style_resolver(PlotStyleResolver(base_ds))
-    
-            # -------------------------
-            # LOOP VARIABLES
-            # -------------------------
             for var_base in base_ds.var_list:
     
-                var_minus = var_map.get(var_base, var_base)
+                var_minus = diff_cfg.get("var_map", {}).get(var_base, var_base)
     
-                logger.info(f'''{var_base} (base) vs {var_minus} (minus)''')
-    
-                da_base = reader_base.get_data(var_base)
-                da_minus = reader_minus.get_data(var_minus)
-                logger.info(f'''Original:: da_base : {da_base.dims} = {da_base.shape}''')
-                logger.info(f'''Original:: da_minus: {da_minus.dims} = {da_minus.shape}''')
-
-                # Normalize BEFORE math
-                da_base  = normalize_tile_dims(da_base)
-                da_minus = normalize_tile_dims(da_minus)
-                logger.info(f'''Normalized:: da_base : {da_base.dims} = {da_base.shape}''')
-                logger.info(f'''Normalized:: da_minus: {da_minus.dims} = {da_minus.shape}''')
-
-                # Align
-                da_base, da_minus = xr.align(da_base, da_minus, join="override")
-    
-                # Difference
-                da_diff = da_base - da_minus
-                logger.info(f'''da_diff: {da_diff.dims} = {da_diff.shape}''')
-                vals = da_diff.values
-                logger.info(
-                    f'''[{base_name} - {minus_name}] {var_base}:: '''
-                    f'''min={np.nanmin(vals):.6g}, max={np.nanmax(vals):.6g}'''
+                task = DifferenceTask(
+                    base_ds,
+                    minus_ds,
+                    var_base,
+                    var_minus,
+                    readers=(reader_base, reader_minus),
+                    geo=geo,
+                    plotter=self.plotter,
+                    output=self.output,
+                    namer=self.names,
+                    diff_cfg=diff_cfg,
                 )
     
-                # =========================
-                # 1. PLOT BASE
-                # =========================
-                # Title
-                title_base = self.names.build_title(
-                    varname=var_base,
-                    dataset_name=base_ds.name,
-                    z_index=base_ds.z_index,
-                    dataset=base_ds
-                )
-
-                # Filename
-                filename_base = self.names.build_filename(varname=var_base,dataset_name=base_ds.name,z_index=base_ds.z_index)
-                # Plot
-                fig1 = self.plotter.plot_data_tiles(
-                    lat=lat,
-                    lon=lon,
-                    da=da_base,
-                    varname=var_base,
-                    output_title=title_base,
-                    dataset=base_ds
-                )
-                # Save
-                self.output.save_figure(fig1, filename_base)
-    
-                # =========================
-                # 2. PLOT MINUS
-                # =========================
-                self.plotter.set_style_resolver(PlotStyleResolver(minus_ds))
-
-                # Title
-                title_minus = self.names.build_title(
-                    varname=var_minus,
-                    dataset_name=minus_ds.name,
-                    z_index=minus_ds.z_index,
-                    dataset=minus_ds
-                )
-
-                # Filename
-                filename_minus = self.names.build_filename(varname=var_minus,dataset_name=minus_ds.name,z_index=base_ds.z_index)
-
-                fig2 = self.plotter.plot_data_tiles(
-                    lat=lat,
-                    lon=lon,
-                    da=da_minus,
-                    varname=var_minus,
-                    output_title=title_minus,
-                    dataset=minus_ds
-                )
-    
-                self.output.save_figure(fig2, filename_minus)
-    
-                # =========================
-                # 3. PLOT DIFFERENCE
-                # =========================
-                # use BASE style but force increment behavior
-                diff_ds = copy.copy(base_ds)
-                diff_ds.data_kind = "increment"
-
-                diff_cmap = diff_cfg.get("colormap", {})
-                diff_range = diff_cfg.get("range", {})                
-                resolver = PlotStyleResolver(
-                    dataset=diff_ds,
-                    cmap_cfg=diff_cmap,
-                    range_cfg=diff_range
-                )
-                resolver.is_difference = True
-                self.plotter.set_style_resolver(resolver)
-
-                # Title
-                title_diff = self.names.build_title(
-                    varname=var_base,
-                    dataset_name=diff_ds.name,
-                    z_index=diff_ds.z_index,
-                    dataset=diff_obj
-                )
-
-                # Filename
-                filename_diff = self.names.build_filename(varname=var_base,dataset_name=name,z_index=diff_ds.z_index)
-
-                fig3 = self.plotter.plot_data_tiles(
-                    lat=lat,
-                    lon=lon,
-                    da=da_diff,
-                    varname=var_base,
-                    output_title=title_diff,
-                    dataset=None
-                )
-    
-                self.output.save_figure(fig3, filename_diff)
+                task.run()
     
             reader_base.close()
             reader_minus.close()

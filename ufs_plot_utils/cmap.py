@@ -19,13 +19,12 @@ class PlotStyleResolver:
     """
     Unified handler for colormap, range, and label.
     """
-
-    def __init__(self, dataset, cmap_cfg=None, range_cfg=None):
+    def __init__(self, dataset, cmap_cfg=None, range_cfg=None, is_difference=False):
         self.dataset = dataset
-
-        # allow override (difference case)
-        self.cmap_cfg = cmap_cfg if cmap_cfg is not None else getattr(dataset, "colormap", {}) or {}
-        self.range_cfg = range_cfg if range_cfg is not None else getattr(dataset, "range", {}) or {}
+        self.is_difference = is_difference
+    
+        self.cmap_cfg = cmap_cfg or getattr(dataset, "colormap", {}) or {}
+        self.range_cfg = range_cfg or getattr(dataset, "range", {}) or {}
 
 
 # ======================================================================================= CHJ =====
@@ -106,7 +105,7 @@ class PlotStyleResolver:
         # -------------------------
         if vmin is None or vmax is None:
             is_increment = (
-                getattr(self, "is_difference", False)
+                self.is_difference
                 or self.dataset.data_kind == "increment"
             )
         
@@ -123,8 +122,8 @@ class PlotStyleResolver:
                 vmin = np.nanpercentile(data_var, 2)
                 vmax = np.nanpercentile(data_var, 98)
 
-        # Enforce symmetry for differences (optional but recommended)
-        if getattr(self, "is_difference", False):
+        # Enforce symmetry for differences
+        if self.is_difference:
             vmax = max(abs(vmin), abs(vmax))
             vmin = -vmax
     
