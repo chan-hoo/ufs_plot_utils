@@ -1,7 +1,10 @@
 import pytest
+import tempfile
+import yaml
 import numpy as np
 import xarray as xr
 from types import SimpleNamespace
+from ufs_plot_utils.config import Config
 
 
 @pytest.fixture
@@ -50,13 +53,17 @@ def dummy_dataset():
 
 @pytest.fixture
 def dummy_cfg():
-    return {
+    data = {
         "input": {
             "datasets": []
         },
         "output": {
+            "prefix": "PFX",
             "path": "./out"
         },
         "plot": {}
     }
 
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+        yaml.dump(data, f)
+        return Config(f.name)
