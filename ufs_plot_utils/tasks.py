@@ -66,15 +66,17 @@ class PlotTask(BaseTask):
         # Channel slicing (OBS)
         # -------------------------
         if "channel" in self.context:
-            ch = self.context["channel"]
-
-            # detect channel dim again (safe)
+            ch = self.context["channel_idx"]        
             ch_dim = next(
                 (d for d in da.dims if d.lower() in ["channel", "chan", "nchan", "band"]),
                 None
             )
-
             if ch_dim is not None:
+                if ch < 0 or ch >= da.sizes[ch_dim]:
+                    logger.warning(
+                        f"Invalid channel {ch} for size {da.sizes[ch_dim]} — skipping"
+                    )
+                    return
                 da = da.isel({ch_dim: ch})
 
         # -------------------------
@@ -383,21 +385,19 @@ class TaskBuilder:
                 self.pipeline.plotter.set_style_resolver(
                     PlotStyleResolver(ds)
                 )
-            
-                channels_cfg = self.pipeline.cfg.get("channels", default={})
-            
-                for var in ds.var_list:            
+                       
+                for var in ds.var_list:
                     ch_dim, ch_list = reader.get_observation_channels(var)
-           
-                    # config filter (if exists)
-                    var_cfg = channels_cfg.get(ds.name, {}).get(var, None)
-                    if var_cfg is not None:
-                        # convert once -> 0-based
-                        var_cfg = [c - 1 for c in var_cfg]
-
-                    if var_cfg is not None:
+                    var_cfg = ds.channels
+                    logger.info(f'''channels from dataset = {var_cfg}''')
+                    if var_cfg:
+                        # validate range first
+                        max_ch = len(ch_list)
+                        var_cfg = [c for c in var_cfg if 1 <= c <= max_ch]
+                        var_cfg = [c - 1 for c in var_cfg]  # convert to 0-based
                         selected_channels = [ch for ch in ch_list if ch in var_cfg]
                     else:
+                        logger.warning(f'''No channel filter found for {ds.name}:{var} -> using ALL channels''')
                         selected_channels = ch_list
 
                     for ch in selected_channels:

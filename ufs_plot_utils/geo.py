@@ -49,14 +49,8 @@ class GeoReader:
         logger.info(f'''Opening geo file: {fpath}''')
 
         with xr.open_dataset(fpath) as ds_geo:    
-            # -------------------------
             # flatten groups
-            # -------------------------
-            ds_flat = xr.merge([
-                v.to_dataset(name=k)
-                for k, v in ds_geo.variables.items()
-            ]) if hasattr(ds_geo, "variables") else ds_geo
-    
+            ds_flat = xr.Dataset({k: v for k, v in ds_geo.data_vars.items()})  
             lat_candidates = ["lat", "latitude"]
             lon_candidates = ["lon", "longitude"]
     

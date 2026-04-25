@@ -25,8 +25,8 @@ class Dataset:
         self.filename = data_cfg.get("filename")
         self.file_type = data_cfg.get("file_type", "file")
         self.group = data_cfg.get("group")
-
         self.var_list = data_cfg.get("var_list", [])
+        self.channels = data_cfg.get("channels", None)
         self.z_index = data_cfg.get("z_index")
         self.time_index = data_cfg.get("time_index", 0)
 
@@ -47,3 +47,7 @@ class Dataset:
 
         if not self.path:
             raise ValueError(f'''Dataset "{self.path}" missing path''')
+
+        if self.channels:
+            if any(c < 1 for c in self.channels):
+                raise ValueError("channels must be 1-based positive integers")

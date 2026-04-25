@@ -12,7 +12,7 @@ input:
         group: ObsValue
         var_list:
           - brightnessTemperature
-        channels: [1, 2, 5, 10, 22]
+        channels: [2, 7, 15, 22]
       colormap:
         default: gist_ncar_r
         brightnessTemperature: null
@@ -23,7 +23,7 @@ input:
         brightnessTemperature:
           vmin: null
           vmax: null
-      title: "user custom title"
+      title: "ATMS_N20"
 
 output:
   path: ./
