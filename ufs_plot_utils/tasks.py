@@ -72,11 +72,6 @@ class PlotTask(BaseTask):
                 None
             )
             if ch_dim is not None:
-                if ch < 0 or ch >= da.sizes[ch_dim]:
-                    logger.warning(
-                        f"Invalid channel {ch} for size {da.sizes[ch_dim]} — skipping"
-                    )
-                    return
                 da = da.isel({ch_dim: ch})
 
         # -------------------------
@@ -380,32 +375,17 @@ class TaskBuilder:
             elif ds.data_kind == "observation":
             
                 geo = GeoReader(ds).get_geo()
-                reader = DataReader(ds)
-            
+                reader = DataReader(ds)            
                 self.pipeline.plotter.set_style_resolver(
                     PlotStyleResolver(ds)
                 )
                        
                 for var in ds.var_list:
-                    ch_dim, ch_list = reader.get_observation_channels(var)
-                    var_cfg = ds.channels
-                    logger.info(f'''channels from dataset = {var_cfg}''')
-                    if var_cfg:
-                        # validate range first
-                        max_ch = len(ch_list)
-                        var_cfg = [c for c in var_cfg if 1 <= c <= max_ch]
-                        var_cfg = [c - 1 for c in var_cfg]  # convert to 0-based
-                        selected_channels = [ch for ch in ch_list if ch in var_cfg]
-                    else:
-                        logger.warning(f'''No channel filter found for {ds.name}:{var} -> using ALL channels''')
-                        selected_channels = ch_list
-
-                    for ch in selected_channels:
-                        context = {}
-                        if ch_dim is not None:
-                            context["channel_idx"] = ch          # 0-based (SAFE for xarray)
-                            context["channel"] = ch + 1          # 1-based (UI only)
+                    ch_dim, ch_list = reader.get_observation_channels(var)                    
+                    channels_cfg = ds.channels  # now dataset-local
                     
+                    if ch_dim is None:
+                        logger.info(f"{ds.name}:{var} has NO channel dimension -> single task")
                         tasks.append(
                             PlotTask(
                                 dataset=ds,
@@ -415,9 +395,37 @@ class TaskBuilder:
                                 plotter=self.pipeline.plotter,
                                 output=self.pipeline.output,
                                 namer=self.pipeline.names,
-                                context=context,
+                                context={},   # IMPORTANT: no channel
                             )
                         )
+                        continue
+
+                    else:
+                        selected_channels = ch_list                    
+                        if channels_cfg:
+                            max_ch = len(ch_list)
+                            channels_cfg = [c for c in channels_cfg if 1 <= c <= max_ch]
+                            channels_cfg = [c - 1 for c in channels_cfg]
+                            selected_channels = [ch for ch in ch_list if ch in channels_cfg]
+                    
+                        for ch in selected_channels:
+                            context = {
+                                "channel_idx": ch,
+                                "channel": ch + 1,
+                            }
+                    
+                            tasks.append(
+                                PlotTask(
+                                    dataset=ds,
+                                    varname=var,
+                                    data_reader=reader,
+                                    geo=geo,
+                                    plotter=self.pipeline.plotter,
+                                    output=self.pipeline.output,
+                                    namer=self.pipeline.names,
+                                    context=context,
+                                )
+                            )
             
             # -------------------------
             # DEFAULT

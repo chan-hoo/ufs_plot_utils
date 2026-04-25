@@ -25,6 +25,27 @@ input:
           vmax: null
       title: "ATMS_N20"
 
+    - name: ghcn
+      data_kind: observation   # increment | analysis | forecast | restart | observation | etc.
+      data:
+        path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_obs/ghcn
+        filename: obs.20250121.t00z.ghcn_snow.nc
+        group: ObsValue
+        var_list:
+          - totalSnowDepth
+        channels: null
+      colormap:
+        default: gist_ncar_r
+        totalSnowDepth: null
+      range:
+        default:
+          vmin: null
+          vmax: null
+        totalSnowDepth:
+          vmin: null
+          vmax: null
+      title: "GHCN snow"
+
 output:
   path: ./
   prefix: obs
