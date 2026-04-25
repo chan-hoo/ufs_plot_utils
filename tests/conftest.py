@@ -41,7 +41,11 @@ def sample_da_grid():
 
 @pytest.fixture
 def zero_da():
+    """
+    Create a zero-filled DataArray for testing
+    """
     return xr.DataArray(
         np.zeros((6, 96, 96)),
         dims=("tile", "y", "x")
     )
+
