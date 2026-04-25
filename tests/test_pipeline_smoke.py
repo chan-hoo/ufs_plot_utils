@@ -85,7 +85,7 @@ def test_pipeline_has_required_attributes():
         "data": {
             "path": "/tmp",
             "filename": "test.nc",
-            "var_list": []
+            "var_list": ["temperature", "pressure"]
         },
         "geo": {
             "path": "/tmp",
@@ -103,5 +103,4 @@ def test_pipeline_has_required_attributes():
     
     required_attrs = ["cfg", "datasets", "names", "plotter", "output"]
     for attr in required_attrs:
-        assert hasattr(pipeline, attr), f'''Pipeline should have '{attr}' attribute'''
-
+        assert hasattr(pipeline, attr), f"Pipeline should have '{attr}' attribute"
