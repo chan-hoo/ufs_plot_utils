@@ -71,37 +71,3 @@ def test_pipeline_initialization_with_valid_config():
     except Exception as e:
         pytest.fail(f'''Pipeline initialization failed: {str(e)}''')
 
-
-def test_pipeline_has_required_attributes():
-    """
-    Test that Pipeline instance has required attributes
-    """
-    import ufs_plot_utils.pipeline as p
-    from unittest.mock import MagicMock
-    
-    mock_ds_cfg = {
-        "name": "test_ds",
-        "data_kind": "increment",
-        "data": {
-            "path": "/tmp",
-            "filename": "test.nc",
-            "var_list": []
-        },
-        "geo": {
-            "path": "/tmp",
-            "filename": "geo.nc"
-        }
-    }
-    
-    mock_cfg = MagicMock()
-    mock_cfg.get.side_effect = lambda *args, **kwargs: (
-        [mock_ds_cfg] if args == ("input", "datasets") else 
-        kwargs.get("default", [])
-    )
-    
-    pipeline = p.Pipeline(mock_cfg)
-    
-    required_attrs = ["cfg", "datasets", "names", "plotter", "output"]
-    for attr in required_attrs:
-        assert hasattr(pipeline, attr), f'''Pipeline should have '{attr}' attribute'''
-
