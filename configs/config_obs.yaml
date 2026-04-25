@@ -66,6 +66,8 @@ plot:
     tick_fontsize: 7
   title:
     fontsize: 9
+  scatter:
+    marker_size: 0.5
   background:
     features:
       - coastline

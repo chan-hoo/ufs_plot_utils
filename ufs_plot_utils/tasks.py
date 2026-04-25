@@ -110,7 +110,7 @@ class PlotTask(BaseTask):
             filename = f'''{filename}_{safe_rtag}'''
 
         if "channel" in self.context:
-            filename = f'''{filename}_ch{self.context["channel"]:03d}'''
+            filename = f'''{filename}_ch{self.context["channel"]:02d}'''
 
         # -------------------------
         # Plot

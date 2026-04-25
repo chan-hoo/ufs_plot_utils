@@ -24,6 +24,7 @@ class Plotter:
         self.fig_cfg   = plot_cfg.get("figure", {})
         self.cb_cfg    = plot_cfg.get("colorbar", {})
         self.title_cfg = plot_cfg.get("title", {})
+        self.scatter_cfg = plot_cfg.get("scatter", {})
         self.bg_cfg    = plot_cfg.get("background", {})
         self.style_resolver = None
 
@@ -204,8 +205,25 @@ class Plotter:
         # -------------------------
         # Projection
         # -------------------------
-        proj = ccrs.PlateCarree()
+        proj_name = self.proj_cfg.get("name", "Robinson")
+        central_lon = self.proj_cfg.get("central_longitude", -77.0369)
 
+        proj_map = {
+            "Robinson": ccrs.Robinson,
+            "PlateCarree": ccrs.PlateCarree,
+            "Mollweide": ccrs.Mollweide,
+        }
+
+        proj_class = proj_map.get(proj_name, ccrs.Robinson)
+
+        if proj_name == "PlateCarree":
+            projection = ccrs.PlateCarree()
+        else:
+            projection = proj_class(central_longitude=central_lon)
+
+        # -------------------------
+        # Figure
+        # -------------------------
         figsize = self.fig_cfg.get("figsize", [10, 5])
         dpi = self.fig_cfg.get("dpi", 150)
 
@@ -213,25 +231,30 @@ class Plotter:
             1, 1,
             figsize=figsize,
             dpi=dpi,
-            subplot_kw=dict(projection=proj)
+            subplot_kw=dict(projection=projection)
         )
 
         ax.set_global()
+
+        # -------------------------
+        # Background
+        # -------------------------
         self.plot_background(ax)
 
         # -------------------------
-        # Scatter
+        # Style (still needs numpy)
         # -------------------------
-        sc = ax.scatter(
-            lon,
-            lat,
-            c=da.values,
-            cmap=cmap,
-            vmin=vmin,
-            vmax=vmax,
-            s=5,
-            transform=ccrs.PlateCarree()
+        data_values = da.values
+
+        style = self.style_resolver.resolve(
+            varname,
+            da
         )
+
+        cmap = style.cmap
+        vmin = style.vmin
+        vmax = style.vmax
+        cbar_label = style.label
 
         # -------------------------
         # Title
@@ -240,10 +263,35 @@ class Plotter:
         ax.set_title(output_title, fontsize=title_fs)
 
         # -------------------------
+        # Scatter
+        # -------------------------
+        cs = ax.scatter(
+            lon,
+            lat,
+            c=da.values,
+            cmap=cmap,
+            vmin=vmin,
+            vmax=vmax,
+            s=self.scatter_cfg.get("marker_size", 5),
+            transform=ccrs.PlateCarree()
+        )
+
+        # -------------------------
         # Colorbar
         # -------------------------
-        cbar = plt.colorbar(sc, ax=ax, orientation="vertical")
-        cbar.set_label(cbar_label)
+        cb_extend = self.cb_cfg.get("extend", "both")
+        cb_size = self.cb_cfg.get("size", "3%")
+        cb_pad = self.cb_cfg.get("pad", 0.1)
+        cb_label_fs = self.cb_cfg.get("label_fontsize", 7)
+        cb_tick_fs = self.cb_cfg.get("tick_fontsize", 6)
+
+        divider = make_axes_locatable(ax)
+        ax_cb = divider.new_horizontal(size=cb_size, pad=cb_pad, axes_class=plt.Axes)
+        fig.add_axes(ax_cb)
+
+        cbar = plt.colorbar(cs, cax=ax_cb, extend=cb_extend)
+        cbar.ax.tick_params(labelsize=cb_tick_fs)
+        cbar.set_label(cbar_label, fontsize=cb_label_fs)
 
         return fig
 
