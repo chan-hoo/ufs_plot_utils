@@ -1,46 +1,47 @@
-# tests/conftest.py
 import pytest
-from types import SimpleNamespace
-from ufs_plot_utils.config import Config
+import numpy as np
+import xarray as xr
+import sys
+from pathlib import Path
+
+# Add project root to PYTHONPATH
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 
 @pytest.fixture
-def raw_cfg():
-    return {
-        "input": {
-            "datasets": []
-        },
-        "output": {
-            "path": "./out"
-        },
-        "plot": {}
-    }
+def sample_da_tile():
+    """
+    Create a fake tile dataset (tile, y, x)
+    """
+    data = np.random.rand(6, 96, 96)
+
+    da = xr.DataArray(
+        data,
+        dims=("tile", "yaxis_1", "xaxis_1"),
+        name="test_var"
+    )
+    return da
 
 
 @pytest.fixture
-def cfg(raw_cfg):
+def sample_da_grid():
     """
-    Real Config object used by Pipeline.
+    Another format (grid_yt/grid_xt)
     """
-    return Config(raw_cfg)
+    data = np.random.rand(6, 96, 96)
+
+    da = xr.DataArray(
+        data,
+        dims=("tile", "grid_yt", "grid_xt"),
+        name="test_var"
+    )
+    return da
 
 
 @pytest.fixture
-def cfg_dict(raw_cfg):
-    """
-    Plain dict version for unit tests that bypass Config.
-    """
-    return raw_cfg
-
-
-@pytest.fixture
-def fake_dataset_cfg():
-    return {
-        "name": "ds",
-        "data_kind": "analysis",
-        "path": ".",
-        "filename": "f.nc",
-        "file_type": "file",
-        "var_list": ["var"]
-    }
-
+def zero_da():
+    return xr.DataArray(
+        np.zeros((6, 96, 96)),
+        dims=("tile", "y", "x")
+    )
