@@ -33,20 +33,75 @@ def test_pipeline_class_has_methods():
         assert has_method, f'''Pipeline class should have '{method}' method, got missing method'''
 
 
-def test_pipeline_initialization_requires_config():
+def test_pipeline_initialization_with_valid_config():
     """
-    Test pipeline initialization with config parameter
+    Test pipeline initialization with valid config
     """
     import ufs_plot_utils.pipeline as p
     from unittest.mock import MagicMock
     
     try:
-        # Mock config object
+        # Create a mock config with proper dataset structure
+        mock_ds_cfg = {
+            "name": "test_ds",
+            "data_kind": "increment",
+            "data": {
+                "path": "/tmp",
+                "filename": "test.nc",
+                "file_type": "file",
+                "var_list": ["temperature"]
+            },
+            "geo": {
+                "path": "/tmp",
+                "filename": "geo.nc",
+                "file_type": "file"
+            }
+        }
+        
         mock_cfg = MagicMock()
-        mock_cfg.get.return_value = [{"name": "test_ds"}]
+        mock_cfg.get.side_effect = lambda *args, **kwargs: (
+            [mock_ds_cfg] if args == ("input", "datasets") else 
+            kwargs.get("default", [])
+        )
         
         pipeline = p.Pipeline(mock_cfg)
-        assert pipeline is not None, f'''Pipeline instance should be created with config'''
+        assert pipeline is not None, f'''Pipeline instance should be created with valid config'''
         assert hasattr(pipeline, "cfg"), f'''Pipeline should store config'''
-    except TypeError as e:
+        assert len(pipeline.datasets) == 1, f'''Pipeline should have 1 dataset'''
+    except Exception as e:
         pytest.fail(f'''Pipeline initialization failed: {str(e)}''')
+
+
+def test_pipeline_has_required_attributes():
+    """
+    Test that Pipeline instance has required attributes
+    """
+    import ufs_plot_utils.pipeline as p
+    from unittest.mock import MagicMock
+    
+    mock_ds_cfg = {
+        "name": "test_ds",
+        "data_kind": "increment",
+        "data": {
+            "path": "/tmp",
+            "filename": "test.nc",
+            "var_list": []
+        },
+        "geo": {
+            "path": "/tmp",
+            "filename": "geo.nc"
+        }
+    }
+    
+    mock_cfg = MagicMock()
+    mock_cfg.get.side_effect = lambda *args, **kwargs: (
+        [mock_ds_cfg] if args == ("input", "datasets") else 
+        kwargs.get("default", [])
+    )
+    
+    pipeline = p.Pipeline(mock_cfg)
+    
+    required_attrs = ["cfg", "datasets", "names", "plotter", "output"]
+    for attr in required_attrs:
+        assert hasattr(pipeline, attr), f'''Pipeline should have '{attr}' attribute'''
+
