@@ -20,6 +20,10 @@ class GeoReader:
         """
         Choose geo data reading method based on config
         """
+        # Observation
+        if self.dataset.data_kind == "observation":
+            return self._get_geo_observation()
+
         geo_type = self.dataset.geo_file_type.lower()
 
         if geo_type == "file":
@@ -43,20 +47,27 @@ class GeoReader:
         )
     
         logger.info(f'''Opening geo file: {fpath}''')
+
+        with xr.open_dataset(fpath) as ds_geo:    
+            # -------------------------
+            # flatten groups
+            # -------------------------
+            ds_flat = xr.merge([
+                v.to_dataset(name=k)
+                for k, v in ds_geo.variables.items()
+            ]) if hasattr(ds_geo, "variables") else ds_geo
     
-        with xr.open_dataset(fpath) as ds_geo:
-            # Detect lat/lon variable names
             lat_candidates = ["lat", "latitude"]
             lon_candidates = ["lon", "longitude"]
-        
-            lat_name = next((v for v in lat_candidates if v in ds_geo.variables), None)
-            lon_name = next((v for v in lon_candidates if v in ds_geo.variables), None)
+    
+            lat_name = next((v for v in lat_candidates if v in ds_flat), None)
+            lon_name = next((v for v in lon_candidates if v in ds_flat), None)
     
             if lat_name is None or lon_name is None:
-                raise ValueError(f'''Could not find lat/lon variables''')
-        
-            lat = ds_geo[lat_name]
-            lon = ds_geo[lon_name]
+                raise ValueError(f'''Could not detect lon/lat in OBS file''')
+    
+            lat = ds_flat[lat_name]
+            lon = ds_flat[lon_name]
 
         # Handle 1D case
         if lat.ndim == 1 and lon.ndim == 1:
@@ -222,3 +233,64 @@ class GeoReader:
     
         return lat_all, lon_all
 
+
+# ======================================================================================= CHJ =====
+    def _get_geo_observation(self):
+        """
+        Read lon/lat from IODA-style observation file.
+
+        Handles:
+          - MetaData group (standard)
+          - fallback to root
+        """
+        fpath = os.path.join(
+            self.dataset.path,
+            self.dataset.filename
+        )
+
+        logger.info(f'''Opening OBS geo file: {fpath}''')
+
+        # -------------------------
+        # 1. Try MetaData group (IODA standard)
+        # -------------------------
+        try:
+            with xr.open_dataset(fpath, group="MetaData") as ds:
+                logger.info("Trying group: MetaData")
+
+                lon = ds["longitude"].values
+                lat = ds["latitude"].values
+
+                logger.info("Found lon/lat in MetaData group")
+        except Exception as e:
+            logger.warning(f'''MetaData group read failed: {e}''')
+
+            # -------------------------
+            # 2. Fallback: root
+            # -------------------------
+            with xr.open_dataset(fpath) as ds:
+                logger.info("Falling back to ROOT group")
+
+                lon_candidates = ["lon", "longitude"]
+                lat_candidates = ["lat", "latitude"]
+
+                lon_name = next((v for v in lon_candidates if v in ds.variables), None)
+                lat_name = next((v for v in lat_candidates if v in ds.variables), None)
+
+                if lon_name is None or lat_name is None:
+                    raise ValueError(f'''Could not detect lon/lat in OBS file''')
+
+                lon = ds[lon_name].values
+                lat = ds[lat_name].values
+
+        # -------------------------
+        # Validation
+        # -------------------------
+        if lon.ndim != 1 or lat.ndim != 1:
+            raise ValueError(f'''Observation lon/lat must be 1D''')
+
+        if lon.shape != lat.shape:
+            raise ValueError(f'''lon/lat shape mismatch''')
+
+        logger.info(f'''OBS geo size = {lon.size}''')
+
+        return lat, lon

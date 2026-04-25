@@ -34,14 +34,36 @@ class DataReader:
 # ======================================================================================= CHJ =====
     def _open_dataset(self):
         """
-        Open dataset only when needed (lazy loading)
+        Open dataset (lazy loading) with group support
         """
         if self.xr_ds is None:
             file_path = os.path.join(self.path, self.filename)
-
+    
             logger.info(f'''Opening data: {file_path}''')
-
-            self.xr_ds = xr.open_dataset(file_path, engine="netcdf4")
+    
+            group = getattr(self.data, "group", None)
+    
+            try:
+                if group:
+                    logger.info(f'''Opening group: {group}''')
+                    self.xr_ds = xr.open_dataset(
+                        file_path,
+                        engine="netcdf4",
+                        group=group
+                    )
+                else:
+                    self.xr_ds = xr.open_dataset(
+                        file_path,
+                        engine="netcdf4"
+                    )
+    
+            except Exception as e:
+                raise RuntimeError(
+                    f'''Failed to open dataset (group={group}): {e}'''
+                )
+    
+            # DEBUG (VERY IMPORTANT)
+            logger.info(f'''Dataset variables: {list(self.xr_ds.variables)}''')
 
 
 # ======================================================================================= CHJ =====
@@ -82,7 +104,13 @@ class DataReader:
                 return self._get_data_file(varname, files)
             else:
                 raise ValueError(f'''Unsupported file_type: {self.file_type}''')
-        
+
+        # -------------------------
+        # OBSERVATION
+        # -------------------------
+        elif self.data.data_kind == "observation":
+            return self._get_data_observation(varname)
+
         # -------------------------
         # DEFAULT
         # -------------------------
@@ -95,6 +123,29 @@ class DataReader:
         
             else:
                 raise ValueError(f'''Unsupported file_type: {self.file_type}''')
+
+
+# ======================================================================================= CHJ =====
+    def get_observation_channels(self, varname):
+        """
+        Return channel dimension + indices
+        """
+        self._open_dataset()
+    
+        if varname not in self.xr_ds.variables:
+            raise ValueError(
+                f'''{varname} not found in dataset. Available: {list(self.xr_ds.variables)}'''
+            )
+    
+        da = self.xr_ds[varname]
+    
+        for d in da.dims:
+            if d.lower() in ["channel", "chan", "nchan", "band"]:
+                n = da.sizes[d]
+                logger.info(f'''Detected channel dim "{d}" size={n}''')
+                return d, list(range(n))
+    
+        return None, [None]
 
 
 # ======================================================================================= CHJ =====
@@ -195,6 +246,43 @@ class DataReader:
                     d.close()
                 except Exception:
                     pass
+
+
+# ======================================================================================= CHJ =====
+    def _get_data_observation(self, varname):
+        """
+        Observation reader:
+        - auto-detect lon/lat
+        - supports (Location) or (Location, Channel)
+        - handles NaNs
+        """
+    
+        self._open_dataset()
+    
+        logger.info(f'''Reading OBS variable: {varname}''')
+    
+        # -------------------------
+        # group handling (ObsValue / MetaData safe access)
+        # -------------------------
+        if varname not in self.xr_ds:
+            # try group search (common in obs files)
+            for gname, group in self.xr_ds.groups.items():
+                if varname in group.variables:
+                    da = group[varname]
+                    break
+            else:
+                raise ValueError(f'''{varname} not found in any group''')
+        else:
+            da = self.xr_ds[varname]
+    
+        logger.info(f'''{varname} dims = {da.dims}, shape = {da.shape}''')
+    
+        # -------------------------
+        # NaN / fill value handling
+        # -------------------------
+        da = da.where(np.isfinite(da))
+    
+        return da
 
 
 # ======================================================================================= CHJ =====

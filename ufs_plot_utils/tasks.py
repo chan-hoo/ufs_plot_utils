@@ -56,6 +56,28 @@ class PlotTask(BaseTask):
         )
 
         # -------------------------
+        # Skip empty channels
+        # -------------------------
+        if np.all(np.isnan(da.values)):
+            logger.warning(f'''Skipping NaN-only field: {self.varname}''')
+            return
+
+        # -------------------------
+        # Channel slicing (OBS)
+        # -------------------------
+        if "channel" in self.context:
+            ch = self.context["channel"]
+
+            # detect channel dim again (safe)
+            ch_dim = next(
+                (d for d in da.dims if d.lower() in ["channel", "chan", "nchan", "band"]),
+                None
+            )
+
+            if ch_dim is not None:
+                da = da.isel({ch_dim: ch})
+
+        # -------------------------
         # Title
         # -------------------------
         title = self.namer.build_title(
@@ -70,6 +92,9 @@ class PlotTask(BaseTask):
 
         if "rtag" in self.context:
             title = f'''{title} :: {self.context["rtag"]}'''
+
+        if "channel" in self.context:
+            title = f'''{title} :: ch{self.context["channel"]:02d}'''
 
         # -------------------------
         # Filename
@@ -87,17 +112,30 @@ class PlotTask(BaseTask):
             safe_rtag = self.context["rtag"].replace(".", "")
             filename = f'''{filename}_{safe_rtag}'''
 
+        if "channel" in self.context:
+            filename = f'''{filename}_ch{self.context["channel"]:03d}'''
+
         # -------------------------
         # Plot
         # -------------------------
-        fig = self.plotter.plot_data_tiles(
-            lat=self.lat,
-            lon=self.lon,
-            da=da,
-            varname=self.varname,
-            output_title=title,
-            dataset=self.dataset,
-        )
+        if self.dataset.data_kind == "observation":
+            fig = self.plotter.plot_data_scatter(
+                lat=self.lat,
+                lon=self.lon,
+                da=da,
+                varname=self.varname,
+                output_title=title,
+                dataset=self.dataset,
+            )
+        else:
+            fig = self.plotter.plot_data_tiles(
+                lat=self.lat,
+                lon=self.lon,
+                da=da,
+                varname=self.varname,
+                output_title=title,
+                dataset=self.dataset,
+            )
 
         # -------------------------
         # Save
@@ -334,6 +372,53 @@ class TaskBuilder:
                             )
                         )
 
+            # -------------------------
+            # OBSERVATION
+            # -------------------------
+            elif ds.data_kind == "observation":
+            
+                geo = GeoReader(ds).get_geo()
+                reader = DataReader(ds)
+            
+                self.pipeline.plotter.set_style_resolver(
+                    PlotStyleResolver(ds)
+                )
+            
+                channels_cfg = self.pipeline.cfg.get("channels", default={})
+            
+                for var in ds.var_list:            
+                    ch_dim, ch_list = reader.get_observation_channels(var)
+           
+                    # config filter (if exists)
+                    var_cfg = channels_cfg.get(ds.name, {}).get(var, None)
+                    if var_cfg is not None:
+                        # convert once -> 0-based
+                        var_cfg = [c - 1 for c in var_cfg]
+
+                    if var_cfg is not None:
+                        selected_channels = [ch for ch in ch_list if ch in var_cfg]
+                    else:
+                        selected_channels = ch_list
+
+                    for ch in selected_channels:
+                        context = {}
+                        if ch_dim is not None:
+                            context["channel_idx"] = ch          # 0-based (SAFE for xarray)
+                            context["channel"] = ch + 1          # 1-based (UI only)
+                    
+                        tasks.append(
+                            PlotTask(
+                                dataset=ds,
+                                varname=var,
+                                data_reader=reader,
+                                geo=geo,
+                                plotter=self.pipeline.plotter,
+                                output=self.pipeline.output,
+                                namer=self.pipeline.names,
+                                context=context,
+                            )
+                        )
+            
             # -------------------------
             # DEFAULT
             # -------------------------

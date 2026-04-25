@@ -177,6 +177,78 @@ class Plotter:
 
 
 # ======================================================================================= CHJ =====
+    def plot_data_scatter(
+        self,
+        lat,
+        lon,
+        da,
+        varname,
+        output_title,
+        dataset
+    ):
+        """
+        Scatter plot for observation data
+        """
+        logger.info(f'''Plotting observation scatter''')
+
+        if self.style_resolver is None:
+            raise RuntimeError("StyleResolver not set.")
+
+        style = self.style_resolver.resolve(varname, da)
+
+        cmap = style.cmap
+        vmin = style.vmin
+        vmax = style.vmax
+        cbar_label = style.label
+
+        # -------------------------
+        # Projection
+        # -------------------------
+        proj = ccrs.PlateCarree()
+
+        figsize = self.fig_cfg.get("figsize", [10, 5])
+        dpi = self.fig_cfg.get("dpi", 150)
+
+        fig, ax = plt.subplots(
+            1, 1,
+            figsize=figsize,
+            dpi=dpi,
+            subplot_kw=dict(projection=proj)
+        )
+
+        ax.set_global()
+        self.plot_background(ax)
+
+        # -------------------------
+        # Scatter
+        # -------------------------
+        sc = ax.scatter(
+            lon,
+            lat,
+            c=da.values,
+            cmap=cmap,
+            vmin=vmin,
+            vmax=vmax,
+            s=5,
+            transform=ccrs.PlateCarree()
+        )
+
+        # -------------------------
+        # Title
+        # -------------------------
+        title_fs = self.title_cfg.get("fontsize", 8)
+        ax.set_title(output_title, fontsize=title_fs)
+
+        # -------------------------
+        # Colorbar
+        # -------------------------
+        cbar = plt.colorbar(sc, ax=ax, orientation="vertical")
+        cbar.set_label(cbar_label)
+
+        return fig
+
+
+# ======================================================================================= CHJ =====
     def plot_background(self, ax):
         """
         Add background features (config-driven)

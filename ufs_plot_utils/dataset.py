@@ -24,6 +24,7 @@ class Dataset:
         self.path = data_cfg.get("path")
         self.filename = data_cfg.get("filename")
         self.file_type = data_cfg.get("file_type", "file")
+        self.group = data_cfg.get("group")
 
         self.var_list = data_cfg.get("var_list", [])
         self.z_index = data_cfg.get("z_index")
