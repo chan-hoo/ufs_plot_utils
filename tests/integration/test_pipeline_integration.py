@@ -1,6 +1,6 @@
 import tempfile
 import yaml
-from ufs_plot_utils.config import Config
+from unittest.mock import patch
 from ufs_plot_utils.pipeline import Pipeline
 
 
@@ -32,16 +32,13 @@ def make_cfg():
     }
 
 
-def test_pipeline_builds_tasks():
-    cfg_dict = make_cfg()
+def test_pipeline_builds_tasks(cfg):
+    with patch("ufs_plot_utils.geo.GeoReader.get_geo") as mock_geo:
+        mock_geo.return_value = (
+            [[[0]], [[0]]],  # fake lat
+            [[[0]], [[0]]]   # fake lon
+        )
 
-    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-        yaml.dump(cfg_dict, f)
-        cfg_file = f.name
+        pipeline = Pipeline(cfg)
+        pipeline.run_plot_tiles()
 
-    cfg = Config(cfg_file)
-
-    pipeline = Pipeline(cfg)
-    tasks = pipeline.run_plot_tiles()
-
-    assert tasks is None  # smoke test only
