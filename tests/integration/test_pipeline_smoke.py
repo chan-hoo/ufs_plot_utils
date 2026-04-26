@@ -1,106 +1,108 @@
 import pytest
 
+def test_pipeline_builds_tasks_from_config(tmp_path):
+    """
+    Integration test: YAML → Config → Pipeline → task creation
+    """
+    from ufs_plot_utils.config import Config
+    from ufs_plot_utils.pipeline import Pipeline
 
-def test_pipeline_import():
+    # Minimal but realistic config
+    cfg_yaml = """
+    input:
+      datasets:
+        - name: base
+          data_kind: increment
+          data:
+            path: /tmp
+            filename: dummy.nc
+            file_type: file
+            var_list: ["T", "Q"]
+          geo:
+            path: /tmp
+            filename: geo.nc
+
+    plot:
+      channels:
+        base:
+          T: [1, 3]
     """
-    Smoke test: Verify pipeline module can be imported
-    """
-    import ufs_plot_utils.pipeline as p
-    assert p is not None, f'''Pipeline module should be importable'''
+
+    cfg_file = tmp_path / "config.yaml"
+    cfg_file.write_text(cfg_yaml)
+
+    cfg = Config(str(cfg_file))
+    pipeline = Pipeline(cfg)
+
+    # This is the key assertion
+    assert hasattr(pipeline, "tasks"), "Pipeline should build tasks"
+
+    tasks = pipeline.tasks
+    assert len(tasks) > 0, "Pipeline should generate at least one task"
+
+    # Optional: inspect task structure (depends on your implementation)
+    for task in tasks:
+        assert "var" in task or hasattr(task, "var"), "Task should contain variable info"
 
 
-def test_pipeline_has_main_components():
+# ======================================================================================= CHJ =====
+def test_pipeline_runs_with_mock_data(tmp_path, monkeypatch):
     """
-    Verify pipeline module contains expected components
+    Integration test: Pipeline executes with mocked data sources
     """
-    import ufs_plot_utils.pipeline as p
-    
-    expected_attrs = ["Pipeline"]
-    for attr in expected_attrs:
-        has_attr = hasattr(p, attr)
-        assert has_attr, f'''Pipeline module should have '{attr}' component'''
+    import numpy as np
+    import xarray as xr
 
+    from ufs_plot_utils.config import Config
+    from ufs_plot_utils.pipeline import Pipeline
 
-def test_pipeline_class_has_methods():
-    """
-    Verify Pipeline class has expected methods
-    """
-    import ufs_plot_utils.pipeline as p
-    
-    expected_methods = ["run_plot_tiles", "run_differences"]
-    for method in expected_methods:
-        has_method = hasattr(p.Pipeline, method)
-        assert has_method, f'''Pipeline class should have '{method}' method, got missing method'''
-
-
-def test_pipeline_initialization_with_valid_config():
-    """
-    Test pipeline initialization with valid config
-    """
-    import ufs_plot_utils.pipeline as p
-    from unittest.mock import MagicMock
-    
-    try:
-        # Create a mock config with proper dataset structure
-        mock_ds_cfg = {
-            "name": "test_ds",
-            "data_kind": "increment",
-            "data": {
-                "path": "/tmp",
-                "filename": "test.nc",
-                "file_type": "file",
-                "var_list": ["temperature"]
-            },
-            "geo": {
-                "path": "/tmp",
-                "filename": "geo.nc",
-                "file_type": "file"
-            }
-        }
-        
-        mock_cfg = MagicMock()
-        mock_cfg.get.side_effect = lambda *args, **kwargs: (
-            [mock_ds_cfg] if args == ("input", "datasets") else 
-            kwargs.get("default", [])
+    # mock DataReader
+    def mock_read_data(self, var_name):
+        return xr.DataArray(
+            np.random.rand(6, 10, 10),
+            dims=("tile", "y", "x"),
+            name=var_name
         )
-        
-        pipeline = p.Pipeline(mock_cfg)
-        assert pipeline is not None, f'''Pipeline instance should be created with valid config'''
-        assert hasattr(pipeline, "cfg"), f'''Pipeline should store config'''
-        assert len(pipeline.datasets) == 1, f'''Pipeline should have 1 dataset'''
-    except Exception as e:
-        pytest.fail(f'''Pipeline initialization failed: {str(e)}''')
 
+    # mock GeoReader
+    def mock_get_geo(self):
+        lon = np.zeros((6, 10, 10))
+        lat = np.zeros((6, 10, 10))
+        return lon, lat
 
-def test_pipeline_has_required_attributes():
-    """
-    Test that Pipeline instance has required attributes
-    """
-    import ufs_plot_utils.pipeline as p
-    from unittest.mock import MagicMock
-    
-    mock_ds_cfg = {
-        "name": "test_ds",
-        "data_kind": "increment",
-        "data": {
-            "path": "/tmp",
-            "filename": "test.nc",
-            "var_list": ["temperature", "pressure"]
-        },
-        "geo": {
-            "path": "/tmp",
-            "filename": "geo.nc"
-        }
-    }
-    
-    mock_cfg = MagicMock()
-    mock_cfg.get.side_effect = lambda *args, **kwargs: (
-        [mock_ds_cfg] if args == ("input", "datasets") else 
-        kwargs.get("default", [])
+    monkeypatch.setattr(
+        "ufs_plot_utils.data.DataReader.read_data",
+        mock_read_data
     )
-    
-    pipeline = p.Pipeline(mock_cfg)
-    
-    required_attrs = ["cfg", "datasets", "names", "plotter", "output"]
-    for attr in required_attrs:
-        assert hasattr(pipeline, attr), f'''Pipeline should have '{attr}' attribute'''
+
+    monkeypatch.setattr(
+        "ufs_plot_utils.geo.GeoReader.get_geo",
+        mock_get_geo
+    )
+
+    # config
+    cfg_yaml = """
+    input:
+      datasets:
+        - name: test
+          data_kind: increment
+          data:
+            path: /tmp
+            filename: dummy.nc
+            var_list: ["T"]
+          geo:
+            path: /tmp
+            filename: geo.nc
+    """
+
+    cfg_file = tmp_path / "config.yaml"
+    cfg_file.write_text(cfg_yaml)
+
+    cfg = Config(str(cfg_file))
+    pipeline = Pipeline(cfg)
+
+    # This is the real integration step
+    pipeline.run_plot_tiles()
+
+    # Basic sanity: pipeline ran without crashing
+    assert True
