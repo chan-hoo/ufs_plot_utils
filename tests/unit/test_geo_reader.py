@@ -53,16 +53,20 @@ def test_geo_reader_file_types(monkeypatch, file_type):
 
 # ======================================================================================= CHJ =====
 def test_geo_reader_path_join(monkeypatch):
-    """
-    Unit test: GeoReader constructs correct file path
-    """
+
     called_paths = []
 
     def mock_open_dataset(path, *args, **kwargs):
         called_paths.append(path)
-        return xr.Dataset()
+        return xr.Dataset({
+            "lat": (("x",), np.array([0, 1])),
+            "lon": (("x",), np.array([0, 1]))
+        })
 
-    monkeypatch.setattr("xarray.open_dataset", mock_open_dataset)
+    monkeypatch.setattr(
+        "ufs_plot_utils.geo.xr.open_dataset",
+        mock_open_dataset
+    )
 
     class DummyGeoConfig:
         def __init__(self):
