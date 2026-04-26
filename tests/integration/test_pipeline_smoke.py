@@ -1,13 +1,40 @@
 import pytest
 
-def test_pipeline_builds_tasks_from_config(tmp_path):
+def test_pipeline_builds_tasks_from_config(tmp_path, monkeypatch):
     """
-    Integration test: YAML -> Config -> Pipeline -> execution
+    Integration test: YAML → Config → Pipeline → execution
+    (with mocked I/O)
     """
+
+    import numpy as np
+    import xarray as xr
 
     from ufs_plot_utils.config import Config
     from ufs_plot_utils.pipeline import Pipeline
 
+    # mock GeoReader
+    def mock_get_geo(self):
+        return np.zeros((6, 10, 10)), np.zeros((6, 10, 10))
+
+    monkeypatch.setattr(
+        "ufs_plot_utils.geo.GeoReader.get_geo",
+        mock_get_geo
+    )
+
+    # mock DataReader
+    def mock_read_data(self, var_name):
+        return xr.DataArray(
+            np.random.rand(6, 10, 10),
+            dims=("tile", "y", "x"),
+            name=var_name
+        )
+
+    monkeypatch.setattr(
+        "ufs_plot_utils.data.DataReader.read_data",
+        mock_read_data
+    )
+
+    # config
     cfg_yaml = """
     input:
       datasets:
@@ -33,12 +60,7 @@ def test_pipeline_builds_tasks_from_config(tmp_path):
 
     cfg = Config(str(cfg_file))
     pipeline = Pipeline(cfg)
-
-    # This is the real integration test
-    try:
-        pipeline.run_plot_tiles()
-    except Exception as e:
-        pytest.fail(f'''Pipeline execution failed: {e}''')
+    pipeline.run_plot_tiles()
 
 
 # ======================================================================================= CHJ =====
