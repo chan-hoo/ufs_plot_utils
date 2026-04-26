@@ -56,7 +56,6 @@ def test_geo_reader_path_join(monkeypatch):
     """
     Unit test: GeoReader constructs correct file path
     """
-
     called_paths = []
 
     def mock_open_dataset(path, *args, **kwargs):
@@ -70,6 +69,8 @@ def test_geo_reader_path_join(monkeypatch):
         geo_filename="geo.nc"
     )
 
-    GeoReader(config)
+    g = GeoReader(config)
+    g.get_geo()
 
+    assert called_paths, "open_dataset was not called"
     assert "/data/geo.nc" in called_paths[0]
