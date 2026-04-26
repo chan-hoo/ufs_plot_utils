@@ -2,12 +2,12 @@ import pytest
 
 def test_pipeline_builds_tasks_from_config(tmp_path):
     """
-    Integration test: YAML → Config → Pipeline → task creation
+    Integration test: YAML -> Config -> Pipeline -> execution
     """
+
     from ufs_plot_utils.config import Config
     from ufs_plot_utils.pipeline import Pipeline
 
-    # Minimal but realistic config
     cfg_yaml = """
     input:
       datasets:
@@ -34,15 +34,11 @@ def test_pipeline_builds_tasks_from_config(tmp_path):
     cfg = Config(str(cfg_file))
     pipeline = Pipeline(cfg)
 
-    # This is the key assertion
-    assert hasattr(pipeline, "tasks"), "Pipeline should build tasks"
-
-    tasks = pipeline.tasks
-    assert len(tasks) > 0, "Pipeline should generate at least one task"
-
-    # Optional: inspect task structure (depends on your implementation)
-    for task in tasks:
-        assert "var" in task or hasattr(task, "var"), "Task should contain variable info"
+    # This is the real integration test
+    try:
+        pipeline.run_plot_tiles()
+    except Exception as e:
+        pytest.fail(f'''Pipeline execution failed: {e}''')
 
 
 # ======================================================================================= CHJ =====
