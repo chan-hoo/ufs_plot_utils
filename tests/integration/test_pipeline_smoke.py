@@ -22,16 +22,21 @@ def test_pipeline_builds_tasks_from_config(tmp_path, monkeypatch):
     )
 
     # mock DataReader
-    def mock_read_data(self, var_name):
+    def mock_get_data(self, *args, **kwargs):
+        import numpy as np
+        import xarray as xr
+    
+        var_name = args[0] if args else "var"
+    
         return xr.DataArray(
             np.random.rand(6, 10, 10),
             dims=("tile", "y", "x"),
             name=var_name
         )
-
+    
     monkeypatch.setattr(
         "ufs_plot_utils.data.DataReader.get_data",
-        mock_read_data
+        mock_get_data
     )
 
     # config
