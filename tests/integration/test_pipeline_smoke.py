@@ -2,7 +2,7 @@ import pytest
 
 def test_pipeline_builds_tasks_from_config(tmp_path, monkeypatch):
     """
-    Integration test: YAML → Config → Pipeline → execution
+    Integration test: YAML -> Config -> Pipeline -> execution
     (with mocked I/O)
     """
 
@@ -30,7 +30,7 @@ def test_pipeline_builds_tasks_from_config(tmp_path, monkeypatch):
         )
 
     monkeypatch.setattr(
-        "ufs_plot_utils.data.DataReader.read_data",
+        "ufs_plot_utils.data.DataReader.get_data",
         mock_read_data
     )
 
