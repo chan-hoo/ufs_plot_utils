@@ -92,7 +92,7 @@ def test_pipeline_runs_with_mock_data(tmp_path, monkeypatch):
 
     monkeypatch.setattr(
         "ufs_plot_utils.data.DataReader.get_data",
-        mock_read_data
+        mock_get_data
     )
 
     monkeypatch.setattr(
