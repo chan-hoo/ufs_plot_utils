@@ -64,10 +64,14 @@ def test_geo_reader_path_join(monkeypatch):
 
     monkeypatch.setattr("xarray.open_dataset", mock_open_dataset)
 
-    config = DummyGeoConfig(
-        geo_path="/data",
-        geo_filename="geo.nc"
-    )
+    class DummyGeoConfig:
+        def __init__(self):
+            self.geo_file_type = "file"
+            self.geo_path = "/data"
+            self.geo_filename = "geo.nc"
+            self.data_kind = "analysis"
+
+    config = DummyGeoConfig()
 
     g = GeoReader(config)
     g.get_geo()
