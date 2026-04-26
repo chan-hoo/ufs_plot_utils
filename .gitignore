@@ -2,4 +2,4 @@
 **/*.png
 **/*.swp
 env/plot_pyenv/
-
+docs/build/

@@ -12,3 +12,6 @@ dependencies:
   - PyYAML
   - scipy
   - seaborn
+  - sphinx
+  - sphinx-rtd-theme
+  - myst-parser

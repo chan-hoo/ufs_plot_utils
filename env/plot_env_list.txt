@@ -7,4 +7,6 @@ PyYAML
 scipy
 seaborn
 xarray
-
+sphinx
+sphinx-rtd-theme
+myst-parser

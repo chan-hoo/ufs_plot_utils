@@ -11,3 +11,6 @@ dependencies:
   - pytest
   - PyYAML
   - pip
+  - sphinx
+  - sphinx-rtd-theme
+  - myst-parser
