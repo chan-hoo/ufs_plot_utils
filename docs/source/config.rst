@@ -442,8 +442,8 @@ Increment file plot of JEDI and FV3
    plot:
      cartopy_ne_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/NaturalEarth
      projection:
-       name: Robinson    # Robinson | PlateCarree | Mollweide 
-       central_longitude: -77.0369  # D.C.
+       name: PlateCarree    # Robinson | PlateCarree | Mollweide 
+       central_longitude: 0
      figure:
        figsize: [5, 2.5]
        dpi: 300
