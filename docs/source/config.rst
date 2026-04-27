@@ -466,7 +466,7 @@ Increment file plot of JEDI and FV3
        linewidth: 0.5
        alpha: 0.7
 
-.. image:: _static/atmdata_fv3_v_inc_z076_20240224_t00z.png
+.. image:: _static/atmdata_fv3_u_inc_z076_20240224_t00z.png
    :alt: FV3 increment file
 
 Observation file plot (IODA format)
