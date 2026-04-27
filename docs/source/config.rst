@@ -146,6 +146,15 @@ Difference plot between FV3 and JEDI increment files
        linewidth: 0.5
        alpha: 0.7
 
+.. image:: _static/atminc_fv3_T_inc_z076_20240224_t00z.png
+   :alt: FV3 increment
+
+.. image:: _static/atminc_jedi_tmp_z076_20240224_t00z.png
+   :alt: JEDI increment
+
+.. image:: _static/atminc_jedi-fv3_T_inc_z076_20240224_t00z.png
+   :alt: Difference between FV3 and JEDI increment (JEDI - FV3)
+
 Difference plot between before and after JEDI analysis for snow-DA
 ==================================================================
 
@@ -275,6 +284,15 @@ Difference plot between before and after JEDI analysis for snow-DA
        linewidth: 0.5
        alpha: 0.7
 
+.. image:: _static/snowAnal_before_snwdph_z000_20250121_t00z.png
+   :alt: Snow depth before JEDI analysis
+
+.. image:: _static/snowAnal_after_snwdph_z000_20250121_t00z.png
+   :alt: Snow depth after JEDI analysis
+
+.. image:: _static/snowAnal_A-B_snwdph_z000_20250121_t00z.png
+   :alt: Difference of snow depth between before and after JEDI analysis
+
 Forecast result plot (surface data files)
 =========================================
 
@@ -342,6 +360,9 @@ Forecast result plot (surface data files)
        resolution: 50m
        linewidth: 0.5
        alpha: 0.7
+
+.. image:: _static/fcst_sfc_snod_z000_20250121_t00z_f012.png
+   :alt: Snow depth at forecast hour = f012 in surface data file
 
 Increment file plot of JEDI and FV3
 ===================================
@@ -457,6 +478,12 @@ Increment file plot of JEDI and FV3
        linewidth: 0.5
        alpha: 0.7
 
+.. image:: _static/atmdata_fv3_v_inc_z076_20240224_t00z.png
+   :alt: FV3 increment file
+
+.. image:: _static/atmdata_jedi_vgrd_z076_20240224_t00z.png
+   :alt: JEDI increment file
+
 Observation file plot (IODA format)
 ===================================
 
@@ -543,6 +570,12 @@ Observation file plot (IODA format)
        linewidth: 0.5
        alpha: 0.7
 
+.. image:: _static/obs_atms_brightnessTemperature_20240224_t00z_ch02.png
+   :alt: ATMS N20 observation (channel 2)
+
+.. image:: _static/obs_ghcn_totalSnowDepth_20240224_t00z.png
+   :alt: GHCN observation
+
 Restart file plot (UFS weather model)
 =====================================
 
@@ -610,6 +643,9 @@ Restart file plot (UFS weather model)
        resolution: 50m
        linewidth: 0.5
        alpha: 0.7
+
+.. image:: _static/rst_sfc_data_snwdph_z000_20250121_t00z_20250121120000.png
+   :alt: Restart file of surface data at forecast hour f=012
 
 Surface data file plot
 ======================
@@ -683,4 +719,7 @@ Surface data file plot
        resolution: 50m
        linewidth: 0.5
        alpha: 0.7
+
+.. image:: _static/sfcdata_sfc_snod_z000_20240224_t00z.png
+   :alt: Snow depth in surface data file
 
