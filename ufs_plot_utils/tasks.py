@@ -46,6 +46,11 @@ class PlotTask(BaseTask):
     def run(self):
         logger.info(f'''PlotTask:: {self.dataset.name} :: {self.varname} :: {self.context}''')
 
+        # Set resolver per task
+        self.plotter.set_style_resolver(
+            PlotStyleResolver(self.dataset)
+        )
+
         # -------------------------
         # Read data
         # -------------------------
