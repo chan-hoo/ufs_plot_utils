@@ -59,6 +59,39 @@ Methods:
 - ``run_plot_tiles()``
 - ``run_differences()``
 
+Pipeline Flow Diagram
+---------------------
+
+.. code-block:: text
+
+   Config YAML
+        │
+        ▼
+     Config
+        │
+        ▼
+     Dataset
+        │
+        ▼
+     Pipeline
+        │
+        ▼
+   TaskBuilder
+      │    │
+      │    └───────────── DifferenceTask
+      │
+      └───────────── PlotTask
+            │
+            ├── DataReader
+            ├── GeoReader
+            ├── StyleResolver
+            │
+            ▼
+         Plotter
+            │
+            ▼
+       OutputManager
+
 Dataset
 ^^^^^^^
 
@@ -375,41 +408,6 @@ Tile Dimension Issues
 Use:
 
 - ``normalize_tile_dims``
-
----
-
-Pipeline Flow Diagram
----------------------
-
-.. mermaid::
-
-   flowchart TD
-       A[Config YAML] --> B[Config]
-       B --> C[Dataset Objects]
-
-       C --> D[Pipeline]
-       D --> E[TaskBuilder]
-
-       E --> F[PlotTask]
-       E --> G[DifferenceTask]
-
-       F --> H[DataReader]
-       F --> I[GeoReader]
-       F --> J[PlotStyleResolver]
-       F --> K[Plotter]
-       F --> L[OutputManager]
-
-       G --> H
-       G --> I
-       G --> J
-       G --> K
-       G --> L
-
-       H --> K
-       I --> K
-       J --> K
-
-       K --> L
 
 ---
 
