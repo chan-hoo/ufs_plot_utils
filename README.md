@@ -35,4 +35,4 @@ deactivate
 ```
 
 ## Read-the-Docs User's Guide
-User's guide: [click this link](https://ufs-plot-utils.readthedocs.io/en/latest/) (under development)
+User's guide: [click this link](https://ufs-plot-utils.readthedocs.io/en/latest/)

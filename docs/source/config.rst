@@ -1,8 +1,8 @@
-Configuration
-*************
+Sample Configurations
+=====================
 
 Difference plot between FV3 and JEDI increment files
-====================================================
+----------------------------------------------------
 
 .. code-block:: yaml
 
@@ -150,7 +150,7 @@ Difference plot between FV3 and JEDI increment files
    :alt: Difference between FV3 and JEDI increment (JEDI - FV3)
 
 Difference plot between before and after JEDI analysis for snow-DA
-==================================================================
+------------------------------------------------------------------
 
 .. code-block:: yaml
 
@@ -282,7 +282,7 @@ Difference plot between before and after JEDI analysis for snow-DA
    :alt: Difference of snow depth between before and after JEDI analysis
 
 Forecast result plot (surface data files)
-=========================================
+-----------------------------------------
 
 .. code-block:: yaml
 
@@ -353,7 +353,7 @@ Forecast result plot (surface data files)
    :alt: Snow depth at forecast hour = f012 in surface data file
 
 Increment file plot of JEDI and FV3
-===================================
+-----------------------------------
 
 .. code-block:: yaml
 
@@ -470,7 +470,7 @@ Increment file plot of JEDI and FV3
    :alt: FV3 increment file
 
 Observation file plot (IODA format)
-===================================
+-----------------------------------
 
 .. code-block:: yaml
 
@@ -559,7 +559,7 @@ Observation file plot (IODA format)
    :alt: ATMS N20 observation (channel 2)
 
 Restart file plot (UFS weather model)
-=====================================
+-------------------------------------
 
 .. code-block:: yaml
 
@@ -630,7 +630,7 @@ Restart file plot (UFS weather model)
    :alt: Restart file of surface data at forecast hour f=012
 
 Surface data file plot
-======================
+----------------------
 
 .. code-block:: yaml
 
