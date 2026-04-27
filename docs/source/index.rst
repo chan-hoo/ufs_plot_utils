@@ -9,7 +9,6 @@ ufs_plot_utils documentation
 .. toctree::
    :maxdepth: 2
 
-   installation
    user_guide
    config
-
+   developer_guide
