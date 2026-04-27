@@ -12,3 +12,4 @@ ufs_plot_utils documentation
    user_guide
    config
    developer_guide
+   test_guide
