@@ -10,3 +10,4 @@ xarray
 sphinx
 sphinx-rtd-theme
 myst-parser
+sphinxcontrib-mermaid
