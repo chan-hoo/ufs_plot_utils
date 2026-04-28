@@ -12,6 +12,8 @@ The directory is organized as follows:
 * ``tests/unit/``: Contains unit tests for individual modules.
 * ``tests/integration/``: Contains high-level smoke tests for the entire pipeline.
 
+---
+
 Shared Fixtures (``conftest.py``)
 ---------------------------------
 
@@ -20,6 +22,8 @@ The ``conftest.py`` file defines reusable data structures that are automatically
 * **sample_da_tile**: Creates a mock DataArray with dimensions ``(tile, yaxis_1, xaxis_1)``.
 * **sample_da_grid**: Creates a mock DataArray with dimensions ``(tile, grid_yt, grid_xt)``.
 * **zero_da**: A utility fixture providing a zero-filled array for baseline comparisons.
+
+---
 
 Unit Tests
 ----------
@@ -48,6 +52,8 @@ Utilities (``test_utils.py``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Verifies the ``normalize_tile_dims`` function. This ensures that various UFS/FV3 dimension naming conventions (like ``grid_yt`` or ``yaxis_1``) are consistently converted to a standard ``(tile, y, x)`` format while preserving data integrity.
 
+---
+
 Integration Tests
 -----------------
 
@@ -61,6 +67,8 @@ These tests simulate a full execution of the plotting pipeline. They:
 3.  Instantiate a ``Pipeline`` and call ``run_plot_tiles()``.
 4.  Ensure the entire process completes without errors, confirming the wiring between config, data loading, and processing is functional.
 
+---
+
 Running Tests
 -------------
 
@@ -68,5 +76,6 @@ To run the full test suite, navigate to the project root and execute:
 
 .. code-block:: bash
 
-   pytest tests/
+   conda activate plot_pyenv
+   pytest
 

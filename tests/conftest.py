@@ -49,3 +49,10 @@ def zero_da():
         dims=("tile", "y", "x")
     )
 
+# Automatically applies to all tests
+@pytest.fixture(autouse=True)
+def disable_plot_saving(monkeypatch):
+    monkeypatch.setattr(
+        "ufs_plot_utils.output.OutputManager.save_figure",
+        lambda *a, **k: None
+    )
