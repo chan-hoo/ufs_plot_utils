@@ -1,0 +1,45 @@
+stages:
+  - test
+  - docs
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+
+before_script:
+  - python --version
+  - pip install --upgrade pip
+
+# -----------------------
+# Run unit tests
+# -----------------------
+test:
+  stage: test
+  image: python:3.10
+  script:
+    - pip install -r env/plot_env_list.txt
+    - pip install pytest
+    - pytest
+  only:
+    - branches
+    - merge_requests
+
+# -----------------------
+# Build documentation
+# -----------------------
+docs:
+  stage: docs
+  image: python:3.10
+  script:
+    - pip install -r docs/requirements.txt || true
+    - pip install sphinx
+    - cd docs
+    - make html
+  artifacts:
+    paths:
+      - docs/build/html
+  only:
+    - main
