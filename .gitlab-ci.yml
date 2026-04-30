@@ -1,45 +1,72 @@
+default:
+  image: python:3.10
+
 stages:
+  - setup
   - test
   - docs
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  GIT_STRATEGY: none   # we handle cloning manually
 
 cache:
+  key: pip-cache
   paths:
     - .cache/pip
 
-before_script:
-  - python --version
-  - pip install --upgrade pip
+# -----------------------
+# Shared setup (clone + base deps)
+# -----------------------
+.setup_template:
+  before_script:
+    - python --version
+    - pip install --upgrade pip
+    - git clone https://oauth2:${GITHUB_TOKEN}@github.com/chan-hoo/ufs_plot_utils.git
+    - cd ufs_plot_utils
+
+# -----------------------
+# Install dependencies once
+# -----------------------
+setup:
+  stage: setup
+  extends: .setup_template
+  script:
+    - pip install -r env/plot_env_list.txt
+    - pip install pytest sphinx
+  artifacts:
+    paths:
+      - ufs_plot_utils
+    expire_in: 1h
 
 # -----------------------
 # Run unit tests
 # -----------------------
 test:
   stage: test
-  image: python:3.10
+  extends: .setup_template
+  dependencies:
+    - setup
   script:
-    - pip install -r env/plot_env_list.txt
-    - pip install pytest
+    - cd ufs_plot_utils
     - pytest
-  only:
-    - branches
-    - merge_requests
+  rules:
+    - if: $CI_COMMIT_BRANCH
 
 # -----------------------
 # Build documentation
 # -----------------------
 docs:
   stage: docs
-  image: python:3.10
+  extends: .setup_template
+  dependencies:
+    - setup
   script:
-    - pip install -r docs/requirements.txt || true
-    - pip install sphinx
-    - cd docs
+    - cd ufs_plot_utils/docs
     - make html
   artifacts:
     paths:
-      - docs/build/html
-  only:
-    - main
+      - ufs_plot_utils/docs/build/html
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
