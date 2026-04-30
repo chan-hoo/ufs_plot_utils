@@ -1,8 +1,6 @@
 import logging
 import xarray as xr
 
-from types import SimpleNamespace
-
 from .cmap import PlotStyleResolver
 from .data import DataReader
 from .dataset import Dataset

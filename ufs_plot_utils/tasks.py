@@ -275,7 +275,9 @@ class DifferenceTask(BaseTask):
         # ============================================================
         diff_ds = copy.copy(self.base_ds)
         diff_ds.data_kind = "increment"
-    
+        diff_ds.title = self.diff_cfg.get("title")
+        diff_ds.name = self.diff_cfg.get("name")
+
         resolver = PlotStyleResolver(
             dataset=diff_ds,
             cmap_cfg=self.diff_cfg.get("colormap"),
@@ -284,17 +286,17 @@ class DifferenceTask(BaseTask):
         )
     
         self.plotter.set_style_resolver(resolver)
-    
+
         title_diff = self.namer.build_title(
             varname=self.var_base,
-            dataset_name=self.diff_cfg["name"],
+            dataset_name=diff_ds.name,
             z_index=diff_ds.z_index,
-            dataset=None,
+            dataset=diff_ds,
         )
     
         filename_diff = self.namer.build_filename(
             varname=self.var_base,
-            dataset_name=self.diff_cfg["name"],
+            dataset_name=diff_ds.name,
             z_index=diff_ds.z_index,
         )
     

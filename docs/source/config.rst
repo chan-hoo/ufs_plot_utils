@@ -146,7 +146,7 @@ Difference plot between FV3 and JEDI increment files
        linewidth: 0.5
        alpha: 0.7
 
-.. image:: _static/atminc_jedi-fv3_T_inc_z076_20240224_t00z.png
+.. image:: _static/atminc_jedi-fv3_T_inc_z076_20240224_t00z_v2.png
    :alt: Difference between FV3 and JEDI increment (JEDI - FV3)
 
 Difference plot between before and after JEDI analysis for snow-DA
@@ -278,7 +278,7 @@ Difference plot between before and after JEDI analysis for snow-DA
        linewidth: 0.5
        alpha: 0.7
 
-.. image:: _static/snowAnal_A-B_snwdph_z000_20250121_t00z.png
+.. image:: _static/snowAnal_A-B_snwdph_z000_20250121_t00z_v2.png
    :alt: Difference of snow depth between before and after JEDI analysis
 
 Forecast result plot (surface data files)
