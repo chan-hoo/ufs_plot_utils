@@ -13,9 +13,8 @@ cache:
   paths:
     - .cache/pip
 
-setup:
-  stage: setup
-  script:
+.setup_template:
+  before_script:
     - python --version
     - pip install --upgrade pip
     - pip install -r env/plot_env_list.txt
@@ -26,6 +25,7 @@ setup:
 # -----------------------
 test:
   stage: test
+  extends: .setup_template
   script:
     - pytest
   rules:
@@ -36,6 +36,7 @@ test:
 # -----------------------
 docs:
   stage: docs
+  extends: .setup_template
   script:
     - cd docs
     - make html
