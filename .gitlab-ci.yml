@@ -1,21 +1,72 @@
+default:
+  image: python:3.10
+
 stages:
-  - build
+  - setup
   - test
-  - deploy
+  - docs
 
-build:
-  stage: build
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  GIT_STRATEGY: none   # we handle cloning manually
+
+cache:
+  key: pip-cache
+  paths:
+    - .cache/pip
+
+# -----------------------
+# Shared setup (clone + base deps)
+# -----------------------
+.setup_template:
+  before_script:
+    - python --version
+    - pip install --upgrade pip
+    - git clone https://oauth2:${GITHUB_TOKEN}@github.com/chan-hoo/ufs_plot_utils.git
+    - cd ufs_plot_utils
+
+# -----------------------
+# Install dependencies once
+# -----------------------
+setup:
+  stage: setup
+  extends: .setup_template
   script:
-    - echo "Building the project..."
+    - pip install -r env/plot_env_list.txt
+    - pip install pytest sphinx
+  artifacts:
+    paths:
+      - ufs_plot_utils
+    expire_in: 1h
 
+# -----------------------
+# Run unit tests
+# -----------------------
 test:
   stage: test
+  extends: .setup_template
+  dependencies:
+    - setup
   script:
-    - echo "Running tests..."
+    - cd ufs_plot_utils
+    - pytest
+  rules:
+    - if: $CI_COMMIT_BRANCH
 
-deploy:
-  stage: deploy
+# -----------------------
+# Build documentation
+# -----------------------
+docs:
+  stage: docs
+  extends: .setup_template
+  dependencies:
+    - setup
   script:
-    - echo "Deploying application..."
-  only:
-    - main
+    - cd ufs_plot_utils/docs
+    - make html
+  artifacts:
+    paths:
+      - ufs_plot_utils/docs/build/html
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
