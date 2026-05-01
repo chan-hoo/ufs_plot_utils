@@ -32,3 +32,20 @@ jobs:
       - name: Run tests
         run: PYTHONPATH=. conda run -n test pytest -x -ra
 
+
+  mirror_to_gitlab:
+    needs: test   # only runs if tests pass
+    runs-on: ubuntu-latest
+
+    if: github.ref == 'refs/heads/main'  # only mirror main branch
+
+    steps:
+      - name: Checkout repo (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to GitLab
+        run: |
+          git remote add gitlab https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab.com/chan-hoo/ufs_plot_utils.git
+          git push gitlab HEAD:main --force
