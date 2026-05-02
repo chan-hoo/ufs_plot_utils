@@ -2,7 +2,6 @@ default:
   image: python:3.10
 
 stages:
-  - setup
   - test
   - docs
 
