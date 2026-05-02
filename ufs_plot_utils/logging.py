@@ -1,6 +1,7 @@
 import logging
 import sys
 
+
 class LoggerSetup:
     """
     Dedicated logging module.
@@ -36,4 +37,3 @@ class LoggerSetup:
 
         logger = logging.getLogger(__name__)
         logger.info(f'''Python Log Level = {log_level_str} ({log_level})''')
-

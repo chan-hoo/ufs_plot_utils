@@ -20,7 +20,7 @@ def test_config_load():
 
     cfg = Config(fname)
 
-    assert cfg.get("input") is not None, f'''Config input section should not be None'''
+    assert cfg.get("input") is not None, "Config input section should not be None"
 
 
 def test_config_nested_get():

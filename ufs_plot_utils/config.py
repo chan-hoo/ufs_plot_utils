@@ -15,15 +15,16 @@ class Config:
         with open(yaml_file, "r") as f:
             self.data = yaml.safe_load(f)
 
-        logger.debug(f'''Configuration loaded successfully''')
+        logger.debug("Configuration loaded successfully")
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
     def get(self, *keys, default=None):
         """
         Safe nested access:
         cfg.get("input", "datasets")
         """
+
         d = self.data
         for k in keys:
             if not isinstance(d, dict):
@@ -33,9 +34,9 @@ class Config:
         return d if d is not None else default
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
     def log_config(self):
+
         logger.info(f'''Input YAML Configuration:''')
         for line in yaml.dump(self.data, sort_keys=True).splitlines():
             logger.info(line)
-

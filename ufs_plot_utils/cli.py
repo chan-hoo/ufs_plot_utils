@@ -1,5 +1,6 @@
 import argparse
 
+
 class CLI:
     """
     CLI (Clean separation of Logic vs. Interface)
@@ -31,4 +32,3 @@ class CLI:
 
     def parse(self):
         return self.parser.parse_args()
-

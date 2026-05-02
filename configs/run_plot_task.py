@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 import sys
-import os
+import ufs_plot_utils as ufs
+import logging
 from pathlib import Path
+
 # Get the path one level up
 parent_dir = Path(__file__).resolve().parents[1]
 sys.path.append(str(parent_dir))
 
-import ufs_plot_utils as ufs
-import logging
 
 def main():
     """
@@ -31,7 +31,7 @@ def main():
         # Run pipeline
         pipeline = ufs.Pipeline(cfg)
 
-        ## Select type of pipeline based on configuration
+        # Select type of pipeline based on configuration
         input_cfg = cfg.get("input")
         if input_cfg and input_cfg.get("differences"):
             pipeline.run_differences()
@@ -39,7 +39,7 @@ def main():
             pipeline.run_plot_tiles()
 
     except Exception:
-        logging.exception(f'''Pipeline failed''')
+        logging.exception("Pipeline failed")
         sys.exit(1)
 
 

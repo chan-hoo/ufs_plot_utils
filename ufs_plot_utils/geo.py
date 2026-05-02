@@ -15,11 +15,12 @@ class GeoReader:
         self.dataset = dataset
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
     def get_geo(self):
         """
         Choose geo data reading method based on config
         """
+
         # Observation
         if self.dataset.data_kind == "observation":
             return self._get_geo_observation()
@@ -36,30 +37,31 @@ class GeoReader:
             raise ValueError(f'''Unknown geo type: {geo_type}''')
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
     def _get_geo_file(self):
         """
         Extract latitude and longitude arrays from input geo file.
         """
+
         fpath = os.path.join(
             self.dataset.geo_path,
             self.dataset.geo_filename
         )
-    
+
         logger.info(f'''Opening geo file: {fpath}''')
 
-        with xr.open_dataset(fpath) as ds_geo:    
+        with xr.open_dataset(fpath) as ds_geo:
             # flatten groups
             ds_flat = xr.Dataset({k: v for k, v in ds_geo.data_vars.items()})  
             lat_candidates = ["lat", "latitude"]
             lon_candidates = ["lon", "longitude"]
-    
+
             lat_name = next((v for v in lat_candidates if v in ds_flat), None)
             lon_name = next((v for v in lon_candidates if v in ds_flat), None)
-    
+
             if lat_name is None or lon_name is None:
                 raise ValueError(f'''Could not detect lon/lat in OBS file''')
-    
+
             lat = ds_flat[lat_name]
             lon = ds_flat[lon_name]
 
@@ -72,83 +74,84 @@ class GeoReader:
 
         # Normalize geo dimensions
         lat_all, lon_all = normalize_geo_dims(lat2d, lon2d)
-    
+
         logger.info(f'''lat shape={lat.shape}, lon shape={lon.shape}''')
-    
+
         return lat_all, lon_all
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
     def _get_geo_orog(self):
         """
         Read 6 orography tile files and return lat/lon arrays:
             lat(tile, y, x), lon(tile, y, x)
-        """   
+        """ 
         geo_file = self.dataset.geo_filename
         geo_path = self.dataset.geo_path
-    
+
         prefix = extract_tile_prefix(geo_file)
         logger.info(f'''OROG:: prefix = {prefix}''')
-    
+
         lat_tiles = []
         lon_tiles = []
-    
+
         for itile in range(1, 7):
             fname = f'''{prefix}.tile{itile}.nc'''
             fpath = os.path.join(geo_path, fname)
-    
+
             if not os.path.exists(fpath):
                 raise FileNotFoundError(f'''Orography tile file not found: {fpath}''')
-    
+
             logger.info(f'''Reading orography tile {itile}: {fpath}''')
-    
-            with xr.open_dataset(fpath) as ds:    
+
+            with xr.open_dataset(fpath) as ds:
                 lat_name = next((v for v in ["geolat", "y", "lat", "latitude"] if v in ds.variables), None)
                 lon_name = next((v for v in ["geolon", "x", "lon", "longitude"] if v in ds.variables), None)
-        
+
                 if lat_name is None or lon_name is None:
                     raise ValueError(f'''lat/lon not found in {fpath}''')
-        
+
                 lat_tiles.append(ds[lat_name].values)
                 lon_tiles.append(ds[lon_name].values)
-    
+
         lat_all = np.stack(lat_tiles, axis=0)
         lon_all = np.stack(lon_tiles, axis=0)
 
         # Normalize geo dimensions
         lat_all, lon_all = normalize_geo_dims(lat_all, lon_all)
-    
+
         logger.info(f'''Geo lat shape: {lat_all.shape}''')
         logger.info(f'''Geo lon shape: {lon_all.shape}''')
-    
-        return lat_all, lon_all
-  
 
-# ======================================================================================= CHJ =====
+        return lat_all, lon_all
+
+
+# =================================================================== CHJ ===
     def _get_geo_tile(self):
         """
         Extract lat/lon from tiled data files (grid_xt/grid_yt or similar).
         Returns:
             lat(tile, y, x), lon(tile, y, x)
         """
+
         import glob
         import re
-    
+
         geo_file = self.dataset.geo_filename
         geo_path = self.dataset.geo_path
-    
+
         # -------------------------
         # Build tile file list
         # -------------------------
         prefix = extract_tile_prefix(geo_file)
         pattern = os.path.join(geo_path, f'''{prefix}.tile*.nc''')
-    
+
         logger.info(f'''GEO TILE pattern: {pattern}''')
-    
+
         file_list = sorted(glob.glob(pattern))       
         if not file_list:
             raise ValueError(f'''No geo tile files found: {pattern}''')
-        
+
         # -------------------------
         # Group by forecast hour
         # -------------------------
@@ -159,17 +162,17 @@ class GeoReader:
                 fhr = m.group(1)
             else:
                 fhr = "static"  # no forecast in filename
-        
+
             fhr_map.setdefault(fhr, []).append(f)
-        
+
         # -------------------------
         # Select one fhr (first)
         # -------------------------
         selected_fhr = sorted(fhr_map.keys())[0]
         selected_files = sorted(fhr_map[selected_fhr])
-        
+
         logger.info(f'''Geo using forecast hour: {selected_fhr}''')
-        
+
         if len(selected_files) != 6:
             raise ValueError(
                 f'''Expected 6 tiles for f{selected_fhr}, found {len(selected_files)}'''
@@ -180,11 +183,11 @@ class GeoReader:
         # -------------------------
         lat_tiles = []
         lon_tiles = []
-    
+
         for f in selected_files:
             logger.info(f'''Reading geo tile: {f}''')
-    
-            with xr.open_dataset(f) as ds:    
+
+            with xr.open_dataset(f) as ds:
                 # -------------------------
                 # Candidate variable names
                 # -------------------------
@@ -194,16 +197,16 @@ class GeoReader:
                 lon_candidates = [
                     "grid_xt", "lon", "longitude", "x"
                 ]
-        
+
                 lat_name = next((v for v in lat_candidates if v in ds.variables), None)
                 lon_name = next((v for v in lon_candidates if v in ds.variables), None)
-        
+
                 if lat_name is None or lon_name is None:
                     raise ValueError(f'''lat/lon not found in {f}''')
-        
+
                 lat = ds[lat_name]
                 lon = ds[lon_name]
-    
+
             # -------------------------
             # Handle 1D -> 2D mesh
             # -------------------------
@@ -212,10 +215,10 @@ class GeoReader:
             else:
                 lat2d = lat.values
                 lon2d = lon.values
-    
+
             lat_tiles.append(lat2d)
             lon_tiles.append(lon2d)
-    
+
         lat_all = np.stack(lat_tiles, axis=0)
         lon_all = np.stack(lon_tiles, axis=0)
 
@@ -224,11 +227,11 @@ class GeoReader:
 
         logger.info(f'''Geo lat shape: {lat_all.shape}''')
         logger.info(f'''Geo lon shape: {lon_all.shape}''')
-    
+
         return lat_all, lon_all
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
     def _get_geo_observation(self):
         """
         Read lon/lat from IODA-style observation file.
@@ -237,6 +240,7 @@ class GeoReader:
           - MetaData group (standard)
           - fallback to root
         """
+
         fpath = os.path.join(
             self.dataset.path,
             self.dataset.filename
@@ -271,7 +275,7 @@ class GeoReader:
                 lat_name = next((v for v in lat_candidates if v in ds.variables), None)
 
                 if lon_name is None or lat_name is None:
-                    raise ValueError(f'''Could not detect lon/lat in OBS file''')
+                    raise ValueError("Could not detect lon/lat in OBS file")
 
                 lon = ds[lon_name].values
                 lat = ds[lat_name].values
@@ -280,10 +284,10 @@ class GeoReader:
         # Validation
         # -------------------------
         if lon.ndim != 1 or lat.ndim != 1:
-            raise ValueError(f'''Observation lon/lat must be 1D''')
+            raise ValueError("Observation lon/lat must be 1D")
 
         if lon.shape != lat.shape:
-            raise ValueError(f'''lon/lat shape mismatch''')
+            raise ValueError("lon/lat shape mismatch")
 
         logger.info(f'''OBS geo size = {lon.size}''')
 

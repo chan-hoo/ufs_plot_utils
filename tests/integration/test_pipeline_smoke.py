@@ -1,4 +1,4 @@
-import pytest
+#import pytest
 
 def test_pipeline_builds_tasks_from_config(tmp_path, monkeypatch):
     """
@@ -22,14 +22,14 @@ def test_pipeline_builds_tasks_from_config(tmp_path, monkeypatch):
     )
 
     # mock DataReader
-    def mock_get_data(self, *args, **kwargs):   
+    def mock_get_data(self, *args, **kwargs):
         var_name = args[0] if args else "var"
         return xr.DataArray(
             np.random.rand(6, 10, 10),
             dims=("tile", "y", "x"),
             name=var_name
         )
-    
+
     monkeypatch.setattr(
         "ufs_plot_utils.data.DataReader.get_data",
         mock_get_data
@@ -63,8 +63,7 @@ def test_pipeline_builds_tasks_from_config(tmp_path, monkeypatch):
     pipeline = Pipeline(cfg)
     pipeline.run_plot_tiles()
 
-
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
 def test_pipeline_runs_with_mock_data(tmp_path, monkeypatch):
     """
     Integration test: Pipeline executes with mocked data sources
@@ -76,7 +75,7 @@ def test_pipeline_runs_with_mock_data(tmp_path, monkeypatch):
     from ufs_plot_utils.pipeline import Pipeline
 
     # mock DataReader
-    def mock_get_data(self, *args, **kwargs):   
+    def mock_get_data(self, *args, **kwargs):
         var_name = args[0] if args else "var"
         return xr.DataArray(
             np.random.rand(6, 10, 10),

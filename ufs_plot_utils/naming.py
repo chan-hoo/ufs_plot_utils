@@ -12,8 +12,10 @@ class NameBuilder:
     def __init__(self, cfg):
         self.cfg = cfg
 
-# ======================================================================================= CHJ =====
+
+# =================================================================== CHJ ===
     def _build_parts(self, varname, dataset_name, z_index):
+
         parts = []
 
         prefix = self.cfg.get("output", "prefix", default="")
@@ -41,7 +43,7 @@ class NameBuilder:
         return parts
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
     def build_filename(self, varname, dataset_name, z_index=None):
         parts = self._build_parts(varname, dataset_name, z_index)
 
@@ -55,9 +57,9 @@ class NameBuilder:
         return filename
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
     def build_title(self, varname, dataset_name, z_index=None, dataset=None):
-    
+
         # -------------------------
         # 1. User-defined title
         # -------------------------
@@ -65,15 +67,14 @@ class NameBuilder:
             title = dataset.title
             logger.info(f'''Using custom title: {title}''')
             return title
-    
+
         # -------------------------
         # 2. Default behavior
         # -------------------------
         parts = self._build_parts(varname, dataset_name, z_index)
-    
-        title = " :: ".join(parts)
-    
-        logger.info(f'''Plot title: {title}''')
-    
-        return title
 
+        title = " :: ".join(parts)
+
+        logger.info(f'''Plot title: {title}''')
+
+        return title

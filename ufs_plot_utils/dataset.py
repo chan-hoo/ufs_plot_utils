@@ -11,7 +11,7 @@ class Dataset:
         # GEO (FLATTEN)
         # -------------------------
         geo_cfg = cfg.get("geo", {}) or {}
-        
+
         self.geo_path = geo_cfg.get("path")
         self.geo_filename = geo_cfg.get("filename")
         self.geo_file_type = geo_cfg.get("file_type", "file")

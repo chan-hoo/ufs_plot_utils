@@ -6,7 +6,7 @@ import re
 logger = logging.getLogger(__name__)
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
 def extract_tile_prefix(filename):
     """
     Normalize filename to tile prefix:
@@ -36,7 +36,7 @@ def extract_tile_prefix(filename):
     return base
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
 def normalize_tile_dims(da):
     dims = list(da.dims)
 
@@ -99,7 +99,7 @@ def normalize_tile_dims(da):
     return da
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
 def normalize_geo_dims(lat, lon):
     """
     Normalize lat/lon to shape (tile, y, x)
@@ -146,7 +146,7 @@ def normalize_geo_dims(lat, lon):
     return lat, lon
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
 def format_rtag(rtag):
     """
     Ensure format:

@@ -5,13 +5,14 @@ from ufs_plot_utils.geo import GeoReader
 
 
 class DummyGeoConfig:
-    def __init__(self, geo_file_type="file", geo_path=".", geo_filename="dummy.nc"):
+    def __init__(self, geo_file_type="file", geo_path=".", 
+                 geo_filename="dummy.nc"):
         self.geo_file_type = geo_file_type
         self.geo_path = geo_path
         self.geo_filename = geo_filename
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
 def test_geo_reader_init(monkeypatch):
     """
     Unit test: GeoReader initializes without real file access

@@ -1,4 +1,3 @@
-import os
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,9 +6,8 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from .cmap import PlotStyleResolver
-
 logger = logging.getLogger(__name__)
+
 
 class Plotter:
     """
@@ -17,9 +15,7 @@ class Plotter:
     """
     def __init__(self, cfg):
         self.cfg = cfg
-
         plot_cfg = cfg.get("plot", default={})
-
         self.proj_cfg  = plot_cfg.get("projection", {})
         self.fig_cfg   = plot_cfg.get("figure", {})
         self.cb_cfg    = plot_cfg.get("colorbar", {})
@@ -38,7 +34,7 @@ class Plotter:
         self.style_resolver = resolver
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
     def plot_data_tiles(
         self,
         lat,
@@ -51,6 +47,7 @@ class Plotter:
         """
         Plot cubed-sphere tiled data.
         """
+
         logger.info(f'''Plotting seamless global map''')
         if self.style_resolver is None:
             raise RuntimeError("StyleResolver not set. Call set_style_resolver(ds) before plotting.")
@@ -65,87 +62,87 @@ class Plotter:
         # -------------------------
         if "tile" not in da.dims:
             raise ValueError(f'''Expected "tile" dimension, got {da.dims}''')
-    
+
         num_tiles = da.sizes["tile"]
-    
+
         # -------------------------
         # Projection
         # -------------------------
         proj_name = self.proj_cfg.get("name", "Robinson")
         central_lon = self.proj_cfg.get("central_longitude", -77.0369)
-    
+
         proj_map = {
             "Robinson": ccrs.Robinson,
             "PlateCarree": ccrs.PlateCarree,
             "Mollweide": ccrs.Mollweide,
         }
-    
+
         proj_class = proj_map.get(proj_name, ccrs.Robinson)
-    
+
         if proj_name == "PlateCarree":
             projection = ccrs.PlateCarree()
         else:
             projection = proj_class(central_longitude=central_lon)
-    
+
         # -------------------------
         # Figure
         # -------------------------
         figsize = self.fig_cfg.get("figsize", [10, 5])
         dpi = self.fig_cfg.get("dpi", 150)
-    
+
         fig, ax = plt.subplots(
             1, 1,
             figsize=figsize,
             dpi=dpi,
             subplot_kw=dict(projection=projection)
         )
-    
+
         ax.set_global()
-    
+
         # -------------------------
         # Background
         # -------------------------
         self.plot_background(ax)
-    
+
         # -------------------------
         # Style (still needs numpy)
         # -------------------------
         data_values = da.values
-    
+
         style = self.style_resolver.resolve(
             varname,
             da
         )
-    
+
         cmap = style.cmap
         vmin = style.vmin
         vmax = style.vmax
         cbar_label = style.label
-    
+
         # -------------------------
         # Title
         # -------------------------
         title_fs = self.title_cfg.get("fontsize", 8)
         ax.set_title(output_title, fontsize=title_fs)
-    
+
         # -------------------------
         # Plot tiles
         # -------------------------
         cs = None
-    
+
         for it in range(num_tiles):
             lon_tile = np.asarray(lon[it, :, :])
             lat_tile = np.asarray(lat[it, :, :])
-    
+
             # Extract from xarray (not pre-converted numpy)
             var_tile = da.isel(tile=it).values
-    
+
             # Wrap longitude
             lon_tile = (lon_tile + 180) % 360 - 180
-    
+
             # Mask invalid
             var_tile = np.ma.masked_invalid(var_tile)
-    
+
             cs = ax.pcolormesh(
                 lon_tile,
                 lat_tile,
@@ -156,7 +153,7 @@ class Plotter:
                 transform=ccrs.PlateCarree(),
                 shading="auto"
             )
-    
+
         # -------------------------
         # Colorbar
         # -------------------------
@@ -165,19 +162,19 @@ class Plotter:
         cb_pad = self.cb_cfg.get("pad", 0.1)
         cb_label_fs = self.cb_cfg.get("label_fontsize", 7)
         cb_tick_fs = self.cb_cfg.get("tick_fontsize", 6)
-    
+
         divider = make_axes_locatable(ax)
         ax_cb = divider.new_horizontal(size=cb_size, pad=cb_pad, axes_class=plt.Axes)
         fig.add_axes(ax_cb)
-    
+
         cbar = plt.colorbar(cs, cax=ax_cb, extend=cb_extend)
         cbar.ax.tick_params(labelsize=cb_tick_fs)
         cbar.set_label(cbar_label, fontsize=cb_label_fs)
-    
+
         return fig
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
     def plot_data_scatter(
         self,
         lat,
@@ -190,7 +187,8 @@ class Plotter:
         """
         Scatter plot for observation data
         """
-        logger.info(f'''Plotting observation scatter''')
+
+        logger.info("Plotting observation scatter")
 
         if self.style_resolver is None:
             raise RuntimeError("StyleResolver not set.")
@@ -296,32 +294,33 @@ class Plotter:
         return fig
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
     def plot_background(self, ax):
         """
         Add background features (config-driven)
         """
+
         features = set(self.bg_cfg.get("features", []))
         res = self.bg_cfg.get("resolution", "50m")
         lw = self.bg_cfg.get("linewidth", 0.5)
         alpha = self.bg_cfg.get("alpha", 0.7)
-    
+
         logger.info(f'''Background features: {features}''')
-    
+
         if "coastline" in features:
             ax.add_feature(
                 cfeature.COASTLINE.with_scale(res),
                 linewidth=lw,
                 alpha=alpha
             )
-    
+
         if "borders" in features:
             ax.add_feature(
                 cfeature.BORDERS.with_scale(res),
                 linewidth=lw,
                 alpha=alpha
             )
-    
+
         if "states" in features:
             ax.add_feature(
                 cfeature.STATES.with_scale(res),
@@ -329,7 +328,7 @@ class Plotter:
                 linestyle=":",
                 alpha=alpha
             )
-    
+
         if "lakes" in features:
             ax.add_feature(
                 cfeature.LAKES.with_scale(res),
@@ -338,7 +337,7 @@ class Plotter:
                 edgecolor="blue",
                 alpha=alpha
             )
-    
+
         if "land" in features:
             ax.add_feature(
                 cfeature.LAND.with_scale(res),

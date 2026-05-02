@@ -11,13 +11,12 @@ from .utils import normalize_tile_dims
 logger = logging.getLogger(__name__)
 
 
-# ======================================================================================= CHJ =====
 class BaseTask:
     def run(self):
         raise NotImplementedError
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
 class PlotTask(BaseTask):
     """
     Single plotting unit
@@ -145,7 +144,7 @@ class PlotTask(BaseTask):
         self.output.save_figure(fig, filename)
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
 class DifferenceTask(BaseTask):
     """
     Difference plotting unit
@@ -175,59 +174,60 @@ class DifferenceTask(BaseTask):
         self.namer = namer
         self.diff_cfg = diff_cfg
 
+
     def run(self):
         logger.info(
             f'''DifferenceTask:: {self.var_base} ({self.target_ds.name} - {self.base_ds.name})'''
         )
-    
+
         # -------------------------
         # Read
         # -------------------------
         da_base = self.reader_base.get_data(self.var_base)
         da_target = self.reader_target.get_data(self.var_target)
-    
+
         logger.info(f'''Original:: base  dims={da_base.dims}, shape={da_base.shape}''')
         logger.info(f'''Original:: target dims={da_target.dims}, shape={da_target.shape}''')
-    
+
         # -------------------------
         # Normalize + Align
         # -------------------------
         da_base  = normalize_tile_dims(da_base)
         da_target = normalize_tile_dims(da_target)
-    
+
         da_base, da_target = xr.align(da_base, da_target, join="override")
-    
+
         # -------------------------
         # Compute difference (B - A)
         # -------------------------
         da_diff = da_target - da_base
-    
+
         vals = da_diff.values
         logger.info(
             f'''Difference:: ({self.target_ds.name} - {self.base_ds.name}) {self.var_base} '''
             f'''min={np.nanmin(vals):.6g}, max={np.nanmax(vals):.6g}'''
         )
-    
+
         # ============================================================
         # 1. PLOT BASE (A)
         # ============================================================
         self.plotter.set_style_resolver(
             PlotStyleResolver(self.base_ds)
         )
-    
+
         title_base = self.namer.build_title(
             varname=self.var_base,
             dataset_name=self.base_ds.name,
             z_index=self.base_ds.z_index,
             dataset=self.base_ds,
         )
-    
+
         filename_base = self.namer.build_filename(
             varname=self.var_base,
             dataset_name=self.base_ds.name,
             z_index=self.base_ds.z_index,
         )
-    
+
         fig_base = self.plotter.plot_data_tiles(
             lat=self.lat,
             lon=self.lon,
@@ -236,29 +236,29 @@ class DifferenceTask(BaseTask):
             output_title=title_base,
             dataset=self.base_ds,
         )
-    
+
         self.output.save_figure(fig_base, filename_base)
-    
+
         # ============================================================
         # 2. PLOT TARGET (B)
         # ============================================================
         self.plotter.set_style_resolver(
             PlotStyleResolver(self.target_ds)
         )
-    
+
         title_target = self.namer.build_title(
             varname=self.var_target,
             dataset_name=self.target_ds.name,
             z_index=self.target_ds.z_index,
             dataset=self.target_ds,
         )
-    
+
         filename_target = self.namer.build_filename(
             varname=self.var_target,
             dataset_name=self.target_ds.name,
             z_index=self.target_ds.z_index,
         )
-    
+
         fig_target = self.plotter.plot_data_tiles(
             lat=self.lat,
             lon=self.lon,
@@ -267,9 +267,9 @@ class DifferenceTask(BaseTask):
             output_title=title_target,
             dataset=self.target_ds,
         )
-    
+
         self.output.save_figure(fig_target, filename_target)
-    
+
         # ============================================================
         # 3. PLOT DIFFERENCE (B - A)
         # ============================================================
@@ -284,7 +284,7 @@ class DifferenceTask(BaseTask):
             range_cfg=self.diff_cfg.get("range"),
             is_difference=True,
         )
-    
+
         self.plotter.set_style_resolver(resolver)
 
         title_diff = self.namer.build_title(
@@ -293,13 +293,13 @@ class DifferenceTask(BaseTask):
             z_index=diff_ds.z_index,
             dataset=diff_ds,
         )
-    
+
         filename_diff = self.namer.build_filename(
             varname=self.var_base,
             dataset_name=diff_ds.name,
             z_index=diff_ds.z_index,
         )
-    
+
         fig_diff = self.plotter.plot_data_tiles(
             lat=self.lat,
             lon=self.lon,
@@ -308,11 +308,11 @@ class DifferenceTask(BaseTask):
             output_title=title_diff,
             dataset=None,
         )
-    
+
         self.output.save_figure(fig_diff, filename_diff)
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
 class TaskBuilder:
     """
     Build all tasks for pipeline
@@ -321,7 +321,9 @@ class TaskBuilder:
     def __init__(self, pipeline):
         self.pipeline = pipeline
 
+
     def build_plot_tasks(self):
+
         tasks = []
 
         for ds in self.pipeline.datasets:
@@ -380,17 +382,16 @@ class TaskBuilder:
             # OBSERVATION
             # -------------------------
             elif ds.data_kind == "observation":
-            
                 geo = GeoReader(ds).get_geo()
                 reader = DataReader(ds)            
                 self.pipeline.plotter.set_style_resolver(
                     PlotStyleResolver(ds)
                 )
-                       
+
                 for var in ds.var_list:
                     ch_dim, ch_list = reader.get_observation_channels(var)                    
                     channels_cfg = ds.channels  # now dataset-local
-                    
+
                     if ch_dim is None:
                         logger.info(f"{ds.name}:{var} has NO channel dimension -> single task")
                         tasks.append(
@@ -414,13 +415,13 @@ class TaskBuilder:
                             channels_cfg = [c for c in channels_cfg if 1 <= c <= max_ch]
                             channels_cfg = [c - 1 for c in channels_cfg]
                             selected_channels = [ch for ch in ch_list if ch in channels_cfg]
-                    
+
                         for ch in selected_channels:
                             context = {
                                 "channel_idx": ch,
                                 "channel": ch + 1,
                             }
-                    
+
                             tasks.append(
                                 PlotTask(
                                     dataset=ds,
@@ -433,7 +434,7 @@ class TaskBuilder:
                                     context=context,
                                 )
                             )
-            
+
             # -------------------------
             # DEFAULT
             # -------------------------
