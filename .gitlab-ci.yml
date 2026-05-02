@@ -1,47 +1,100 @@
-default:
-  image: python:3.10
+# -----------------------------------
+# Global configuration
+# -----------------------------------
+image: python:3.10-slim
 
 stages:
+  - setup
+  - lint
   - test
-  - docs
+  - build
+  - deploy
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  VENV_PATH: "$CI_PROJECT_DIR/.venv"
 
 cache:
+  key: ${CI_COMMIT_REF_SLUG}
   paths:
     - .cache/pip
+    - .venv
 
-.setup_template:
-  before_script:
-    - python --version
-    - pip install --upgrade pip
-    - pip install -r env/plot_env_list.txt
-    - pip install pytest sphinx
+before_script:
+  - python --version
+  - pip install --upgrade pip
+  - python -m venv $VENV_PATH
+  - source $VENV_PATH/bin/activate
+  - pip install -r requirements.txt
 
-# -----------------------
-# Run unit/integration tests
-# -----------------------
-test:
-  stage: test
-  extends: .setup_template
+# -----------------------------------
+# Setup (dependency validation)
+# -----------------------------------
+setup:
+  stage: setup
   script:
-    - pytest
+    - pip check
   rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH
 
-# -----------------------
-# Build documentation
-# -----------------------
-docs:
-  stage: docs
-  extends: .setup_template
+# -----------------------------------
+# Linting (code quality)
+# -----------------------------------
+lint:
+  stage: lint
   script:
-    - cd docs
-    - make html
+    - pip install flake8
+    - flake8 .
+  allow_failure: false
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+# -----------------------------------
+# Unit/Integration Tests
+# -----------------------------------
+test:
+  stage: test
+  script:
+    - pip install pytest pytest-cov
+    - pytest --cov=./ --cov-report=xml --cov-report=term
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+# -----------------------------------
+# Build (optional packaging)
+# -----------------------------------
+build:
+  stage: build
+  script:
+    - pip install build
+    - python -m build
   artifacts:
     paths:
-      - docs/build/html
+      - dist/
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
 
+# -----------------------------------
+# Deploy (example placeholder)
+# -----------------------------------
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploy step (customize for your infra)"
+    # Example:
+    # - pip install twine
+    # - twine upload dist/*
+  environment:
+    name: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
