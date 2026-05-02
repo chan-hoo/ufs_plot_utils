@@ -190,7 +190,7 @@ class DataReader:
         else:
             if da.ndim != 2:
                 raise ValueError(
-                    f'''{varname} expected 2D, got {da.dims}''')
+                    f'''{varname} expected 2D, got {da.dims}'''
                 )
 
         logger.info(f'''{varname} final shape = {da.shape}''')
