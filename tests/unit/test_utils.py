@@ -12,7 +12,7 @@ def test_normalize_yaxis(sample_da_tile):
 
     assert da.dims == ("tile", "y", "x"), (
         f'''Expected dims ("tile", "y", "x"), got {da.dims}'''
-    (
+    )
     assert da.shape == (6, 96, 96), (
         f'''Expected shape (6, 96, 96), got {da.shape}'''
     )
