@@ -11,6 +11,7 @@ class CLI:
         )
         self._add_arguments()
 
+
     def _add_arguments(self):
         """
         Read two arguments from a command line with python script.
@@ -18,6 +19,7 @@ class CLI:
         The other is for the logging level.
         Other parameters should be included in the input YAML file.
         """
+
         self.parser.add_argument(
             "-i", "--input_config",
             default="config.yaml",
@@ -29,6 +31,7 @@ class CLI:
             choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
             help="Logging level",
         )
+
 
     def parse(self):
         return self.parser.parse_args()

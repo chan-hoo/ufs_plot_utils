@@ -16,6 +16,7 @@ class OutputManager:
 
 
 # =================================================================== CHJ ===
+
     def save_figure(self, fig, filename, dpi=300, close=True):
 
         os.makedirs(self.output_path, exist_ok=True)

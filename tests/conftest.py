@@ -49,6 +49,7 @@ def zero_da():
         dims=("tile", "y", "x")
     )
 
+
 # Automatically applies to all tests
 @pytest.fixture(autouse=True)
 def disable_plot_saving(monkeypatch):

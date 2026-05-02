@@ -1,14 +1,11 @@
 import logging
-import xarray as xr
 
-from .cmap import PlotStyleResolver
 from .data import DataReader
 from .dataset import Dataset
 from .geo import GeoReader
 from .naming import NameBuilder
 from .plot import Plotter
 from .output import OutputManager
-from .utils import normalize_tile_dims, format_rtag
 from .tasks import TaskBuilder, DifferenceTask
 
 logger = logging.getLogger(__name__)
@@ -37,6 +34,7 @@ class Pipeline:
 
 
 # =================================================================== CHJ ===
+
     def run_plot_tiles(self):
         """
         Pipeline for multiple datasets
@@ -49,6 +47,7 @@ class Pipeline:
 
 
 # =================================================================== CHJ ===
+
     def run_differences(self):
         """
         Pipeline for difference plot of two datasets
@@ -80,15 +79,23 @@ class Pipeline:
                     {"base": v, "target": v}
                     for v in base_ds.var_list
                 ]
-                logger.warning(f'''No var_pairs defined for {name}, using identity mapping''')
+                logger.warning(
+                    f'''No var_pairs defined for {name}, '''
+                    f'''using identity mapping'''
+                )
 
             for pair in var_pairs:
                 var_base = pair.get("base")
                 var_target = pair.get("target")
 
                 if not var_base or not var_target:
-                    raise ValueError(f'''Invalid var_pairs entry: {pair}''')
-                logger.info(f'''Running DifferenceTask:: base={var_base}, target={var_target}''')
+                    raise ValueError(
+                        f'''Invalid var_pairs entry: {pair}'''
+                    )
+                logger.info(
+                    f'''Running DifferenceTask:: base={var_base}, '''
+                    f'''target={var_target}'''
+                )
 
                 task = DifferenceTask(
                     base_ds,
@@ -110,5 +117,6 @@ class Pipeline:
 
 
 # =================================================================== CHJ ===
+
     def _build_dataset_map(self):
         return {ds.name: ds for ds in self.datasets}

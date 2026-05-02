@@ -34,6 +34,7 @@ class DataReader:
 
 
 # =================================================================== CHJ ===
+
     def _open_dataset(self):
         """
         Open dataset (lazy loading) with group support
@@ -66,10 +67,11 @@ class DataReader:
                 )
 
             # DEBUG (VERY IMPORTANT)
-            logger.info(f'''Dataset variables: {list(self.xr_ds.variables)}''')
+            logger.info(f'''Dataset var: {list(self.xr_ds.variables)}''')
 
 
 # =================================================================== CHJ ===
+
     def get_data(self, varname, fhr=None, rtag=None):
         """
         Return raw DataArray (NO styling, NO plotting logic).
@@ -91,7 +93,7 @@ class DataReader:
             elif self.file_type == "file":
                 return self._get_data_file(varname, files)
             else:
-                raise ValueError(f'''Unsupported file_type: {self.file_type}''')
+                raise ValueError(f'''Unsupported: {self.file_type}''')
 
         # -------------------------
         # RESTART
@@ -107,7 +109,7 @@ class DataReader:
             elif self.file_type == "file":
                 return self._get_data_file(varname, files)
             else:
-                raise ValueError(f'''Unsupported file_type: {self.file_type}''')
+                raise ValueError(f'''Unsupported: {self.file_type}''')
 
         # -------------------------
         # OBSERVATION
@@ -126,10 +128,11 @@ class DataReader:
                 return self._get_data_file(varname)
 
             else:
-                raise ValueError(f'''Unsupported file_type: {self.file_type}''')
+                raise ValueError(f'''Unsupported: {self.file_type}''')
 
 
 # =================================================================== CHJ ===
+
     def get_observation_channels(self, varname):
         """
         Return channel dimension + indices
@@ -139,7 +142,8 @@ class DataReader:
 
         if varname not in self.xr_ds.variables:
             raise ValueError(
-                f'''{varname} not found in dataset. Available: {list(self.xr_ds.variables)}'''
+                f'''{varname} not found in dataset. '''
+                f''' Available: {list(self.xr_ds.variables)}'''
             )
 
         da = self.xr_ds[varname]
@@ -154,10 +158,11 @@ class DataReader:
 
 
 # =================================================================== CHJ ===
+
     def _get_data_file(self, varname):
         """
         Read single NetCDF file and return DataArray.
-        """ 
+        """
 
         self._open_dataset()
 
@@ -179,18 +184,26 @@ class DataReader:
         # -------------------------
         if "tile" in da.dims:
             if da.ndim != 3:
-                raise ValueError(f'''{varname} expected (tile,y,x), got {da.dims}''')
+                raise ValueError(
+                    f'''{varname} expected (tile,y,x), giot {da.dims}'''
+                )
         else:
             if da.ndim != 2:
-                raise ValueError(f'''{varname} expected 2D, got {da.dims}''')
+                raise ValueError(
+                    f'''{varname} expected 2D, got {da.dims}''')
+                )
 
         logger.info(f'''{varname} final shape = {da.shape}''')
-        logger.info(f'''{varname} min={np.nanmin(da.values)}, max={np.nanmax(da.values)}''')
+        logger.info(
+            f'''{varname} min={np.nanmin(da.values)}, '''
+            f'''max={np.nanmax(da.values)}'''
+        )
 
         return da
 
 
 # =================================================================== CHJ ===
+
     def _get_data_tiles(self, varname, files=None):
         """
         Read 6-tile NetCDF and return DataArray (tile, y, x).
@@ -256,6 +269,7 @@ class DataReader:
 
 
 # =================================================================== CHJ ===
+
     def _get_data_observation(self, varname):
         """
         Observation reader:
@@ -293,6 +307,7 @@ class DataReader:
 
 
 # =================================================================== CHJ ===
+
     def _slice_data(self, da, z_index=None, time_index=0):
         """
         Apply time + vertical slicing (data-layer only).
@@ -324,6 +339,7 @@ class DataReader:
 
 
 # =================================================================== CHJ ===
+
     def detect_forecast_hours(self):
         """
         Detect forecast hours from filename pattern.
@@ -345,7 +361,7 @@ class DataReader:
         if not files:
             raise ValueError(f'''No files found for pattern: {search_path}''')
 
-        fhrs = set() 
+        fhrs = set()
         for f in files:
             fname = os.path.basename(f)
             # robust match: f000, f012, f120 etc.
@@ -364,6 +380,7 @@ class DataReader:
 
 
 # =================================================================== CHJ ===
+
     def resolve_filenames_for_fhr(self, fhr):
         """
         Return list of matching files for a given forecast hour.
@@ -397,7 +414,9 @@ class DataReader:
             ]
 
         else:
-            raise ValueError(f'''Cannot resolve tile pattern from: {pattern}''')
+            raise ValueError(
+                f'''Cannot resolve tile pattern from: {pattern}'''
+            )
 
         # -------------------------
         # Validate existence (important)
@@ -412,6 +431,7 @@ class DataReader:
 
 
 # =================================================================== CHJ ===
+
     def detect_restart_tags(self):
 
         pattern = os.path.join(self.path, self.filename)
@@ -443,6 +463,7 @@ class DataReader:
 
 
 # =================================================================== CHJ ===
+
     def resolve_filenames_for_restart(self, tag):
 
         pattern = self.filename.replace("*", tag)
@@ -462,6 +483,7 @@ class DataReader:
 
 
 # =================================================================== CHJ ===
+
     def close(self):
 
         if self.xr_ds is not None:

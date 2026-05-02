@@ -16,12 +16,12 @@ class Plotter:
     def __init__(self, cfg):
         self.cfg = cfg
         plot_cfg = cfg.get("plot", default={})
-        self.proj_cfg  = plot_cfg.get("projection", {})
-        self.fig_cfg   = plot_cfg.get("figure", {})
-        self.cb_cfg    = plot_cfg.get("colorbar", {})
+        self.proj_cfg = plot_cfg.get("projection", {})
+        self.fig_cfg = plot_cfg.get("figure", {})
+        self.cb_cfg = plot_cfg.get("colorbar", {})
         self.title_cfg = plot_cfg.get("title", {})
         self.scatter_cfg = plot_cfg.get("scatter", {})
-        self.bg_cfg    = plot_cfg.get("background", {})
+        self.bg_cfg = plot_cfg.get("background", {})
         self.style_resolver = None
 
         # Set Cartopy Natural Earth data path
@@ -30,11 +30,13 @@ class Plotter:
             cartopy.config['data_dir'] = cartopy_ne_path
             logger.info(f'''Cartopy data_dir set to: {cartopy_ne_path}''')
 
+
     def set_style_resolver(self, resolver):
         self.style_resolver = resolver
 
 
 # =================================================================== CHJ ===
+
     def plot_data_tiles(
         self,
         lat,
@@ -48,9 +50,9 @@ class Plotter:
         Plot cubed-sphere tiled data.
         """
 
-        logger.info(f'''Plotting seamless global map''')
+        logger.info("Plotting seamless global map")
         if self.style_resolver is None:
-            raise RuntimeError("StyleResolver not set. Call set_style_resolver(ds) before plotting.")
+            raise RuntimeError("StyleResolver not set.")
 
         if lat.shape != da.shape:
             raise ValueError(
@@ -164,7 +166,9 @@ class Plotter:
         cb_tick_fs = self.cb_cfg.get("tick_fontsize", 6)
 
         divider = make_axes_locatable(ax)
-        ax_cb = divider.new_horizontal(size=cb_size, pad=cb_pad, axes_class=plt.Axes)
+        ax_cb = divider.new_horizontal(
+                    size=cb_size, pad=cb_pad, axes_class=plt.Axes
+                )
         fig.add_axes(ax_cb)
 
         cbar = plt.colorbar(cs, cax=ax_cb, extend=cb_extend)
@@ -175,6 +179,7 @@ class Plotter:
 
 
 # =================================================================== CHJ ===
+
     def plot_data_scatter(
         self,
         lat,
@@ -295,6 +300,7 @@ class Plotter:
 
 
 # =================================================================== CHJ ===
+
     def plot_background(self, ax):
         """
         Add background features (config-driven)

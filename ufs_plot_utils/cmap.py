@@ -20,29 +20,29 @@ class PlotStyleResolver:
     """
     Unified handler for colormap, range, and label.
     """
-    def __init__(self, dataset, cmap_cfg=None, range_cfg=None, is_difference=False):
+    def __init__(self, dataset, cmap_cfg=None, range_cfg=None, 
+            is_difference=False):
         self.dataset = dataset
         self.is_difference = is_difference
-
         self.cmap_cfg = cmap_cfg or getattr(dataset, "colormap", {}) or {}
         self.range_cfg = range_cfg or getattr(dataset, "range", {}) or {}
 
 
 # =================================================================== CHJ ===
+
     def resolve(self, varname, da):
 
         data_var = da.values
-
         cmap = self._resolve_cmap(varname)
         vmin, vmax = self._resolve_range(varname, data_var)
         label = self._build_label(da, varname)
-    
+
         logger.info(
             f'''{varname}:: '''
             f'''cmap={getattr(cmap, 'name', type(cmap).__name__)}, '''
             f'''vmin={vmin}, vmax={vmax}'''
         )
- 
+
         return PlotStyle(
             cmap=cmap,
             vmin=vmin,
@@ -52,6 +52,7 @@ class PlotStyleResolver:
 
 
 # =================================================================== CHJ ===
+
     def _resolve_cmap(self, varname):
         """
         Set up colormap
@@ -68,7 +69,7 @@ class PlotStyleResolver:
             try:
                 cmap = plt.get_cmap(cmap)
             except Exception:
-                logger.warning(f'''Invalid cmap "{cmap}", fallback to viridis''')
+                logger.warning(f'''Invalid cmap "{cmap}", set to viridis''')
                 cmap = plt.get_cmap("viridis")
 
         # -------------------------
@@ -94,12 +95,15 @@ class PlotStyleResolver:
 
 
 # =================================================================== CHJ ===
+
     def _resolve_range(self, varname, data_var):
 
         # -------------------------
         # 1. dataset config
         # -------------------------
-        var_range = self.range_cfg.get(varname, self.range_cfg.get("default", {})) or {}
+        var_range = self.range_cfg.get(varname)
+        if not var_range:
+            var_range = self.range_cfg.get("default", {})
 
         vmin = var_range.get("vmin")
         vmax = var_range.get("vmax")
@@ -139,13 +143,14 @@ class PlotStyleResolver:
             else:
                 scale *= 0.01
 
-            logger.warning(f'''{varname}:: degenerate range -> using ±{scale}''')
+            logger.warning(f'''{varname}:: degenerate range -> ±{scale}''')
             vmin, vmax = -scale, scale
 
         return vmin, vmax
 
 
 # =================================================================== CHJ ===
+
     def _build_label(self, da, varname):
 
         long_name = da.attrs.get("long_name", varname)
@@ -157,4 +162,3 @@ class PlotStyleResolver:
             label = f'''Δ{label}'''
 
         return label
-

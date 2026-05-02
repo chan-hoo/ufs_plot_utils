@@ -129,13 +129,17 @@ def normalize_geo_dims(lat, lon):
         lon = lon[np.newaxis, ...]
 
     if lat.ndim != 3:
-        raise ValueError(f'''Geo must be 2D or 3D, got shape={lat.shape}''')
+        raise ValueError(
+            f'''Geo must be 2D or 3D, got shape={lat.shape}'''
+        )
 
     # -------------------------
     # Final safety check
     # -------------------------
     if lat.shape != lon.shape:
-        raise ValueError(f'''lat/lon shape mismatch: {lat.shape} vs {lon.shape}''')
+        raise ValueError(
+            f'''lat/lon shape mismatch: {lat.shape} vs {lon.shape}'''
+        )
 
     # -------------------------
     # Enforce (tile, y, x)
@@ -147,6 +151,7 @@ def normalize_geo_dims(lat, lon):
 
 
 # =================================================================== CHJ ===
+
 def format_rtag(rtag):
     """
     Ensure format:

@@ -16,6 +16,7 @@ class GeoReader:
 
 
 # =================================================================== CHJ ===
+
     def get_geo(self):
         """
         Choose geo data reading method based on config
@@ -38,6 +39,7 @@ class GeoReader:
 
 
 # =================================================================== CHJ ===
+
     def _get_geo_file(self):
         """
         Extract latitude and longitude arrays from input geo file.
@@ -52,7 +54,7 @@ class GeoReader:
 
         with xr.open_dataset(fpath) as ds_geo:
             # flatten groups
-            ds_flat = xr.Dataset({k: v for k, v in ds_geo.data_vars.items()})  
+            ds_flat = xr.Dataset({k: v for k, v in ds_geo.data_vars.items()})
             lat_candidates = ["lat", "latitude"]
             lon_candidates = ["lon", "longitude"]
 
@@ -60,7 +62,7 @@ class GeoReader:
             lon_name = next((v for v in lon_candidates if v in ds_flat), None)
 
             if lat_name is None or lon_name is None:
-                raise ValueError(f'''Could not detect lon/lat in OBS file''')
+                raise ValueError(f"Could not detect lon/lat in OBS file")
 
             lat = ds_flat[lat_name]
             lon = ds_flat[lon_name]
@@ -81,11 +83,13 @@ class GeoReader:
 
 
 # =================================================================== CHJ ===
+
     def _get_geo_orog(self):
         """
         Read 6 orography tile files and return lat/lon arrays:
             lat(tile, y, x), lon(tile, y, x)
-        """ 
+        """
+
         geo_file = self.dataset.geo_filename
         geo_path = self.dataset.geo_path
 
@@ -100,13 +104,23 @@ class GeoReader:
             fpath = os.path.join(geo_path, fname)
 
             if not os.path.exists(fpath):
-                raise FileNotFoundError(f'''Orography tile file not found: {fpath}''')
+                raise FileNotFoundError(
+                    f'''Orography tile file not found: {fpath}'''
+                )
 
             logger.info(f'''Reading orography tile {itile}: {fpath}''')
 
             with xr.open_dataset(fpath) as ds:
-                lat_name = next((v for v in ["geolat", "y", "lat", "latitude"] if v in ds.variables), None)
-                lon_name = next((v for v in ["geolon", "x", "lon", "longitude"] if v in ds.variables), None)
+                lat_candidates = ["geolat", "y", "lat", "latitude"]
+                lon_candidates = ["geolon", "x", "lon", "longitude"]
+                lat_name = next(
+                    (v for v in lat_candidates if v in ds.variables),
+                    None,
+                )
+                lon_name = next(
+                    (v for v in lon_candidates if v in ds.variables),
+                    None,
+                )
 
                 if lat_name is None or lon_name is None:
                     raise ValueError(f'''lat/lon not found in {fpath}''')
@@ -127,6 +141,7 @@ class GeoReader:
 
 
 # =================================================================== CHJ ===
+
     def _get_geo_tile(self):
         """
         Extract lat/lon from tiled data files (grid_xt/grid_yt or similar).
@@ -175,7 +190,8 @@ class GeoReader:
 
         if len(selected_files) != 6:
             raise ValueError(
-                f'''Expected 6 tiles for f{selected_fhr}, found {len(selected_files)}'''
+                f'''Expected 6 tiles for f{selected_fhr}, '''
+                f'''found {len(selected_files)}'''
             )
 
         # -------------------------
@@ -191,15 +207,16 @@ class GeoReader:
                 # -------------------------
                 # Candidate variable names
                 # -------------------------
-                lat_candidates = [
-                    "grid_yt", "lat", "latitude", "y"
-                ]
-                lon_candidates = [
-                    "grid_xt", "lon", "longitude", "x"
-                ]
-
-                lat_name = next((v for v in lat_candidates if v in ds.variables), None)
-                lon_name = next((v for v in lon_candidates if v in ds.variables), None)
+                lat_candidates = ["grid_yt", "lat", "latitude", "y"]
+                lon_candidates = ["grid_xt", "lon", "longitude", "x"]
+                lat_name = next(
+                    (v for v in lat_candidates if v in ds.variables),
+                    None,
+                )
+                lon_name = next(
+                    (v for v in lon_candidates if v in ds.variables),
+                    None,
+                )
 
                 if lat_name is None or lon_name is None:
                     raise ValueError(f'''lat/lon not found in {f}''')
@@ -232,6 +249,7 @@ class GeoReader:
 
 
 # =================================================================== CHJ ===
+
     def _get_geo_observation(self):
         """
         Read lon/lat from IODA-style observation file.
@@ -270,9 +288,14 @@ class GeoReader:
 
                 lon_candidates = ["lon", "longitude"]
                 lat_candidates = ["lat", "latitude"]
-
-                lon_name = next((v for v in lon_candidates if v in ds.variables), None)
-                lat_name = next((v for v in lat_candidates if v in ds.variables), None)
+                lon_name = next(
+                    (v for v in lon_candidates if v in ds.variables),
+                    None,
+                    )
+                lat_name = next(
+                    (v for v in lat_candidates if v in ds.variables),
+                    None,
+                )
 
                 if lon_name is None or lat_name is None:
                     raise ValueError("Could not detect lon/lat in OBS file")

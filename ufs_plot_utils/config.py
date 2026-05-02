@@ -19,6 +19,7 @@ class Config:
 
 
 # =================================================================== CHJ ===
+
     def get(self, *keys, default=None):
         """
         Safe nested access:
@@ -35,8 +36,9 @@ class Config:
 
 
 # =================================================================== CHJ ===
+
     def log_config(self):
 
-        logger.info(f'''Input YAML Configuration:''')
+        logger.info("Input YAML Configuration:")
         for line in yaml.dump(self.data, sort_keys=True).splitlines():
             logger.info(line)

@@ -1,5 +1,3 @@
-#import pytest
-
 def test_pipeline_builds_tasks_from_config(tmp_path, monkeypatch):
     """
     Integration test: YAML -> Config -> Pipeline -> execution
@@ -63,7 +61,9 @@ def test_pipeline_builds_tasks_from_config(tmp_path, monkeypatch):
     pipeline = Pipeline(cfg)
     pipeline.run_plot_tiles()
 
+
 # =================================================================== CHJ ===
+
 def test_pipeline_runs_with_mock_data(tmp_path, monkeypatch):
     """
     Integration test: Pipeline executes with mocked data sources

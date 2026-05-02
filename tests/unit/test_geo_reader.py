@@ -5,7 +5,7 @@ from ufs_plot_utils.geo import GeoReader
 
 
 class DummyGeoConfig:
-    def __init__(self, geo_file_type="file", geo_path=".", 
+    def __init__(self, geo_file_type="file", geo_path=".",
                  geo_filename="dummy.nc"):
         self.geo_file_type = geo_file_type
         self.geo_path = geo_path
@@ -13,6 +13,7 @@ class DummyGeoConfig:
 
 
 # =================================================================== CHJ ===
+
 def test_geo_reader_init(monkeypatch):
     """
     Unit test: GeoReader initializes without real file access
@@ -35,7 +36,8 @@ def test_geo_reader_init(monkeypatch):
     assert g.dataset is not None
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
+
 @pytest.mark.parametrize("file_type", ["file", "s3", "url"])
 def test_geo_reader_file_types(monkeypatch, file_type):
     """
@@ -53,7 +55,8 @@ def test_geo_reader_file_types(monkeypatch, file_type):
     assert g.dataset is not None
 
 
-# ======================================================================================= CHJ =====
+# =================================================================== CHJ ===
+
 def test_geo_reader_path_join(monkeypatch):
 
     called_paths = []

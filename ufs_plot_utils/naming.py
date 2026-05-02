@@ -14,10 +14,10 @@ class NameBuilder:
 
 
 # =================================================================== CHJ ===
+
     def _build_parts(self, varname, dataset_name, z_index):
 
         parts = []
-
         prefix = self.cfg.get("output", "prefix", default="")
         if prefix:
             parts.append(prefix)
@@ -44,14 +44,13 @@ class NameBuilder:
 
 
 # =================================================================== CHJ ===
+
     def build_filename(self, varname, dataset_name, z_index=None):
+
         parts = self._build_parts(varname, dataset_name, z_index)
-
         filename = "_".join(parts)
-
         # sanitize filename
         filename = re.sub(r'''[^a-zA-Z0-9._-]''', "", filename)
-
         logger.info(f'''Output filename: {filename}''')
 
         return filename

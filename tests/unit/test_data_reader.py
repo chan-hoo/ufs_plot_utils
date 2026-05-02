@@ -16,6 +16,8 @@ class DummyDataset:
         self.time_index = 0
 
 
+# =================================================================== CHJ ===
+
 def test_slice_time():
     """
     Test time dimension slicing
@@ -27,9 +29,15 @@ def test_slice_time():
     reader = DataReader(DummyDataset())
     da = reader._slice_data(ds["var"], None, 0)
 
-    assert "time" not in da.dims, f'''Time dimension should be removed, remaining dims: {da.dims}'''
-    assert da.shape == (10, 10), f'''Expected shape (10, 10), got {da.shape}'''
+    assert "time" not in da.dims, (
+        f'''Time dimension should be removed, remaining dims: {da.dims}'''
+    )
+    assert da.shape == (10, 10), (
+        f'''Expected shape (10, 10), got {da.shape}'''
+    )
 
+
+# =================================================================== CHJ ===
 
 def test_slice_z_dimension():
     """
@@ -42,9 +50,15 @@ def test_slice_z_dimension():
     reader = DataReader(DummyDataset())
     da = reader._slice_data(ds["var"], 2, None)
 
-    assert "z" not in da.dims, f'''Z dimension should be removed, remaining dims: {da.dims}'''
-    assert da.shape == (10, 10), f'''Expected shape (10, 10), got {da.shape}'''
+    assert "z" not in da.dims, (
+        f'''Z dimension should be removed, remaining dims: {da.dims}'''
+    )
+    assert da.shape == (10, 10), (
+        f'''Expected shape (10, 10), got {da.shape}'''
+    )
 
+
+# =================================================================== CHJ ===
 
 def test_slice_time_only_from_4d():
     """
@@ -57,11 +71,21 @@ def test_slice_time_only_from_4d():
     reader = DataReader(DummyDataset())
     da = reader._slice_data(ds["var"], None, 0)
 
-    assert "time" not in da.dims, f'''Time dimension should be removed, dims: {da.dims}'''
-    assert "z" in da.dims, f'''Z dimension should be preserved, dims: {da.dims}'''
-    assert da.ndim == 3, f'''Expected 3D result (z, y, x), got {da.ndim}D with shape {da.shape}'''
-    assert da.shape == (5, 10, 10), f'''Expected shape (5, 10, 10), got {da.shape}'''
+    assert "time" not in da.dims, (
+        f'''Time dimension should be removed, dims: {da.dims}'''
+    )
+    assert "z" in da.dims, (
+        f'''Z dimension should be preserved, dims: {da.dims}'''
+    )
+    assert da.ndim == 3, (
+        f'''Expected 3D (z, y, x), got {da.ndim}D with shape {da.shape}'''
+    )
+    assert da.shape == (5, 10, 10), (
+        f'''Expected shape (5, 10, 10), got {da.shape}'''
+    )
 
+
+# =================================================================== CHJ ===
 
 def test_slice_z_only_from_4d():
     """
@@ -74,11 +98,21 @@ def test_slice_z_only_from_4d():
     reader = DataReader(DummyDataset())
     da = reader._slice_data(ds["var"], 2, 0)
 
-    assert "z" not in da.dims, f'''Z dimension should be removed, dims: {da.dims}'''
-    assert "time" not in da.dims, f'''Time dimension should also be removed, dims: {da.dims}'''
-    assert da.ndim == 2, f'''Expected 2D result (y, x), got {da.ndim}D with shape {da.shape}'''
-    assert da.shape == (10, 10), f'''Expected shape (10, 10), got {da.shape}'''
+    assert "z" not in da.dims, (
+        f'''Z dimension should be removed, dims: {da.dims}'''
+    )
+    assert "time" not in da.dims, (
+        f'''Time dimension should also be removed, dims: {da.dims}'''
+    )
+    assert da.ndim == 2, (
+        f'''Expected 2D (y, x), got {da.ndim}D with shape {da.shape}'''
+    )
+    assert da.shape == (10, 10), (
+        f'''Expected shape (10, 10), got {da.shape}'''
+    )
 
+
+# =================================================================== CHJ ===
 
 def test_slice_both_time_and_z_from_4d():
     """
@@ -91,16 +125,35 @@ def test_slice_both_time_and_z_from_4d():
     reader = DataReader(DummyDataset())
     da = reader._slice_data(ds["var"], 1, 2)
 
-    assert "time" not in da.dims, f'''Time dimension should be removed, dims: {da.dims}'''
-    assert "z" not in da.dims, f'''Z dimension should be removed, dims: {da.dims}'''
-    assert da.ndim == 2, f'''Expected 2D result (y, x), got {da.ndim}D with shape {da.shape}'''
-    assert da.shape == (10, 10), f'''Expected shape (10, 10), got {da.shape}'''
+    assert "time" not in da.dims, (
+        f'''Time dimension should be removed, dims: {da.dims}'''
+    )
+    assert "z" not in da.dims, (
+        f'''Z dimension should be removed, dims: {da.dims}'''
+    )
+    assert da.ndim == 2, (
+        f'''Expected 2D (y, x), got {da.ndim}D with shape {da.shape}'''
+    )
+    assert da.shape == (10, 10), (
+        f'''Expected shape (10, 10), got {da.shape}'''
+    )
 
 
-@pytest.mark.parametrize("z_idx,time_idx,expected_ndim", [(None, 0, 3), (2, 0, 2), (1, 2, 2), (None, 1, 3)])
+# =================================================================== CHJ ===
+
+@pytest.mark.parametrize(
+    "z_idx,time_idx,expected_ndim",
+    [
+        (None, 0, 3),
+        (2, 0, 2),
+        (1, 2, 2),
+        (None, 1, 3),
+    ],
+    )
 def test_slice_parametrized(z_idx, time_idx, expected_ndim):
     """
-    Test slicing with various index combinations and verify expected dimensionality
+    Test slicing with various index combinations and
+    verify expected dimensionality
     """
     ds = xr.Dataset({
         "var": (("time", "z", "y", "x"), np.random.rand(3, 5, 10, 10))
@@ -109,5 +162,6 @@ def test_slice_parametrized(z_idx, time_idx, expected_ndim):
     reader = DataReader(DummyDataset())
     da = reader._slice_data(ds["var"], z_idx, time_idx)
 
-    assert da.ndim == expected_ndim, f'''Expected {expected_ndim}D result, got {da.ndim}D with shape {da.shape}'''
-
+    assert da.ndim == expected_ndim, (
+        f'''Expected {expected_ndim}D, got {da.ndim}D: {da.shape}'''
+    )

@@ -20,8 +20,12 @@ def test_config_load():
 
     cfg = Config(fname)
 
-    assert cfg.get("input") is not None, "Config input section should not be None"
+    assert cfg.get("input") is not None, (
+        "Config input section should not be None"
+    )
 
+
+# =================================================================== CHJ ===
 
 def test_config_nested_get():
     """
@@ -40,10 +44,18 @@ def test_config_nested_get():
     cfg = Config(fname)
 
     datasets = cfg.get("input", "datasets")
-    assert isinstance(datasets, list), f'''Expected datasets to be a list, got {type(datasets).__name__}'''
-    assert len(datasets) == 1, f'''Expected 1 dataset, got {len(datasets)}'''
-    assert datasets[0]["name"] == "fv3", f'''Expected dataset name "fv3", got {datasets[0].get('name')}'''
+    assert isinstance(datasets, list), (
+        f'''Expected datasets to be a list, got {type(datasets).__name__}'''
+    )
+    assert len(datasets) == 1, (
+        f'''Expected 1 dataset, got {len(datasets)}'''
+    )
+    assert datasets[0]["name"] == "fv3", (
+        f'''Expected dataset name "fv3", got {datasets[0].get('name')}'''
+    )
 
+
+# =================================================================== CHJ ===
 
 @pytest.mark.parametrize("missing_key", ["nonexistent", "missing_section"])
 def test_config_missing_keys(missing_key):
@@ -63,4 +75,3 @@ def test_config_missing_keys(missing_key):
     cfg = Config(fname)
     result = cfg.get(missing_key)
     assert result is None, f'''Expected None for missing key "{missing_key}", got {result}'''
-

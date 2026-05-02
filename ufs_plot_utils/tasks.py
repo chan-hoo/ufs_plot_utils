@@ -17,6 +17,7 @@ class BaseTask:
 
 
 # =================================================================== CHJ ===
+
 class PlotTask(BaseTask):
     """
     Single plotting unit
@@ -145,6 +146,7 @@ class PlotTask(BaseTask):
 
 
 # =================================================================== CHJ ===
+
 class DifferenceTask(BaseTask):
     """
     Difference plotting unit
@@ -313,6 +315,7 @@ class DifferenceTask(BaseTask):
 
 
 # =================================================================== CHJ ===
+
 class TaskBuilder:
     """
     Build all tasks for pipeline
@@ -383,13 +386,13 @@ class TaskBuilder:
             # -------------------------
             elif ds.data_kind == "observation":
                 geo = GeoReader(ds).get_geo()
-                reader = DataReader(ds)            
+                reader = DataReader(ds)
                 self.pipeline.plotter.set_style_resolver(
                     PlotStyleResolver(ds)
                 )
 
                 for var in ds.var_list:
-                    ch_dim, ch_list = reader.get_observation_channels(var)                    
+                    ch_dim, ch_list = reader.get_observation_channels(var)
                     channels_cfg = ds.channels  # now dataset-local
 
                     if ch_dim is None:
@@ -409,7 +412,7 @@ class TaskBuilder:
                         continue
 
                     else:
-                        selected_channels = ch_list                    
+                        selected_channels = ch_list
                         if channels_cfg:
                             max_ch = len(ch_list)
                             channels_cfg = [c for c in channels_cfg if 1 <= c <= max_ch]

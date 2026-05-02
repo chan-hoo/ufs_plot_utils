@@ -19,7 +19,10 @@ class LoggerSetup:
             log_level = getattr(logging, log_level_str)
         except AttributeError:
             log_level = logging.INFO
-            sys.stderr.write(f'''WARNING: Invalid log level "{log_level_str}", set to INFO.''')
+            sys.stderr.write(
+                f'''WARNING: Invalid log level "{log_level_str}", '''
+                f'''set to INFO.'''
+            )
             log_level_str = "INFO"
 
         handlers = [logging.StreamHandler()]
@@ -29,10 +32,13 @@ class LoggerSetup:
 
         logging.basicConfig(
             level=log_level,
-            format="%(asctime)s [%(levelname)s] [%(filename)s:L%(lineno)d] %(message)s",
+            format=(
+                "%(asctime)s [%(levelname)s] "
+                "[%(filename)s:L%(lineno)d] %(message)s"
+            ),
             datefmt="%Y-%m-%d %H:%M:%S",
             handlers=handlers,
-            force=True
+            force=True,
         )
 
         logger = logging.getLogger(__name__)
