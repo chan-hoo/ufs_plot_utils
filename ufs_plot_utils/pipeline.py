@@ -33,7 +33,7 @@ class Pipeline:
         self.output = OutputManager(cfg)
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def run_plot_tiles(self):
         """
@@ -46,7 +46,7 @@ class Pipeline:
             task.run()
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def run_differences(self):
         """
@@ -61,7 +61,7 @@ class Pipeline:
 
         ds_map = self._build_dataset_map()
 
-        for diff_cfg in diff_cfgs: 
+        for diff_cfg in diff_cfgs:
             base_ds = ds_map[diff_cfg["base"]]
             target_ds = ds_map[diff_cfg["target"]]
 
@@ -80,8 +80,7 @@ class Pipeline:
                     for v in base_ds.var_list
                 ]
                 logger.warning(
-                    f'''No var_pairs defined for {name}, '''
-                    f'''using identity mapping'''
+                    "No var_pairs defined, using identity mapping"
                 )
 
             for pair in var_pairs:
@@ -116,7 +115,7 @@ class Pipeline:
             reader_target.close()
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def _build_dataset_map(self):
         return {ds.name: ds for ds in self.datasets}

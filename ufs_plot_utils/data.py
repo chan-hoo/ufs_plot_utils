@@ -33,7 +33,7 @@ class DataReader:
         self.xr_ds = None
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def _open_dataset(self):
         """
@@ -70,7 +70,7 @@ class DataReader:
             logger.info(f'''Dataset var: {list(self.xr_ds.variables)}''')
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def get_data(self, varname, fhr=None, rtag=None):
         """
@@ -131,7 +131,7 @@ class DataReader:
                 raise ValueError(f'''Unsupported: {self.file_type}''')
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def get_observation_channels(self, varname):
         """
@@ -157,7 +157,7 @@ class DataReader:
         return None, [None]
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def _get_data_file(self, varname):
         """
@@ -202,7 +202,7 @@ class DataReader:
         return da
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def _get_data_tiles(self, varname, files=None):
         """
@@ -252,11 +252,15 @@ class DataReader:
             da = self._slice_data(da, self.z_index, self.time_index)
 
             if da.ndim != 3:
-                raise ValueError(f'''{varname} expected (tile, y, x), got {da.dims}''')
+                raise ValueError(
+                    f'''{varname} expected (tile, y, x), got {da.dims}'''
+                )
 
             vals = da.values
             logger.info(f'''{varname} final shape = {da.shape}''')
-            logger.info(f'''{varname} min={np.nanmin(vals)}, max={np.nanmax(vals)}''')
+            logger.info(
+                f'''{varname} min={np.nanmin(vals)}, max={np.nanmax(vals)}'''
+            )
 
             return da
 
@@ -268,7 +272,7 @@ class DataReader:
                     pass
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def _get_data_observation(self, varname):
         """
@@ -306,7 +310,7 @@ class DataReader:
         return da
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def _slice_data(self, da, z_index=None, time_index=0):
         """
@@ -319,7 +323,9 @@ class DataReader:
         time_dim = next((d for d in ["time", "Time"] if d in da.dims), None)
         if time_dim is not None:
             if da.sizes.get(time_dim, 1) > 1:
-                logger.debug(f'''{time_dim} > 1, selecting index {time_index}''')
+                logger.debug(
+                    f'''{time_dim} > 1, selecting index {time_index}'''
+                )
             da = da.isel({time_dim: time_index})
 
         # -------------------------
@@ -338,7 +344,7 @@ class DataReader:
         return da
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def detect_forecast_hours(self):
         """
@@ -379,7 +385,7 @@ class DataReader:
         return fhrs
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def resolve_filenames_for_fhr(self, fhr):
         """
@@ -430,7 +436,7 @@ class DataReader:
         return files
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def detect_restart_tags(self):
 
@@ -462,7 +468,7 @@ class DataReader:
         return tags
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def resolve_filenames_for_restart(self, tag):
 
@@ -482,7 +488,7 @@ class DataReader:
         return files
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def close(self):
 

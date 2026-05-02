@@ -44,7 +44,10 @@ class PlotTask(BaseTask):
         self.context = context or {}
 
     def run(self):
-        logger.info(f'''PlotTask:: {self.dataset.name} :: {self.varname} :: {self.context}''')
+        logger.info(
+            f'''PlotTask:: {self.dataset.name} :: {self.varname} :: '''
+            f'''{self.context}'''
+        )
 
         # Set resolver per task
         self.plotter.set_style_resolver(
@@ -71,10 +74,14 @@ class PlotTask(BaseTask):
         # Channel slicing (OBS)
         # -------------------------
         if "channel" in self.context:
-            ch = self.context["channel_idx"]        
+            ch = self.context["channel_idx"]
             ch_dim = next(
-                (d for d in da.dims if d.lower() in ["channel", "chan", "nchan", "band"]),
-                None
+                (
+                    d
+                    for d in da.dims
+                    if d.lower() in ["channel", "chan", "nchan", "band"]
+                ),
+                None,
             )
             if ch_dim is not None:
                 da = da.isel({ch_dim: ch})
@@ -179,7 +186,8 @@ class DifferenceTask(BaseTask):
 
     def run(self):
         logger.info(
-            f'''DifferenceTask:: {self.var_base} ({self.target_ds.name} - {self.base_ds.name})'''
+            f'''DifferenceTask:: {self.var_base} ({self.target_ds.name} '''
+            f'''- {self.base_ds.name})'''
         )
 
         # -------------------------
@@ -188,13 +196,18 @@ class DifferenceTask(BaseTask):
         da_base = self.reader_base.get_data(self.var_base)
         da_target = self.reader_target.get_data(self.var_target)
 
-        logger.info(f'''Original:: base  dims={da_base.dims}, shape={da_base.shape}''')
-        logger.info(f'''Original:: target dims={da_target.dims}, shape={da_target.shape}''')
+        logger.info(
+            f'''Original:: base dims={da_base.dims}, shape={da_base.shape}'''
+        )
+        logger.info(
+            f'''Original:: target dims={da_target.dims}, '''
+            f'''shape={da_target.shape}'''
+        )
 
         # -------------------------
         # Normalize + Align
         # -------------------------
-        da_base  = normalize_tile_dims(da_base)
+        da_base = normalize_tile_dims(da_base)
         da_target = normalize_tile_dims(da_target)
 
         da_base, da_target = xr.align(da_base, da_target, join="override")
@@ -206,13 +219,15 @@ class DifferenceTask(BaseTask):
 
         vals = da_diff.values
         logger.info(
-            f'''Difference:: ({self.target_ds.name} - {self.base_ds.name}) {self.var_base} '''
-            f'''min={np.nanmin(vals):.6g}, max={np.nanmax(vals):.6g}'''
+            f'''Difference:: ({self.target_ds.name} - '''
+            f'''{self.base_ds.name}) {self.var_base} '''
+            f'''min={np.nanmin(vals):.6g}, '''
+            f'''max={np.nanmax(vals):.6g}'''
         )
 
-        # ============================================================
+        # ==============================
         # 1. PLOT BASE (A)
-        # ============================================================
+        # ==============================
         self.plotter.set_style_resolver(
             PlotStyleResolver(self.base_ds)
         )
@@ -241,9 +256,9 @@ class DifferenceTask(BaseTask):
 
         self.output.save_figure(fig_base, filename_base)
 
-        # ============================================================
+        # ==============================
         # 2. PLOT TARGET (B)
-        # ============================================================
+        # ==============================
         self.plotter.set_style_resolver(
             PlotStyleResolver(self.target_ds)
         )
@@ -272,9 +287,9 @@ class DifferenceTask(BaseTask):
 
         self.output.save_figure(fig_target, filename_target)
 
-        # ============================================================
+        # ==============================
         # 3. PLOT DIFFERENCE (B - A)
-        # ============================================================
+        # ==============================
         diff_ds = copy.copy(self.base_ds)
         diff_ds.data_kind = "increment"
         diff_ds.title = self.diff_cfg.get("title")
@@ -324,11 +339,8 @@ class TaskBuilder:
     def __init__(self, pipeline):
         self.pipeline = pipeline
 
-
     def build_plot_tasks(self):
-
         tasks = []
-
         for ds in self.pipeline.datasets:
             logger.info(f'''TaskBuilder:: dataset = {ds.name}''')
 
@@ -396,7 +408,9 @@ class TaskBuilder:
                     channels_cfg = ds.channels  # now dataset-local
 
                     if ch_dim is None:
-                        logger.info(f"{ds.name}:{var} has NO channel dimension -> single task")
+                        logger.info(
+                            f'''{ds.name}:{var} has NO channel dimension'''
+                        )
                         tasks.append(
                             PlotTask(
                                 dataset=ds,
@@ -414,10 +428,14 @@ class TaskBuilder:
                     else:
                         selected_channels = ch_list
                         if channels_cfg:
-                            max_ch = len(ch_list)
-                            channels_cfg = [c for c in channels_cfg if 1 <= c <= max_ch]
+                            max_ch = len(ch_list)                      
+                            channels_cfg = [
+                                c for c in channels_cfg if 1 <= c <= max_ch
+                            ]
                             channels_cfg = [c - 1 for c in channels_cfg]
-                            selected_channels = [ch for ch in ch_list if ch in channels_cfg]
+                            selected_channels = [
+                                ch for ch in ch_list if ch in channels_cfg
+                            ]
 
                         for ch in selected_channels:
                             context = {

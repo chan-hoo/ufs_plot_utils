@@ -74,4 +74,6 @@ def test_config_missing_keys(missing_key):
 
     cfg = Config(fname)
     result = cfg.get(missing_key)
-    assert result is None, f'''Expected None for missing key "{missing_key}", got {result}'''
+    assert result is None, (
+        f'''Expected None for missing key "{missing_key}", got {result}'''
+    )

@@ -15,7 +15,7 @@ class GeoReader:
         self.dataset = dataset
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def get_geo(self):
         """
@@ -38,7 +38,7 @@ class GeoReader:
             raise ValueError(f'''Unknown geo type: {geo_type}''')
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def _get_geo_file(self):
         """
@@ -62,7 +62,7 @@ class GeoReader:
             lon_name = next((v for v in lon_candidates if v in ds_flat), None)
 
             if lat_name is None or lon_name is None:
-                raise ValueError(f"Could not detect lon/lat in OBS file")
+                raise ValueError("Could not detect lon/lat in OBS file")
 
             lat = ds_flat[lat_name]
             lon = ds_flat[lon_name]
@@ -82,7 +82,7 @@ class GeoReader:
         return lat_all, lon_all
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def _get_geo_orog(self):
         """
@@ -140,7 +140,7 @@ class GeoReader:
         return lat_all, lon_all
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def _get_geo_tile(self):
         """
@@ -163,7 +163,7 @@ class GeoReader:
 
         logger.info(f'''GEO TILE pattern: {pattern}''')
 
-        file_list = sorted(glob.glob(pattern))       
+        file_list = sorted(glob.glob(pattern))
         if not file_list:
             raise ValueError(f'''No geo tile files found: {pattern}''')
 
@@ -248,7 +248,7 @@ class GeoReader:
         return lat_all, lon_all
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def _get_geo_observation(self):
         """

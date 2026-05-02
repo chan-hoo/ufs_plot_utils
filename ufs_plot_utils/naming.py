@@ -13,7 +13,7 @@ class NameBuilder:
         self.cfg = cfg
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def _build_parts(self, varname, dataset_name, z_index):
 
@@ -43,7 +43,7 @@ class NameBuilder:
         return parts
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def build_filename(self, varname, dataset_name, z_index=None):
 
@@ -56,7 +56,8 @@ class NameBuilder:
         return filename
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
+
     def build_title(self, varname, dataset_name, z_index=None, dataset=None):
 
         # -------------------------

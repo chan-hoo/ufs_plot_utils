@@ -20,15 +20,16 @@ class PlotStyleResolver:
     """
     Unified handler for colormap, range, and label.
     """
-    def __init__(self, dataset, cmap_cfg=None, range_cfg=None, 
-            is_difference=False):
+    def __init__(
+        self, dataset, cmap_cfg=None, range_cfg=None,is_difference=False
+    ):
         self.dataset = dataset
         self.is_difference = is_difference
         self.cmap_cfg = cmap_cfg or getattr(dataset, "colormap", {}) or {}
         self.range_cfg = range_cfg or getattr(dataset, "range", {}) or {}
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def resolve(self, varname, da):
 
@@ -51,7 +52,7 @@ class PlotStyleResolver:
         )
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def _resolve_cmap(self, varname):
         """
@@ -94,7 +95,7 @@ class PlotStyleResolver:
         return cmap
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def _resolve_range(self, varname, data_var):
 
@@ -149,7 +150,7 @@ class PlotStyleResolver:
         return vmin, vmax
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def _build_label(self, da, varname):
 

@@ -66,7 +66,7 @@ def test_normalize_already_normalized():
         dims=("tile", "y", "x"),
         name="test_var"
     )
-    
+ 
     da_normalized = normalize_tile_dims(da)
     assert da_normalized.dims == ("tile", "y", "x"), (
         "Already normalized dims should remain unchanged"
@@ -87,7 +87,7 @@ def test_normalize_various_shapes(shape):
         dims=("tile", "grid_yt", "grid_xt"),
         name="test_var"
     )
-    
+
     da_normalized = normalize_tile_dims(da)
     assert da_normalized.shape == shape, (
         f'''Shape {shape} should be preserved after normalization, '''

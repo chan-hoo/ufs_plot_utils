@@ -11,7 +11,6 @@ class CLI:
         )
         self._add_arguments()
 
-
     def _add_arguments(self):
         """
         Read two arguments from a command line with python script.
@@ -31,7 +30,6 @@ class CLI:
             choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
             help="Logging level",
         )
-
 
     def parse(self):
         return self.parser.parse_args()

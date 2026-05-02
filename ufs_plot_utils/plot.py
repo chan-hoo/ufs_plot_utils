@@ -35,7 +35,7 @@ class Plotter:
         self.style_resolver = resolver
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def plot_data_tiles(
         self,
@@ -109,13 +109,10 @@ class Plotter:
         # -------------------------
         # Style (still needs numpy)
         # -------------------------
-        data_values = da.values
-
         style = self.style_resolver.resolve(
             varname,
             da
         )
-
         cmap = style.cmap
         vmin = style.vmin
         vmax = style.vmax
@@ -178,7 +175,7 @@ class Plotter:
         return fig
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def plot_data_scatter(
         self,
@@ -247,13 +244,10 @@ class Plotter:
         # -------------------------
         # Style (still needs numpy)
         # -------------------------
-        data_values = da.values
-
         style = self.style_resolver.resolve(
             varname,
             da
         )
-
         cmap = style.cmap
         vmin = style.vmin
         vmax = style.vmax
@@ -299,7 +293,7 @@ class Plotter:
         return fig
 
 
-# =================================================================== CHJ ===
+    # =============================================================== CHJ ===
 
     def plot_background(self, ax):
         """
