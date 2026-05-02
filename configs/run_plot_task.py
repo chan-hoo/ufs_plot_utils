@@ -5,8 +5,9 @@ from pathlib import Path
 # Get the path one level up
 parent_dir = Path(__file__).resolve().parents[1]
 sys.path.append(str(parent_dir))
-import ufs_plot_utils as ufs
+
 import logging
+import ufs_plot_utils as ufs
 
 
 def main():

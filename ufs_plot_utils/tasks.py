@@ -183,6 +183,7 @@ class DifferenceTask(BaseTask):
         self.namer = namer
         self.diff_cfg = diff_cfg
 
+    # =============================================================== CHJ ===
 
     def run(self):
         logger.info(
