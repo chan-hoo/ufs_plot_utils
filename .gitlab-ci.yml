@@ -7,8 +7,8 @@ stages:
   - setup
   - lint
   - test
-  - build
-  - deploy
+#  - build
+#  - deploy
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -73,29 +73,29 @@ test:
 # -----------------------------------
 # Build (optional packaging)
 # -----------------------------------
-build:
-  stage: build
-  script:
-    - pip install build
-    - python -m build
-  artifacts:
-    paths:
-      - dist/
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+#build:
+#  stage: build
+#  script:
+#    - pip install build
+#    - python -m build
+#  artifacts:
+#    paths:
+#      - dist/
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "main"
 
 # -----------------------------------
 # Deploy (example placeholder)
 # -----------------------------------
-deploy:
-  stage: deploy
-  script:
-    - echo "Deploy step (customize for your infra)"
+#deploy:
+#  stage: deploy
+#  script:
+#    - echo "Deploy step (customize for your infra)"
     # Example:
     # - pip install twine
     # - twine upload dist/*
-  environment:
-    name: production
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-      when: manual
+#  environment:
+#    name: production
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "main"
+#      when: manual
