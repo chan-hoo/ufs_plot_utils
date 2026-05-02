@@ -8,6 +8,7 @@ sys.path.append(str(parent_dir))
 import ufs_plot_utils as ufs
 import logging
 
+
 def main():
     """
     Plot test.

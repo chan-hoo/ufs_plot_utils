@@ -15,6 +15,7 @@ class BaseTask:
     def run(self):
         raise NotImplementedError
 
+
 # =================================================================== CHJ ===
 
 class PlotTask(BaseTask):
@@ -149,6 +150,7 @@ class PlotTask(BaseTask):
         # Save
         # -------------------------
         self.output.save_figure(fig, filename)
+
 
 # =================================================================== CHJ ===
 
@@ -325,6 +327,7 @@ class DifferenceTask(BaseTask):
         )
 
         self.output.save_figure(fig_diff, filename_diff)
+
 
 # =================================================================== CHJ ===
 

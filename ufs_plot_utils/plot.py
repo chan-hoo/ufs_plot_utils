@@ -282,7 +282,11 @@ class Plotter:
         cb_tick_fs = self.cb_cfg.get("tick_fontsize", 6)
 
         divider = make_axes_locatable(ax)
-        ax_cb = divider.new_horizontal(size=cb_size, pad=cb_pad, axes_class=plt.Axes)
+        ax_cb = divider.new_horizontal(
+            size=cb_size,
+            pad=cb_pad,
+            axes_class=plt.Axes,
+        )
         fig.add_axes(ax_cb)
 
         cbar = plt.colorbar(cs, cax=ax_cb, extend=cb_extend)

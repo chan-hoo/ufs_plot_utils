@@ -11,6 +11,7 @@ class DummyGeoConfig:
         self.geo_path = geo_path
         self.geo_filename = geo_filename
 
+
 # =================================================================== CHJ ===
 
 def test_geo_reader_init(monkeypatch):
@@ -34,6 +35,7 @@ def test_geo_reader_init(monkeypatch):
 
     assert g.dataset is not None
 
+
 # =================================================================== CHJ ===
 
 @pytest.mark.parametrize("file_type", ["file", "s3", "url"])
@@ -51,6 +53,7 @@ def test_geo_reader_file_types(monkeypatch, file_type):
     g = GeoReader(config)
 
     assert g.dataset is not None
+
 
 # =================================================================== CHJ ===
 

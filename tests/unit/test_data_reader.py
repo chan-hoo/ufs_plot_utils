@@ -15,6 +15,7 @@ class DummyDataset:
         self.z_index = None
         self.time_index = 0
 
+
 # =================================================================== CHJ ===
 
 def test_slice_time():
@@ -35,6 +36,7 @@ def test_slice_time():
         f'''Expected shape (10, 10), got {da.shape}'''
     )
 
+
 # =================================================================== CHJ ===
 
 def test_slice_z_dimension():
@@ -54,6 +56,7 @@ def test_slice_z_dimension():
     assert da.shape == (10, 10), (
         f'''Expected shape (10, 10), got {da.shape}'''
     )
+
 
 # =================================================================== CHJ ===
 
@@ -81,6 +84,7 @@ def test_slice_time_only_from_4d():
         f'''Expected shape (5, 10, 10), got {da.shape}'''
     )
 
+
 # =================================================================== CHJ ===
 
 def test_slice_z_only_from_4d():
@@ -107,6 +111,7 @@ def test_slice_z_only_from_4d():
         f'''Expected shape (10, 10), got {da.shape}'''
     )
 
+
 # =================================================================== CHJ ===
 
 def test_slice_both_time_and_z_from_4d():
@@ -132,6 +137,7 @@ def test_slice_both_time_and_z_from_4d():
     assert da.shape == (10, 10), (
         f'''Expected shape (10, 10), got {da.shape}'''
     )
+
 
 # =================================================================== CHJ ===
 
