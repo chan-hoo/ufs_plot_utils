@@ -30,10 +30,10 @@ class Plotter:
             cartopy.config['data_dir'] = cartopy_ne_path
             logger.info(f'''Cartopy data_dir set to: {cartopy_ne_path}''')
 
+    # =============================================================== CHJ ===
 
     def set_style_resolver(self, resolver):
         self.style_resolver = resolver
-
 
     # =============================================================== CHJ ===
 
@@ -174,7 +174,6 @@ class Plotter:
 
         return fig
 
-
     # =============================================================== CHJ ===
 
     def plot_data_scatter(
@@ -291,7 +290,6 @@ class Plotter:
         cbar.set_label(cbar_label, fontsize=cb_label_fs)
 
         return fig
-
 
     # =============================================================== CHJ ===
 

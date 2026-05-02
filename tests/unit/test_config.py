@@ -24,7 +24,6 @@ def test_config_load():
         "Config input section should not be None"
     )
 
-
 # =================================================================== CHJ ===
 
 def test_config_nested_get():
@@ -53,7 +52,6 @@ def test_config_nested_get():
     assert datasets[0]["name"] == "fv3", (
         f'''Expected dataset name "fv3", got {datasets[0].get('name')}'''
     )
-
 
 # =================================================================== CHJ ===
 

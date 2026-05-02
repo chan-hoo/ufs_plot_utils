@@ -14,7 +14,6 @@ class GeoReader:
     def __init__(self, dataset):
         self.dataset = dataset
 
-
     # =============================================================== CHJ ===
 
     def get_geo(self):
@@ -36,7 +35,6 @@ class GeoReader:
             return self._get_geo_tile()
         else:
             raise ValueError(f'''Unknown geo type: {geo_type}''')
-
 
     # =============================================================== CHJ ===
 
@@ -80,7 +78,6 @@ class GeoReader:
         logger.info(f'''lat shape={lat.shape}, lon shape={lon.shape}''')
 
         return lat_all, lon_all
-
 
     # =============================================================== CHJ ===
 
@@ -138,7 +135,6 @@ class GeoReader:
         logger.info(f'''Geo lon shape: {lon_all.shape}''')
 
         return lat_all, lon_all
-
 
     # =============================================================== CHJ ===
 
@@ -246,7 +242,6 @@ class GeoReader:
         logger.info(f'''Geo lon shape: {lon_all.shape}''')
 
         return lat_all, lon_all
-
 
     # =============================================================== CHJ ===
 

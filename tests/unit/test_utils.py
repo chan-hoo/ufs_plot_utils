@@ -17,7 +17,6 @@ def test_normalize_yaxis(sample_da_tile):
         f'''Expected shape (6, 96, 96), got {da.shape}'''
     )
 
-
 # =================================================================== CHJ ===
 
 def test_normalize_grid(sample_da_grid):
@@ -33,7 +32,6 @@ def test_normalize_grid(sample_da_grid):
     assert da.shape == (6, 96, 96), (
         f'''Expected shape (6, 96, 96), got {da.shape}'''
     )
-
 
 # =================================================================== CHJ ===
 
@@ -51,7 +49,6 @@ def test_normalize_preserves_values(sample_da_tile):
         "Expected exact value preservation for all elements"
     )
 
-
 # =================================================================== CHJ ===
 
 def test_normalize_already_normalized():
@@ -66,12 +63,11 @@ def test_normalize_already_normalized():
         dims=("tile", "y", "x"),
         name="test_var"
     )
- 
+
     da_normalized = normalize_tile_dims(da)
     assert da_normalized.dims == ("tile", "y", "x"), (
         "Already normalized dims should remain unchanged"
     )
-
 
 # =================================================================== CHJ ===
 @pytest.mark.parametrize("shape", [(1, 96, 96), (6, 48, 48), (12, 192, 192)])

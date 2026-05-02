@@ -12,7 +12,6 @@ class NameBuilder:
     def __init__(self, cfg):
         self.cfg = cfg
 
-
     # =============================================================== CHJ ===
 
     def _build_parts(self, varname, dataset_name, z_index):
@@ -42,7 +41,6 @@ class NameBuilder:
 
         return parts
 
-
     # =============================================================== CHJ ===
 
     def build_filename(self, varname, dataset_name, z_index=None):
@@ -54,7 +52,6 @@ class NameBuilder:
         logger.info(f'''Output filename: {filename}''')
 
         return filename
-
 
     # =============================================================== CHJ ===
 

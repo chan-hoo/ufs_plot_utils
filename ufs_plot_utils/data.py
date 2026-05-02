@@ -32,7 +32,6 @@ class DataReader:
         # -------------------------
         self.xr_ds = None
 
-
     # =============================================================== CHJ ===
 
     def _open_dataset(self):
@@ -68,7 +67,6 @@ class DataReader:
 
             # DEBUG (VERY IMPORTANT)
             logger.info(f'''Dataset var: {list(self.xr_ds.variables)}''')
-
 
     # =============================================================== CHJ ===
 
@@ -130,7 +128,6 @@ class DataReader:
             else:
                 raise ValueError(f'''Unsupported: {self.file_type}''')
 
-
     # =============================================================== CHJ ===
 
     def get_observation_channels(self, varname):
@@ -155,7 +152,6 @@ class DataReader:
                 return d, list(range(n))
 
         return None, [None]
-
 
     # =============================================================== CHJ ===
 
@@ -200,7 +196,6 @@ class DataReader:
         )
 
         return da
-
 
     # =============================================================== CHJ ===
 
@@ -271,7 +266,6 @@ class DataReader:
                 except Exception:
                     pass
 
-
     # =============================================================== CHJ ===
 
     def _get_data_observation(self, varname):
@@ -309,7 +303,6 @@ class DataReader:
 
         return da
 
-
     # =============================================================== CHJ ===
 
     def _slice_data(self, da, z_index=None, time_index=0):
@@ -342,7 +335,6 @@ class DataReader:
             da = da.isel({z_dim: z_index})
 
         return da
-
 
     # =============================================================== CHJ ===
 
@@ -383,7 +375,6 @@ class DataReader:
         logger.info(f'''Detected forecast hours: {fhrs}''')
 
         return fhrs
-
 
     # =============================================================== CHJ ===
 
@@ -435,7 +426,6 @@ class DataReader:
 
         return files
 
-
     # =============================================================== CHJ ===
 
     def detect_restart_tags(self):
@@ -467,7 +457,6 @@ class DataReader:
 
         return tags
 
-
     # =============================================================== CHJ ===
 
     def resolve_filenames_for_restart(self, tag):
@@ -486,7 +475,6 @@ class DataReader:
             raise ValueError(f'''Invalid restart tile pattern: {pattern}''')
 
         return files
-
 
     # =============================================================== CHJ ===
 

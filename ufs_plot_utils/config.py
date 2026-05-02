@@ -17,7 +17,6 @@ class Config:
 
         logger.debug("Configuration loaded successfully")
 
-
     # =============================================================== CHJ ===
 
     def get(self, *keys, default=None):
@@ -33,7 +32,6 @@ class Config:
             d = d.get(k)
 
         return d if d is not None else default
-
 
     # =============================================================== CHJ ===
 

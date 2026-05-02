@@ -15,7 +15,6 @@ class BaseTask:
     def run(self):
         raise NotImplementedError
 
-
 # =================================================================== CHJ ===
 
 class PlotTask(BaseTask):
@@ -150,7 +149,6 @@ class PlotTask(BaseTask):
         # Save
         # -------------------------
         self.output.save_figure(fig, filename)
-
 
 # =================================================================== CHJ ===
 
@@ -328,7 +326,6 @@ class DifferenceTask(BaseTask):
 
         self.output.save_figure(fig_diff, filename_diff)
 
-
 # =================================================================== CHJ ===
 
 class TaskBuilder:
@@ -428,7 +425,7 @@ class TaskBuilder:
                     else:
                         selected_channels = ch_list
                         if channels_cfg:
-                            max_ch = len(ch_list)                      
+                            max_ch = len(ch_list)
                             channels_cfg = [
                                 c for c in channels_cfg if 1 <= c <= max_ch
                             ]

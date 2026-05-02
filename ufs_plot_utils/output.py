@@ -14,7 +14,6 @@ class OutputManager:
         self.cfg = cfg
         self.output_path = self.cfg.get("output", "path", default="./")
 
-
     # =============================================================== CHJ ===
 
     def save_figure(self, fig, filename, dpi=300, close=True):

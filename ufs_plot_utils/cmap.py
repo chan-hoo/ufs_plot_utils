@@ -21,13 +21,12 @@ class PlotStyleResolver:
     Unified handler for colormap, range, and label.
     """
     def __init__(
-        self, dataset, cmap_cfg=None, range_cfg=None,is_difference=False
+        self, dataset, cmap_cfg=None, range_cfg=None, is_difference=False
     ):
         self.dataset = dataset
         self.is_difference = is_difference
         self.cmap_cfg = cmap_cfg or getattr(dataset, "colormap", {}) or {}
         self.range_cfg = range_cfg or getattr(dataset, "range", {}) or {}
-
 
     # =============================================================== CHJ ===
 
@@ -50,7 +49,6 @@ class PlotStyleResolver:
             vmax=vmax,
             label=label
         )
-
 
     # =============================================================== CHJ ===
 
@@ -93,7 +91,6 @@ class PlotStyleResolver:
                 cmap = plt.get_cmap("viridis")
 
         return cmap
-
 
     # =============================================================== CHJ ===
 
@@ -148,7 +145,6 @@ class PlotStyleResolver:
             vmin, vmax = -scale, scale
 
         return vmin, vmax
-
 
     # =============================================================== CHJ ===
 

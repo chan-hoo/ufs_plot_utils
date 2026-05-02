@@ -32,7 +32,6 @@ class Pipeline:
         self.plotter = Plotter(cfg)
         self.output = OutputManager(cfg)
 
-
     # =============================================================== CHJ ===
 
     def run_plot_tiles(self):
@@ -44,7 +43,6 @@ class Pipeline:
         tasks = builder.build_plot_tasks()
         for task in tasks:
             task.run()
-
 
     # =============================================================== CHJ ===
 
@@ -113,7 +111,6 @@ class Pipeline:
 
             reader_base.close()
             reader_target.close()
-
 
     # =============================================================== CHJ ===
 
