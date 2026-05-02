@@ -45,7 +45,7 @@ lint:
   stage: lint
   script:
     - pip install flake8
-    - flake8 .
+    - flake8 . --exclude=.venv,__pycache__,build,dist
   allow_failure: false
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
