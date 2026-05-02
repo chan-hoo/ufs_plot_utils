@@ -6,3 +6,5 @@ source plot_pyenv/bin/activate
 pip install --upgrade pip
 pip install -r plot_env_list.txt
 pip list
+cd ..
+pip install -e .

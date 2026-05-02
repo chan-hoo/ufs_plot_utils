@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
-from pathlib import Path
-# Get the path one level up
-parent_dir = Path(__file__).resolve().parents[1]
-sys.path.append(str(parent_dir))
-
 import logging
 import ufs_plot_utils as ufs
 

@@ -26,6 +26,7 @@ before_script:
   - python -m venv $VENV_PATH
   - source $VENV_PATH/bin/activate
   - pip install -r env/plot_env_list.txt
+  - pip install -e .
 
 # -----------------------------------
 # Setup (dependency validation)

@@ -7,5 +7,7 @@ conda env create -f environment.yml
 #   conda init bash
 #   exec bash
 conda activate plot_pyenv
+cd ..
+pip install -e .
 conda list
 conda deactivate

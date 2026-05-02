@@ -4,3 +4,4 @@
 configs/*.png
 env/plot_pyenv/
 docs/build/
+*.egg-info/

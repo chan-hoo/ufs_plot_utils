@@ -10,8 +10,11 @@ dependencies = [
     "xarray",
     "matplotlib",
     "cartopy",
-    "pyyaml"
+    "pyyaml",
+    "sphinx",
+    "pytest",
 ]
 
-[tool.setuptools.packages.find]
-where = ["."]
+[tool.setuptools]
+packages = ["ufs_plot_utils"]
+
