@@ -7,11 +7,11 @@ input:
     - name: fv3
       data_kind: increment   # increment | analysis | forecast | restart | observation | etc.
       geo:
-        path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_fix/FV3/Tiled/C96
+        path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_fix/FV3/Tiled/C96
         filename: C96.mx100_oro_data
         file_type: orog      # file | orog | tile
       data:
-        path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
+        path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_ref/atm
         filename: ufsda.t00z.atminc.cubed_sphere_grid
         file_type: tile      # file | tile
         var_list:
@@ -43,11 +43,11 @@ input:
     - name: jedi
       data_kind: increment   # increment | analysis | forecast | restart | observation | etc.
       geo:
-        path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
+        path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_ref/atm
         filename: cubed_sphere_grid_atminc.jedi.nc
         file_type: file      # file | orog | tile
       data:
-        path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/DATA_ref/atm
+        path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_ref/atm
         filename: cubed_sphere_grid_atminc.jedi.nc
         file_type: file      # file | tile
         var_list:
@@ -112,7 +112,7 @@ output:
   prefix: atminc
 
 plot:
-  cartopy_ne_path: /work2/noaa/epic/chjeon/ufsda_hercules/ufs-da-workflow/fix/NaturalEarth
+  cartopy_ne_path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/NaturalEarth
   projection:
     name: Robinson    # Robinson | PlateCarree | Mollweide 
     central_longitude: -77.0369  # D.C.
