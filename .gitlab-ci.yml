@@ -7,8 +7,6 @@ stages:
   - setup
   - lint
   - test
-#  - build
-#  - deploy
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -18,46 +16,54 @@ cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
     - .cache/pip
-    - .venv
-
-before_script:
-  - python --version
-  - pip install --upgrade pip
-  - python -m venv $VENV_PATH
-  - source $VENV_PATH/bin/activate
-  - pip install -r env/plot_env_list.txt
-  - pip install -e .
 
 # -----------------------------------
-# Setup (dependency validation)
+# Setup (build environment once)
 # -----------------------------------
 setup:
   stage: setup
   script:
+    - python --version
+    - pip install --upgrade pip
+    - python -m venv $VENV_PATH
+    - source $VENV_PATH/bin/activate
+    - pip install -r env/plot_env_list.txt
+    - pip install -e .
     - pip check
+  artifacts:
+    paths:
+      - .venv
+    expire_in: 1 day
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH
 
 # -----------------------------------
-# Linting (code quality)
+# Lint (reuse env, only run when code changed)
 # -----------------------------------
 lint:
   stage: lint
+  dependencies:
+    - setup
   script:
+    - source $VENV_PATH/bin/activate
     - pip install flake8
-    - flake8 configs docs tests ufs_plot_utils
-  allow_failure: false
+    - flake8 configs docs tests ufs_plot_tools
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH
+    - changes:
+        - "**/*.py"
 
 # -----------------------------------
-# Unit/Integration Tests
+# Test (reuse env)
 # -----------------------------------
 test:
   stage: test
+  dependencies:
+    - setup
   script:
+    - source $VENV_PATH/bin/activate
     - pip install pytest pytest-cov
     - pytest --cov=./ --cov-report=xml --cov-report=term
   artifacts:
@@ -65,6 +71,7 @@ test:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
+    expire_in: 1 day
   coverage: '/TOTAL.*\s+(\d+%)$/'
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -99,3 +106,4 @@ test:
 #  rules:
 #    - if: $CI_COMMIT_BRANCH == "main"
 #      when: manual
+
