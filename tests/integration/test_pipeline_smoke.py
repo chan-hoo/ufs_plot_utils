@@ -11,7 +11,7 @@ def test_pipeline_builds_tasks_from_config(tmp_path, monkeypatch):
     from ufs_plot_utils.pipeline import Pipeline
 
     # mock GeoReader
-    def mock_get_geo(self):
+    def mock_get_geo(self, da=None):
         return np.zeros((6, 10, 10)), np.zeros((6, 10, 10))
 
     monkeypatch.setattr(
@@ -59,7 +59,7 @@ def test_pipeline_builds_tasks_from_config(tmp_path, monkeypatch):
 
     cfg = Config(str(cfg_file))
     pipeline = Pipeline(cfg)
-    pipeline.run_plot_tiles()
+    pipeline.run_plot_data()
 
 
 # =================================================================== CHJ ===
@@ -84,7 +84,7 @@ def test_pipeline_runs_with_mock_data(tmp_path, monkeypatch):
         )
 
     # mock GeoReader
-    def mock_get_geo(self):
+    def mock_get_geo(self, da=None):
         lon = np.zeros((6, 10, 10))
         lat = np.zeros((6, 10, 10))
         return lon, lat
@@ -121,7 +121,7 @@ def test_pipeline_runs_with_mock_data(tmp_path, monkeypatch):
     pipeline = Pipeline(cfg)
 
     # This is the real integration step
-    pipeline.run_plot_tiles()
+    pipeline.run_plot_data()
 
     # Basic sanity: pipeline ran without crashing
     assert True

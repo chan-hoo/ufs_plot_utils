@@ -28,7 +28,6 @@ class PlotTask(BaseTask):
         dataset,
         varname,
         data_reader,
-        geo,
         plotter,
         output,
         namer,
@@ -37,11 +36,12 @@ class PlotTask(BaseTask):
         self.dataset = dataset
         self.varname = varname
         self.data_reader = data_reader
-        self.lat, self.lon = geo
         self.plotter = plotter
         self.output = output
         self.namer = namer
         self.context = context or {}
+
+    # =============================================================== CHJ ===
 
     def run(self):
         logger.info(
@@ -62,6 +62,12 @@ class PlotTask(BaseTask):
             fhr=self.context.get("fhr"),
             rtag=self.context.get("rtag"),
         )
+
+        # -------------------------
+        # GEO data
+        # -------------------------
+        geo_reader = GeoReader(self.dataset)
+        lat, lon = geo_reader.get_geo(da)
 
         # -------------------------
         # Skip empty channels
@@ -129,17 +135,28 @@ class PlotTask(BaseTask):
         # -------------------------
         if self.dataset.data_kind == "observation":
             fig = self.plotter.plot_data_scatter(
-                lat=self.lat,
-                lon=self.lon,
+                lat=lat,
+                lon=lon,
                 da=da,
                 varname=self.varname,
                 output_title=title,
                 dataset=self.dataset,
             )
+
+        elif self.dataset.data_model in ["mom6", "cice"]:
+            fig = self.plotter.plot_data_grid(
+                lat=lat,
+                lon=lon,
+                da=da,
+                varname=self.varname,
+                output_title=title,
+                dataset=self.dataset,
+            )
+
         else:
             fig = self.plotter.plot_data_tiles(
-                lat=self.lat,
-                lon=self.lon,
+                lat=lat,
+                lon=lon,
                 da=da,
                 varname=self.varname,
                 output_title=title,
@@ -166,7 +183,6 @@ class DifferenceTask(BaseTask):
         var_base,
         var_target,
         readers,
-        geo,
         plotter,
         output,
         namer,
@@ -177,7 +193,6 @@ class DifferenceTask(BaseTask):
         self.var_base = var_base
         self.var_target = var_target
         self.reader_base, self.reader_target = readers
-        self.lat, self.lon = geo
         self.plotter = plotter
         self.output = output
         self.namer = namer
@@ -192,7 +207,7 @@ class DifferenceTask(BaseTask):
         )
 
         # -------------------------
-        # Read
+        # Read data sets
         # -------------------------
         da_base = self.reader_base.get_data(self.var_base)
         da_target = self.reader_target.get_data(self.var_target)
@@ -204,6 +219,12 @@ class DifferenceTask(BaseTask):
             f'''Original:: target dims={da_target.dims}, '''
             f'''shape={da_target.shape}'''
         )
+
+        # -------------------------
+        # Geo data: base
+        # -------------------------
+        geo_reader = GeoReader(self.base_ds)
+        lat, lon = geo_reader.get_geo(da_base)
 
         # -------------------------
         # Normalize + Align
@@ -246,14 +267,25 @@ class DifferenceTask(BaseTask):
             z_index=self.base_ds.z_index,
         )
 
-        fig_base = self.plotter.plot_data_tiles(
-            lat=self.lat,
-            lon=self.lon,
-            da=da_base,
-            varname=self.var_base,
-            output_title=title_base,
-            dataset=self.base_ds,
-        )
+        if self.base_ds.data_model in ["mom6", "cice"]:
+            fig_base = self.plotter.plot_data_grid(
+                lat=lat,
+                lon=lon,
+                da=da_base,
+                varname=self.var_base,
+                output_title=title_base,
+                dataset=self.base_ds,
+            )
+
+        else:
+            fig_base = self.plotter.plot_data_tiles(
+                lat=lat,
+                lon=lon,
+                da=da_base,
+                varname=self.var_base,
+                output_title=title_base,
+                dataset=self.base_ds,
+            )
 
         self.output.save_figure(fig_base, filename_base)
 
@@ -277,14 +309,25 @@ class DifferenceTask(BaseTask):
             z_index=self.target_ds.z_index,
         )
 
-        fig_target = self.plotter.plot_data_tiles(
-            lat=self.lat,
-            lon=self.lon,
-            da=da_target,
-            varname=self.var_target,
-            output_title=title_target,
-            dataset=self.target_ds,
-        )
+        if self.target_ds.data_model in ["mom6", "cice"]:
+            fig_target = self.plotter.plot_data_grid(
+                lat=lat,
+                lon=lon,
+                da=da_target,
+                varname=self.var_target,
+                output_title=title_target,
+                dataset=self.target_ds,
+            )
+
+        else:
+            fig_target = self.plotter.plot_data_tiles(
+                lat=lat,
+                lon=lon,
+                da=da_target,
+                varname=self.var_target,
+                output_title=title_target,
+                dataset=self.target_ds,
+            )
 
         self.output.save_figure(fig_target, filename_target)
 
@@ -318,14 +361,25 @@ class DifferenceTask(BaseTask):
             z_index=diff_ds.z_index,
         )
 
-        fig_diff = self.plotter.plot_data_tiles(
-            lat=self.lat,
-            lon=self.lon,
-            da=da_diff,
-            varname=self.var_base,
-            output_title=title_diff,
-            dataset=None,
-        )
+        if self.base_ds.data_model in ["mom6", "cice"]:
+            fig_diff = self.plotter.plot_data_grid(
+                lat=lat,
+                lon=lon,
+                da=da_diff,
+                varname=self.var_base,
+                output_title=title_diff,
+                dataset=None,
+            )
+
+        else:
+            fig_diff = self.plotter.plot_data_tiles(
+                lat=lat,
+                lon=lon,
+                da=da_diff,
+                varname=self.var_base,
+                output_title=title_diff,
+                dataset=None,
+            )
 
         self.output.save_figure(fig_diff, filename_diff)
 
@@ -345,7 +399,6 @@ class TaskBuilder:
         for ds in self.pipeline.datasets:
             logger.info(f'''TaskBuilder:: dataset = {ds.name}''')
 
-            geo = GeoReader(ds).get_geo()
             reader = DataReader(ds)
 
             self.pipeline.plotter.set_style_resolver(
@@ -365,7 +418,6 @@ class TaskBuilder:
                                 dataset=ds,
                                 varname=var,
                                 data_reader=reader,
-                                geo=geo,
                                 plotter=self.pipeline.plotter,
                                 output=self.pipeline.output,
                                 namer=self.pipeline.names,
@@ -386,7 +438,6 @@ class TaskBuilder:
                                 dataset=ds,
                                 varname=var,
                                 data_reader=reader,
-                                geo=geo,
                                 plotter=self.pipeline.plotter,
                                 output=self.pipeline.output,
                                 namer=self.pipeline.names,
@@ -398,7 +449,6 @@ class TaskBuilder:
             # OBSERVATION
             # -------------------------
             elif ds.data_kind == "observation":
-                geo = GeoReader(ds).get_geo()
                 reader = DataReader(ds)
                 self.pipeline.plotter.set_style_resolver(
                     PlotStyleResolver(ds)
@@ -417,7 +467,6 @@ class TaskBuilder:
                                 dataset=ds,
                                 varname=var,
                                 data_reader=reader,
-                                geo=geo,
                                 plotter=self.pipeline.plotter,
                                 output=self.pipeline.output,
                                 namer=self.pipeline.names,
@@ -449,7 +498,6 @@ class TaskBuilder:
                                     dataset=ds,
                                     varname=var,
                                     data_reader=reader,
-                                    geo=geo,
                                     plotter=self.pipeline.plotter,
                                     output=self.pipeline.output,
                                     namer=self.pipeline.names,
@@ -467,7 +515,6 @@ class TaskBuilder:
                             dataset=ds,
                             varname=var,
                             data_reader=reader,
-                            geo=geo,
                             plotter=self.pipeline.plotter,
                             output=self.pipeline.output,
                             namer=self.pipeline.names,

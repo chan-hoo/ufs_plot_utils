@@ -103,13 +103,15 @@ def normalize_tile_dims(da):
 
 # =================================================================== CHJ ===
 
-def normalize_geo_dims(lat, lon):
+def normalize_geo_dims(lat, lon, add_tile_dim=True):
     """
-    Normalize lat/lon to shape (tile, y, x)
+    Normalize geo arrays.
 
-    Accepts:
-        - numpy arrays or xarray DataArray
-        - 1D or 2D per tile
+    FV3:
+        returns (tile,y,x)
+
+    MOM6 / regular curvilinear:
+        returns (y,x)
     """
 
     import numpy as np
@@ -120,35 +122,43 @@ def normalize_geo_dims(lat, lon):
     # -------------------------
     if isinstance(lat, xr.DataArray):
         lat = lat.values
+
     if isinstance(lon, xr.DataArray):
         lon = lon.values
 
     # -------------------------
-    # Ensure tile dimension exists
-    # -------------------------
-    if lat.ndim == 2:
-        # single tile → promote
-        lat = lat[np.newaxis, ...]
-        lon = lon[np.newaxis, ...]
-
-    if lat.ndim != 3:
-        raise ValueError(
-            f'''Geo must be 2D or 3D, got shape={lat.shape}'''
-        )
-
-    # -------------------------
-    # Final safety check
+    # Shape consistency
     # -------------------------
     if lat.shape != lon.shape:
         raise ValueError(
-            f'''lat/lon shape mismatch: {lat.shape} vs {lon.shape}'''
+            f'''lat/lon shape mismatch: '''
+            f'''{lat.shape} vs {lon.shape}'''
         )
 
-    # -------------------------
-    # Enforce (tile, y, x)
-    # -------------------------
-    # We assume last two dims are spatial (already true from your readers)
-    # So just ensure ordering is correct (no-op for numpy)
+    # ====================================
+    # FV3 tiled normalization
+    # ====================================
+    if add_tile_dim:
+        # Promote 2D -> single tile
+        if lat.ndim == 2:
+            lat = lat[np.newaxis, ...]
+            lon = lon[np.newaxis, ...]
+
+        if lat.ndim != 3:
+            raise ValueError(
+                f'''FV3 geo must be 2D or 3D, '''
+                f'''got shape={lat.shape}'''
+            )
+
+    # ====================================
+    # MOM6 / regular grid normalization
+    # ====================================
+    else:
+        if lat.ndim != 2:
+            raise ValueError(
+                f'''Structured-grid geo must be 2D, '''
+                f'''got shape={lat.shape}'''
+            )
 
     return lat, lon
 
@@ -178,3 +188,67 @@ def format_rtag(rtag):
     rest = rest.rstrip("0")
 
     return f'''{date}.{hh}{rest}'''
+
+
+# =================================================================== CHJ ===
+
+def resolve_mom6_geo_vars(da):
+
+    dims = tuple(d for d in da.dims if d in ["yh", "xh", "yq", "xq"])
+
+    mapping = {
+        ("yh", "xh"): ("geolon", "geolat"),
+        ("yq", "xq"): ("geolon_c", "geolat_c"),
+        ("yh", "xq"): ("geolon_u", "geolat_u"),
+        ("yq", "xh"): ("geolon_v", "geolat_v"),
+    }
+
+    if dims not in mapping:
+        raise ValueError(
+            f'''Unsupported MOM6 staggering dims: {dims}'''
+        )
+
+    return mapping[dims]
+
+
+# =================================================================== CHJ ===
+
+def resolve_cice_geo_vars(da):
+
+    """
+    Resolve CICE staggered grid coordinates.
+
+    T-grid variables:
+        TLON / TLAT
+
+    U-grid variables:
+        ULON / ULAT
+
+    Optional future:
+        N-grid, E-grid
+    """
+
+    dims = tuple(d for d in da.dims if d in ["nj", "ni"])
+
+    if dims != ("nj", "ni"):
+        raise ValueError(
+            f'''Unsupported CICE dims: {dims}'''
+        )
+
+    varname = da.name.lower()
+
+    # ---------------------------------------------------------
+    # U-grid variables
+    # ---------------------------------------------------------
+    if any(v in varname for v in ["uvel_h",
+                                  "vvel_h",
+                                  "strairx_h",
+                                  "strairy_h",
+                                  "strocnx_h",
+                                  "strocny_h"]):
+        return "ULON", "ULAT"
+
+    # ---------------------------------------------------------
+    # Default -> T-grid
+    # ---------------------------------------------------------
+    return "TLON", "TLAT"

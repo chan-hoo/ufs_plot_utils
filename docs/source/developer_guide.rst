@@ -1,203 +1,160 @@
 Developer Guide
 ===============
 
-This guide describes the internal architecture, execution flow, and extension
-patterns of the plotting pipeline. It is intended for contributors who want to
-add features, support new data formats, or modify behavior safely.
+This document describes the internal architecture and extension patterns used
+throughout ``ufs_plot_utils``.
 
-Contents
---------
-
-.. contents::
-   :local:
-   :depth: 2
-
-Architecture Overview
----------------------
-
-The system follows a modular, layered design:
-
-- **Configuration Layer**: YAML → ``Config``
-- **Domain Model**: ``Dataset``
-- **I/O Layer**: ``DataReader``, ``GeoReader``
-- **Processing Layer**: ``TaskBuilder``, ``PlotTask``, ``DifferenceTask``
-- **Styling Layer**: ``PlotStyleResolver``
-- **Rendering Layer**: ``Plotter``
-- **Output Layer**: ``OutputManager``
-
-Key principle: **separation of concerns + task-based execution**.
-
-Execution Flow
---------------
-
-High-level sequence:
-
-1. Load YAML → ``Config``
-2. Build ``Dataset`` objects
-3. Initialize ``Pipeline``
-4. Build tasks via ``TaskBuilder``
-5. Execute tasks:
-   - Read data
-   - Resolve style
-   - Plot
-   - Save output
-
-Core Classes
+Architecture
 ------------
 
-Pipeline
-^^^^^^^^
-
-- Entry point for execution
-- Holds shared services:
-  - ``Plotter``
-  - ``OutputManager``
-  - ``NameBuilder``
-
-Methods:
-
-- ``run_plot_tiles()``
-- ``run_differences()``
-
-Pipeline Flow Diagram
----------------------
+The package follows a layered architecture:
 
 .. code-block:: text
 
-   Config YAML
-        │
-        ▼
-     Config
-        │
-        ▼
-     Dataset
-        │
-        ▼
-     Pipeline
-        │
-        ▼
-   TaskBuilder
-      │    │
-      │    └───────────── DifferenceTask
-      │
-      └───────────── PlotTask
-            │
-            ├── DataReader
-            ├── GeoReader
-            ├── StyleResolver
-            │
-            ▼
-         Plotter
-            │
-            ▼
-       OutputManager
+   YAML Config
+        ↓
+      Config
+        ↓
+      Dataset
+        ↓
+      Pipeline
+        ↓
+    TaskBuilder
+        ↓
+      Tasks
+        ↓
+   Readers / Plotter
+        ↓
+      Output
+
+Core Design Principles
+----------------------
+
+- Single responsibility per class
+- YAML-driven behavior
+- Stateless task execution
+- Explicit configuration
+- Reusable plotting and I/O layers
+
+Core Components
+---------------
+
+Config
+^^^^^^
+
+``Config`` is a lightweight YAML wrapper.
+
+Responsibilities:
+
+- YAML loading
+- nested key lookup
+- configuration logging
 
 Dataset
 ^^^^^^^
 
-Immutable configuration object.
+``Dataset`` is an immutable configuration object.
 
 Responsibilities:
 
-- Normalize YAML structure
-- Provide unified access to:
-  - paths
-  - file types
-  - variables
-  - styling config
-
-Design note:
-- Keep it **lightweight and validation-focused**
+- flatten nested YAML sections
+- validate dataset configuration
+- expose standardized metadata
 
 DataReader
 ^^^^^^^^^^
 
-Handles all **data I/O** using xarray.
+Handles all xarray/NetCDF data access.
 
-Responsibilities:
+Features:
 
-- Open datasets (lazy)
-- Slice dimensions (time, vertical)
-- Handle:
-  - tiled data
-  - forecast patterns
-  - restart tags
-  - observations
+- tiled FV3 datasets
+- forecast detection
+- restart-tag detection
+- observation groups
+- lazy loading
 
-Extension point:
-- Add new ``data_kind`` behaviors here
+Important methods:
+
+- ``get_data()``
+- ``detect_forecast_hours()``
+- ``detect_restart_tags()``
+- ``resolve_filenames_for_fhr()``
 
 GeoReader
 ^^^^^^^^^
 
-Provides latitude/longitude grids.
+Provides geographic coordinates.
 
 Supports:
 
-- file-based geo
-- orography tiles
-- tiled data
-- observation files
-
-Important invariant:
-
-.. code-block:: text
-
-   lat.shape == data.shape
+- FV3 orography tiles
+- tiled forecast grids
+- MOM6 staggered grids
+- CICE staggered grids
+- observation metadata
 
 PlotStyleResolver
 ^^^^^^^^^^^^^^^^^
 
-Centralized styling logic:
+Centralized styling logic.
 
-- colormap
-- value range
+Responsibilities:
+
+- colormap resolution
+- value range resolution
 - label generation
-
-Design:
-
-- Config-driven (YAML)
-- Fallback to heuristics
-- Special handling for differences
+- automatic scaling
 
 Important behavior:
 
-- Increment/difference → symmetric range
-- Auto-scaling via percentiles
+- increments use symmetric scaling
+- differences force symmetric ranges
+- meteorological colormap heuristics
 
 Plotter
 ^^^^^^^
 
-Responsible for rendering using Cartopy + Matplotlib.
+Handles all rendering.
 
-Key methods:
+Plot types:
 
 - ``plot_data_tiles()``
+- ``plot_data_grid()``
 - ``plot_data_scatter()``
 
-Important:
+Projection support:
 
-- Requires a **style resolver per task**
-- Uses config-driven projection and layout
+- Robinson
+- PlateCarree
+- Mollweide
+- Stereographic
+- Polar stereographic
 
-OutputManager
-^^^^^^^^^^^^^
+Pipeline
+^^^^^^^^
 
-Handles:
+The ``Pipeline`` class orchestrates execution.
 
-- output directory creation
-- filename normalization
-- figure saving
+Execution flow:
+
+1. Load configuration
+2. Build datasets
+3. Build tasks
+4. Read data
+5. Resolve styles
+6. Generate plots
+7. Save output
 
 Task System
 -----------
 
-The pipeline uses a **task-based execution model**.
+The package uses task-based execution.
 
 BaseTask
 ^^^^^^^^
 
-Abstract class:
+Abstract interface:
 
 .. code-block:: python
 
@@ -208,53 +165,39 @@ Abstract class:
 PlotTask
 ^^^^^^^^
 
-Represents a single plotting unit.
+Handles a single plotting unit.
 
 Responsibilities:
 
-- Read data
-- Apply slicing/context (fhr, rtag, channel)
-- Generate title and filename
-- Call Plotter
-- Save output
-
-Important pattern:
-
-.. code-block:: python
-
-   # MUST set resolver per task
-   plotter.set_style_resolver(PlotStyleResolver(dataset))
+- data reading
+- channel slicing
+- title generation
+- plotting
+- output saving
 
 DifferenceTask
 ^^^^^^^^^^^^^^
 
-Handles dataset comparison:
+Handles:
 
-- Computes: ``target - base``
-- Plots:
-  1. base
-  2. target
-  3. difference
+- base dataset plotting
+- target dataset plotting
+- target-base difference plotting
 
-Uses:
+Important:
 
-- independent resolvers per phase
-- symmetric scaling for difference
+- uses independent style resolvers
+- forces symmetric difference scaling
 
 TaskBuilder
 ^^^^^^^^^^^
 
 Generates tasks dynamically based on:
 
-- ``data_kind``
 - forecast hours
 - restart tags
 - observation channels
-
-Design:
-
-- No execution logic
-- Pure task construction
+- dataset variables
 
 Extension Patterns
 ------------------
@@ -262,111 +205,44 @@ Extension Patterns
 Adding a New Data Type
 ^^^^^^^^^^^^^^^^^^^^^^
 
-1. Extend ``Dataset.data_kind``
+1. Add a new ``data_kind``.
+2. Extend ``DataReader.get_data()``.
+3. Add any required filename handling.
+4. Update ``TaskBuilder`` if necessary.
 
-2. Add logic in ``DataReader.get_data()``:
+Example:
 
 .. code-block:: python
 
    elif self.data.data_kind == "my_new_type":
        return self._get_data_my_new_type(varname)
 
-3. Implement reader method
-
-4. Update ``TaskBuilder`` if needed
-
----
-
 Adding a New Plot Type
 ^^^^^^^^^^^^^^^^^^^^^^
 
-1. Add method to ``Plotter``:
+1. Add plotting logic to ``Plotter``.
+2. Add dispatch logic in ``PlotTask.run()``.
 
-.. code-block:: python
+Adding a New Projection
+^^^^^^^^^^^^^^^^^^^^^^^
 
-   def plot_my_new_type(...):
-       ...
-
-2. Call it in ``PlotTask.run()`` based on condition
-
----
-
-Custom Colormap Logic
-^^^^^^^^^^^^^^^^^^^^^
-
-Modify:
-
-- ``PlotStyleResolver._resolve_cmap``
+Extend ``Plotter.build_projection()``.
 
 Example:
 
 .. code-block:: python
 
-   if "humidity" in varname:
-       cmap = plt.get_cmap("Blues")
+   proj_map["LambertConformal"] = ccrs.LambertConformal
 
----
+Supporting Additional File Formats
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Custom Range Logic
-^^^^^^^^^^^^^^^^^^
+Extend ``DataReader`` to support:
 
-Modify:
-
-- ``_resolve_range``
-
-Example:
-
-- percentile thresholds
-- log scaling
-- fixed bounds
-
----
-
-Adding New Background Features
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Modify:
-
-- ``Plotter.plot_background``
-
-Example:
-
-.. code-block:: python
-
-   if "rivers" in features:
-       ax.add_feature(cfeature.RIVERS)
-
----
-
-Supporting New File Formats
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Extend ``DataReader``:
-
-- Add new open logic
-- Possibly new engine (e.g., zarr)
-
----
-
-Design Principles
------------------
-
-1. **Single Responsibility**
-   - Each class does one thing
-
-2. **Config-Driven**
-   - Avoid hardcoding behavior
-
-3. **Stateless Tasks**
-   - Tasks must not depend on shared mutable state
-
-4. **Fail Fast**
-   - Validate early (shapes, variables)
-
-5. **Explicit over Implicit**
-   - Avoid hidden magic
-
----
+- zarr
+- GRIB
+- cloud storage backends
+- alternative engines
 
 Common Pitfalls
 ---------------
@@ -374,18 +250,16 @@ Common Pitfalls
 Shared Plotter State
 ^^^^^^^^^^^^^^^^^^^^
 
-Do NOT rely on global resolver state.
-
-Always set resolver per task:
+Always assign a resolver before plotting:
 
 .. code-block:: python
 
-   plotter.set_style_resolver(PlotStyleResolver(dataset))
+   plotter.set_style_resolver(
+       PlotStyleResolver(dataset)
+   )
 
----
-
-Geo/Data Mismatch
-^^^^^^^^^^^^^^^^^
+Dimension Mismatches
+^^^^^^^^^^^^^^^^^^^^
 
 Ensure:
 
@@ -393,54 +267,46 @@ Ensure:
 
    lat.shape == data.shape
 
----
+Tile Naming Assumptions
+^^^^^^^^^^^^^^^^^^^^^^^
 
-Variable Name Mismatch
-^^^^^^^^^^^^^^^^^^^^^^
+FV3 tiled datasets assume:
 
-YAML keys must match dataset variable names exactly.
+.. code-block:: text
 
----
+   *.tile1.nc
+   *.tile2.nc
+   ...
 
-Tile Dimension Issues
-^^^^^^^^^^^^^^^^^^^^^
+Testing
+-------
 
-Use:
+Recommended test coverage:
 
-- ``normalize_tile_dims``
-
----
-
-Testing Strategy
-----------------
-
-Recommended tests:
-
-- DataReader (file + tile + obs)
-- GeoReader (all modes)
-- PlotStyleResolver (range + cmap)
-- TaskBuilder (correct task counts)
-
----
+- ``DataReader``
+- ``GeoReader``
+- ``PlotStyleResolver``
+- ``TaskBuilder``
+- full pipeline smoke tests
 
 Future Improvements
 -------------------
 
-- Stateless Plotter API (pass resolver directly)
-- Parallel task execution
-- Plugin system for new data types
-- Interactive visualization backend
+Potential future enhancements:
 
----
+- parallel task execution
+- plugin system
+- interactive plotting backends
+- Dask integration
+- cloud-native workflows
+- stateless plotting API
 
 Summary
 -------
 
-The pipeline is:
+The package is designed to be:
 
 - modular
 - extensible
-- config-driven
+- configuration-driven
 - task-oriented
-
-Understanding the **task system + style resolver** is key to extending it safely.

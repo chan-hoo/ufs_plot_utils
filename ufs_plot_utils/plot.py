@@ -70,21 +70,7 @@ class Plotter:
         # -------------------------
         # Projection
         # -------------------------
-        proj_name = self.proj_cfg.get("name", "Robinson")
-        central_lon = self.proj_cfg.get("central_longitude", -77.0369)
-
-        proj_map = {
-            "Robinson": ccrs.Robinson,
-            "PlateCarree": ccrs.PlateCarree,
-            "Mollweide": ccrs.Mollweide,
-        }
-
-        proj_class = proj_map.get(proj_name, ccrs.Robinson)
-
-        if proj_name == "PlateCarree":
-            projection = ccrs.PlateCarree()
-        else:
-            projection = proj_class(central_longitude=central_lon)
+        projection = self.build_projection()
 
         # -------------------------
         # Figure
@@ -100,14 +86,17 @@ class Plotter:
         )
 
         ax.set_global()
-
+        # -------------------------
+        # Optional regional extent
+        # -------------------------
+        self.apply_extent(ax)
         # -------------------------
         # Background
         # -------------------------
         self.plot_background(ax)
 
         # -------------------------
-        # Style (still needs numpy)
+        # Style
         # -------------------------
         style = self.style_resolver.resolve(
             varname,
@@ -194,31 +183,10 @@ class Plotter:
         if self.style_resolver is None:
             raise RuntimeError("StyleResolver not set.")
 
-        style = self.style_resolver.resolve(varname, da)
-
-        cmap = style.cmap
-        vmin = style.vmin
-        vmax = style.vmax
-        cbar_label = style.label
-
         # -------------------------
         # Projection
         # -------------------------
-        proj_name = self.proj_cfg.get("name", "Robinson")
-        central_lon = self.proj_cfg.get("central_longitude", -77.0369)
-
-        proj_map = {
-            "Robinson": ccrs.Robinson,
-            "PlateCarree": ccrs.PlateCarree,
-            "Mollweide": ccrs.Mollweide,
-        }
-
-        proj_class = proj_map.get(proj_name, ccrs.Robinson)
-
-        if proj_name == "PlateCarree":
-            projection = ccrs.PlateCarree()
-        else:
-            projection = proj_class(central_longitude=central_lon)
+        projection = self.build_projection()
 
         # -------------------------
         # Figure
@@ -234,14 +202,17 @@ class Plotter:
         )
 
         ax.set_global()
-
+        # -------------------------
+        # Optional regional extent
+        # -------------------------
+        self.apply_extent(ax)
         # -------------------------
         # Background
         # -------------------------
         self.plot_background(ax)
 
         # -------------------------
-        # Style (still needs numpy)
+        # Style
         # -------------------------
         style = self.style_resolver.resolve(
             varname,
@@ -294,6 +265,167 @@ class Plotter:
         cbar.set_label(cbar_label, fontsize=cb_label_fs)
 
         return fig
+
+    # =============================================================== CHJ ===
+
+    def plot_data_grid(
+            self,
+            lat,
+            lon,
+            da,
+            varname,
+            output_title,
+            dataset
+    ):
+        """
+        Plot regular/curvilinear 2D grid data.
+        """
+
+        logger.info("Plotting structured grid map")
+
+        if self.style_resolver is None:
+            raise RuntimeError("StyleResolver not set.")
+
+        # -------------------------
+        # Projection
+        # -------------------------
+        projection = self.build_projection()
+
+        # -------------------------
+        # Figure
+        # -------------------------
+        figsize = self.fig_cfg.get("figsize", [10, 5])
+        dpi = self.fig_cfg.get("dpi", 150)
+
+        fig, ax = plt.subplots(
+            1,
+            1,
+            figsize=figsize,
+            dpi=dpi,
+            subplot_kw=dict(projection=projection)
+        )
+
+        ax.set_global()
+        # -------------------------
+        # Optional regional extent
+        # -------------------------
+        self.apply_extent(ax)
+        # -------------------------
+        # Background
+        # -------------------------
+        self.plot_background(ax)
+
+        # -------------------------
+        # Style
+        # -------------------------
+        style = self.style_resolver.resolve(varname, da)
+
+        cs = ax.pcolormesh(
+            lon,
+            lat,
+            np.ma.masked_invalid(da.values),
+            cmap=style.cmap,
+            vmin=style.vmin,
+            vmax=style.vmax,
+            transform=ccrs.PlateCarree(),
+            shading="auto"
+        )
+
+        # -------------------------
+        # Title
+        # -------------------------
+        title_fs = self.title_cfg.get("fontsize", 8)
+        ax.set_title(output_title, fontsize=title_fs)
+
+        # -------------------------
+        # Colorbar
+        # -------------------------
+        divider = make_axes_locatable(ax)
+
+        ax_cb = divider.new_horizontal(
+            size=self.cb_cfg.get("size", "3%"),
+            pad=self.cb_cfg.get("pad", 0.1),
+            axes_class=plt.Axes,
+        )
+
+        fig.add_axes(ax_cb)
+
+        cbar = plt.colorbar(
+            cs,
+            cax=ax_cb,
+            extend=self.cb_cfg.get("extend", "both")
+        )
+
+        cbar.ax.tick_params(
+            labelsize=self.cb_cfg.get("tick_fontsize", 6)
+        )
+
+        cbar.set_label(
+            style.label,
+            fontsize=self.cb_cfg.get("label_fontsize", 7)
+        )
+
+        return fig
+
+    # =============================================================== CHJ ===
+
+    def build_projection(self):
+
+        proj_name = self.proj_cfg.get("name", "Robinson")
+
+        central_lon = self.proj_cfg.get(
+            "central_longitude",
+            -77.0369
+        )
+
+        proj_map = {
+            "Robinson": ccrs.Robinson,
+            "PlateCarree": ccrs.PlateCarree,
+            "Mollweide": ccrs.Mollweide,
+            "NorthPolarStereo": ccrs.NorthPolarStereo,
+            "SouthPolarStereo": ccrs.SouthPolarStereo,
+            "Stereographic": ccrs.Stereographic,
+        }
+
+        proj_class = proj_map.get(
+            proj_name,
+            ccrs.Robinson
+        )
+
+        if proj_name == "PlateCarree":
+            return ccrs.PlateCarree()
+
+        elif proj_name == "Stereographic":
+            return ccrs.Stereographic(
+                central_longitude=central_lon,
+                central_latitude=self.proj_cfg.get(
+                    "central_latitude",
+                    90,
+                ),
+            )
+
+        else:
+            return proj_class(
+                central_longitude=central_lon
+            )
+
+    # =============================================================== CHJ ===
+
+    def apply_extent(self, ax):
+
+        extent_cfg = self.cfg.get("plot", "extent")
+        if not extent_cfg:
+            return
+
+        ax.set_extent(
+            [
+                extent_cfg["lon"][0],
+                extent_cfg["lon"][1],
+                extent_cfg["lat"][0],
+                extent_cfg["lat"][1],
+            ],
+            crs=ccrs.PlateCarree(),
+        )
 
     # =============================================================== CHJ ===
 

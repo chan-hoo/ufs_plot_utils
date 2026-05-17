@@ -1,6 +1,9 @@
 import numpy as np
 import pytest
-from ufs_plot_utils.utils import normalize_tile_dims
+from ufs_plot_utils.utils import (
+    normalize_tile_dims,
+    normalize_geo_dims,
+)
 
 
 def test_normalize_yaxis(sample_da_tile):
@@ -71,6 +74,60 @@ def test_normalize_already_normalized():
     assert da_normalized.dims == ("tile", "y", "x"), (
         "Already normalized dims should remain unchanged"
     )
+
+
+# =================================================================== CHJ ===
+
+def test_normalize_geo_dims_fv3():
+    """
+    FV3 tiled normalization
+    """
+
+    lat = np.random.rand(6, 96, 96)
+    lon = np.random.rand(6, 96, 96)
+
+    lat2, lon2 = normalize_geo_dims(lat, lon)
+
+    assert lat2.shape == (6, 96, 96)
+    assert lon2.shape == (6, 96, 96)
+
+
+# =================================================================== CHJ ===
+
+def test_normalize_geo_dims_mom6():
+    """
+    MOM6 structured-grid normalization
+    """
+
+    lat = np.random.rand(320, 360)
+    lon = np.random.rand(320, 360)
+
+    lat2, lon2 = normalize_geo_dims(
+        lat,
+        lon,
+        add_tile_dim=False,
+    )
+
+    assert lat2.shape == (320, 360)
+    assert lon2.shape == (320, 360)
+
+
+# =================================================================== CHJ ===
+
+def test_normalize_geo_dims_mismatch():
+    """
+    Shape mismatch should fail
+    """
+
+    lat = np.random.rand(320, 360)
+    lon = np.random.rand(300, 360)
+
+    with pytest.raises(ValueError):
+        normalize_geo_dims(
+            lat,
+            lon,
+            add_tile_dim=False,
+        )
 
 
 # =================================================================== CHJ ===

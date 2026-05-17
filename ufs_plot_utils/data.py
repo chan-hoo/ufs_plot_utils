@@ -32,41 +32,78 @@ class DataReader:
         # -------------------------
         self.xr_ds = None
 
+        self.current_file = None
+        self.current_tile_files = None
+        self.xr_tile_ds = None
+
     # =============================================================== CHJ ===
 
-    def _open_dataset(self):
+    def _open_dataset(self, files=None):
         """
         Open dataset (lazy loading) with group support
         """
 
-        if self.xr_ds is None:
-            file_path = os.path.join(self.path, self.filename)
+        # -------------------------
+        # Resolve actual file path
+        # -------------------------
+        if files is not None:
+            file_path = files[0]
+        else:
+            file_path = os.path.join(
+                self.path,
+                self.filename
+            )
+
+        # -------------------------
+        # Reopen if file changed
+        # -------------------------
+        if (
+                self.xr_ds is None
+                or self.current_file != file_path
+        ):
+            # close previous dataset
+            if self.xr_ds is not None:
+                try:
+                    self.xr_ds.close()
+                except Exception:
+                    pass
 
             logger.info(f'''Opening data: {file_path}''')
 
             group = getattr(self.data, "group", None)
-
             try:
                 if group:
+
                     logger.info(f'''Opening group: {group}''')
+
                     self.xr_ds = xr.open_dataset(
                         file_path,
                         engine="netcdf4",
-                        group=group
+                        group=group,
+                        decode_timedelta=True,
                     )
+
                 else:
+
                     self.xr_ds = xr.open_dataset(
                         file_path,
-                        engine="netcdf4"
+                        engine="netcdf4",
+                        decode_timedelta=True,
                     )
 
             except Exception as e:
+
                 raise RuntimeError(
-                    f'''Failed to open dataset (group={group}): {e}'''
+                    f'''Failed to open dataset '''
+                    f'''(group={group}): {e}'''
                 )
 
-            # DEBUG (VERY IMPORTANT)
-            logger.info(f'''Dataset var: {list(self.xr_ds.variables)}''')
+            self.current_file = file_path
+
+            logger.info(
+                f'''Dataset var: '''
+                f'''{list(self.xr_ds.variables)}'''
+            )
 
     # =============================================================== CHJ ===
 
@@ -155,12 +192,12 @@ class DataReader:
 
     # =============================================================== CHJ ===
 
-    def _get_data_file(self, varname):
+    def _get_data_file(self, varname, files=None):
         """
         Read single NetCDF file and return DataArray.
         """
 
-        self._open_dataset()
+        self._open_dataset(files=files)
 
         logger.info(f'''Reading variable: {varname}''')
 
@@ -184,9 +221,9 @@ class DataReader:
                     f'''{varname} expected (tile,y,x), giot {da.dims}'''
                 )
         else:
-            if da.ndim != 2:
+            if da.ndim != 2 and da.ndim != 3:
                 raise ValueError(
-                    f'''{varname} expected 2D, got {da.dims}'''
+                    f'''{varname} expected 2D/3D, got {da.dims}'''
                 )
 
         logger.info(f'''{varname} final shape = {da.shape}''')
@@ -204,17 +241,17 @@ class DataReader:
         Read 6-tile NetCDF and return DataArray (tile, y, x).
         """
 
-        # -------------------------
+        # ---------------------------------
         # FORECAST: files already resolved
-        # -------------------------
+        # ---------------------------------
         if files is not None:
             if len(files) != 6:
                 raise ValueError(f'''Expected 6 tiles, found {len(files)}''')
             logger.debug(f'''Tile files: {files}''')
 
-        # -------------------------
+        # ---------------------------------
         # INCREMENT / ANALYSIS: use prefix
-        # -------------------------
+        # ---------------------------------
         else:
             prefix = extract_tile_prefix(self.filename)
             pattern = os.path.join(self.path, f'''{prefix}.tile*.nc''')
@@ -225,46 +262,65 @@ class DataReader:
                 raise ValueError(f'''Expected 6 tiles, found {len(files)}''')
             logger.debug(f'''Files found: {files}''')
 
-        # -------------------------
-        # COMMON PROCESSING
-        # -------------------------
-        logger.info(f'''Opening 6 tiles for variable: {varname}''')
-        datasets = []
-        try:
-            for f in files:
-                datasets.append(xr.open_dataset(f))
-
-            ds = xr.concat(datasets, dim="tile")
-
-            if varname not in ds:
-                raise ValueError(f'''{varname} not found in tiled dataset''')
-
-            da = ds[varname]
-
-            logger.debug(f'''{varname} dims = {da.dims}''')
-            logger.debug(f'''{varname} shape = {da.shape}''')
-
-            da = self._slice_data(da, self.z_index, self.time_index)
-
-            if da.ndim != 3:
-                raise ValueError(
-                    f'''{varname} expected (tile, y, x), got {da.dims}'''
-                )
-
-            vals = da.values
-            logger.info(f'''{varname} final shape = {da.shape}''')
-            logger.info(
-                f'''{varname} min={np.nanmin(vals)}, max={np.nanmax(vals)}'''
-            )
-
-            return da
-
-        finally:
-            for d in datasets:
+        # ---------------------------------------
+        # Reopen tiled datasets if files changed
+        # ---------------------------------------
+        if (
+                self.xr_tile_ds is None
+                or self.current_tile_files != tuple(files)
+        ):
+            # close old datasets
+            if self.xr_tile_ds is not None:
                 try:
-                    d.close()
+                    self.xr_tile_ds.close()
                 except Exception:
                     pass
+
+            logger.info(f'''Opening {len(files)} tile files''')
+            datasets = []
+            for f in files:
+                datasets.append(
+                    xr.open_dataset(
+                        f,
+                        engine="netcdf4",
+                        decode_timedelta=True,
+                    )
+                )
+
+            self.xr_tile_ds = xr.concat(
+                datasets,
+                dim="tile"
+            )
+
+            self.current_tile_files = tuple(files)
+
+        # ---------------------------------------
+        # COMMON DATA ACCESS
+        # ---------------------------------------
+        ds = self.xr_tile_ds
+
+        if varname not in ds:
+            raise ValueError(f'''{varname} not found in tiled dataset''')
+
+        da = ds[varname]
+
+        logger.debug(f'''{varname} dims = {da.dims}''')
+        logger.debug(f'''{varname} shape = {da.shape}''')
+
+        da = self._slice_data(da, self.z_index, self.time_index)
+
+        if da.ndim != 3:
+            raise ValueError(
+                f'''{varname} expected (tile, y, x), got {da.dims}'''
+            )
+
+        vals = da.values
+        logger.info(f'''{varname} final shape = {da.shape}''')
+        logger.info(
+            f'''{varname} min={np.nanmin(vals)}, max={np.nanmax(vals)}'''
+        )
+
+        return da
 
     # =============================================================== CHJ ===
 
@@ -305,7 +361,8 @@ class DataReader:
 
     # =============================================================== CHJ ===
 
-    def _slice_data(self, da, z_index=None, time_index=0):
+    @staticmethod
+    def _slice_data(da, z_index=None, time_index=0):
         """
         Apply time + vertical slicing (data-layer only).
         """
@@ -380,48 +437,55 @@ class DataReader:
 
     def resolve_filenames_for_fhr(self, fhr):
         """
-        Return list of matching files for a given forecast hour.
+        Resolve forecast filenames.
+
+        Supports:
+          - FV3 tiled forecasts
+          - MOM6/CICE/WW3 single-file forecasts
         """
 
-        # -------------------------
-        # Replace wildcard with fhr
-        # -------------------------
         pattern = self.filename.replace("*", fhr)
 
-        # -------------------------
-        # Detect tile pattern
-        # -------------------------
+        # ==========================================================
+        # FV3 tiled forecasts
+        # ==========================================================
         if "tile1" in pattern:
+
             files = [
                 os.path.join(
                     self.path,
-                    pattern.replace("tile1", f'''tile{i}''')
+                    pattern.replace("tile1", f"tile{i}")
                 )
                 for i in range(1, 7)
             ]
 
-        elif "tile" in pattern:
-            # handle generic "tile" case
+        elif re.search(r"tile\d+", pattern):
+
             files = [
                 os.path.join(
                     self.path,
-                    re.sub(r'''tile\d+''', f'''tile{i}''', pattern)
+                    re.sub(r"tile\d+", f"tile{i}", pattern)
                 )
                 for i in range(1, 7)
             ]
 
+        # ==========================================================
+        # Single-file forecasts (MOM6, WW3, CICE, etc.)
+        # ==========================================================
         else:
-            raise ValueError(
-                f'''Cannot resolve tile pattern from: {pattern}'''
-            )
+
+            files = [
+                os.path.join(self.path, pattern)
+            ]
 
         # -------------------------
-        # Validate existence (important)
+        # Validate existence
         # -------------------------
         missing = [f for f in files if not os.path.exists(f)]
+
         if missing:
             raise FileNotFoundError(
-                f'''Missing tile files for f{fhr}: {missing}'''
+                f'''Missing forecast files for f{fhr}: {missing}'''
             )
 
         return files
@@ -485,3 +549,9 @@ class DataReader:
                 self.xr_ds.close()
             finally:
                 self.xr_ds = None
+
+        if self.xr_tile_ds is not None:
+            try:
+                self.xr_tile_ds.close()
+            finally:
+                self.xr_tile_ds = None

@@ -5,6 +5,7 @@ input:
 
   datasets:
     - name: atms
+      data_model: ioda         # fv3 | mom6 | cice | ww3 | jedi | ioda | etc.
       data_kind: observation   # increment | analysis | forecast | restart | observation | etc.
       data:
         path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_obs/fv3/20240224 
@@ -26,6 +27,7 @@ input:
       title: "ATMS_N20"
 
     - name: ghcn
+      data_model: ioda         # fv3 | mom6 | cice | ww3 | jedi | ioda | etc.
       data_kind: observation   # increment | analysis | forecast | restart | observation | etc.
       data:
         path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_obs/ghcn
@@ -47,7 +49,7 @@ input:
       title: "GHCN snow"
 
 output:
-  path: ./
+  path: ./plot
   prefix: obs
 
 plot:
@@ -62,10 +64,10 @@ plot:
     extend: both   # neither | both | min | max
     size: "3.5%"
     pad: 0.08
-    label_fontsize: 8
+    label_fontsize: 6
     tick_fontsize: 7
   title:
-    fontsize: 9
+    fontsize: 8
   scatter:
     marker_size: 0.5
   background:

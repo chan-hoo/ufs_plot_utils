@@ -1,20 +1,54 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
+
+# ===================================================================
 
 [project]
 name = "ufs_plot_utils"
 version = "0.1.0"
+description = "Visualization tools for UFS application outputs"
+readme = "README.md"
+requires-python = ">=3.9"
+
+authors = [
+    { name = "Chan-Hoo Jeon", email = "chan-hoo.jeon@noaa.gov" }
+]
+
+license = {text = "Apache-2.0"}
+
 dependencies = [
     "numpy",
     "xarray",
     "matplotlib",
     "cartopy",
+    "netCDF4",
     "pyyaml",
-    "sphinx",
-    "pytest",
 ]
 
-[tool.setuptools]
-packages = ["ufs_plot_utils"]
+# ===================================================================
 
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "sphinx",
+    "sphinx-rtd-theme",
+]
+
+# ===================================================================
+
+[project.urls]
+Repository = "https://github.com/chan-hoo/ufs_plot_utils"
+
+# ===================================================================
+
+[project.scripts]
+ufs-plot = "ufs_plot_utils.cli_main:main"
+
+# ===================================================================
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]

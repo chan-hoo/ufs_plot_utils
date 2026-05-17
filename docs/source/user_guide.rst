@@ -1,61 +1,70 @@
 User Guide
 ==========
 
-This guide explains how to use the UFS-DA plotting pipeline to generate
-visualizations from model, analysis, forecast, restart, and observation datasets.
+This guide explains how to use ``ufs_plot_utils`` to generate plots from:
+
+- UFS/FV3 model outputs
+- UFS-DA increment files
+- Forecast datasets
+- Restart files
+- MOM6 ocean grids
+- CICE sea-ice grids
+- IODA observation files
 
 Overview
 --------
 
-The pipeline is designed with a clear separation of responsibilities:
+The package is organized into modular layers:
 
-- **Configuration**: YAML-driven setup
-- **Data I/O**: NetCDF/xarray-based readers
-- **Processing**: Task-based pipeline execution
-- **Visualization**: Cartopy + Matplotlib
-- **Output**: Automated figure naming and saving
+- ``Config``: YAML configuration loader
+- ``Dataset``: Immutable dataset configuration object
+- ``DataReader``: NetCDF/xarray I/O layer
+- ``GeoReader``: Latitude/longitude handling
+- ``PlotStyleResolver``: Colormap and range handling
+- ``Plotter``: Cartopy/Matplotlib rendering
+- ``Pipeline``: Workflow orchestration
+- ``TaskBuilder``: Dynamic task generation
 
-Main components:
+Installation
+------------
 
-- ``Pipeline``: Orchestrates the workflow
-- ``Dataset``: Defines input data and metadata
-- ``DataReader``: Reads variables from files
-- ``GeoReader``: Provides latitude/longitude grids
-- ``Plotter``: Generates figures
-- ``OutputManager``: Saves figures
-- ``PlotStyleResolver``: Controls colormap, range, and labels
+Install into your Python environment:
 
----
+.. code-block:: bash
+
+   pip install -e .
+
+Recommended dependencies:
+
+.. code-block:: bash
+
+   conda install cartopy xarray netcdf4 matplotlib pyyaml
 
 Quick Start
 -----------
 
-1. Prepare a YAML configuration file:
+1. Create a YAML configuration file.
+
+2. Run the plotting pipeline:
 
 .. code-block:: bash
 
-   cd configs
-   cp config_[case].yaml config.yaml
+   python -m ufs_plot_utils.cli_main \
+       -i configs/config.yaml \
+       -l INFO
 
-2. Run the pipeline:
-
-.. code-block:: bash
-
-   python run_plot_task.py
-   (or python run_plot_task.py -i config_[case].yaml -l INFO)
-
-3. Output figures will be saved to:
+3. Output figures will be written to:
 
 .. code-block:: text
 
-   ./ (or configured output path)
+   ./
 
----
+or the configured ``output.path``.
 
-YAML Configuration
-------------------
+Configuration Structure
+-----------------------
 
-The entire pipeline is controlled via a YAML file.
+The workflow is fully YAML-driven.
 
 Top-level structure:
 
@@ -67,27 +76,27 @@ Top-level structure:
        PDY: 20240224
 
      datasets:
-       - name: dataset_name
+       - name: example
          ...
 
    output:
      path: ./
-     prefix: atmdata
+     prefix: example
 
    plot:
-     ...
-
----
+     projection:
+       name: Robinson
 
 Datasets
 --------
 
 Each dataset defines:
 
-- Data source
-- Geometry source
-- Variables to plot
-- Plot styling
+- input files
+- geometry source
+- variables to plot
+- styling information
+- metadata
 
 Example:
 
@@ -98,23 +107,19 @@ Example:
 
      geo:
        path: /path/to/geo
-       filename: geo_file
+       filename: C96.mx100_oro_data
        file_type: orog
 
      data:
        path: /path/to/data
-       filename: file_pattern
+       filename: ufsda.t00z.atminc.cubed_sphere_grid
        file_type: tile
        var_list:
          - T_inc
          - u_inc
-         - v_inc
-       z_index: 76
 
----
-
-Data Types
-----------
+Supported Data Types
+--------------------
 
 Supported ``data_kind`` values:
 
@@ -123,26 +128,136 @@ Supported ``data_kind`` values:
 - ``increment``
 - ``restart``
 - ``observation``
+- ``single``
 
-Each type affects how files are read and processed.
+Supported Data Models
+---------------------
 
----
+Supported ``data_model`` values:
 
-File Types
-----------
+- ``fv3`` (default)
+- ``mom6``
+- ``cice``
 
-Supported ``file_type``:
+Forecast Datasets
+-----------------
 
-- ``file``: Single NetCDF file
-- ``tile``: Cubed-sphere tiled files (6 tiles)
-- ``orog``: Orography tiles (for geo)
+Forecast files are automatically expanded using forecast hours.
 
----
+Example:
 
-Colormap and Range
+.. code-block:: yaml
+
+   filename: ufs.t00z.atmf*.tile1.nc
+
+Detected forecast hours are used to generate independent plotting tasks.
+
+Restart Datasets
+----------------
+
+Restart datasets support automatic restart-tag detection.
+
+Example:
+
+.. code-block:: yaml
+
+   filename: '*.sfc_data.tile1.nc'
+
+Observation Datasets
+--------------------
+
+IODA observation files are supported.
+
+Features include:
+
+- automatic lon/lat detection
+- channel-aware plotting
+- scatter visualization
+- grouped NetCDF support
+
+Example:
+
+.. code-block:: yaml
+
+   data_kind: observation
+
+   data:
+     group: ObsValue
+     channels: [2, 7, 15]
+
+Difference Plots
+----------------
+
+Difference tasks compute:
+
+.. code-block:: text
+
+   target - base
+
+Example:
+
+.. code-block:: yaml
+
+   differences:
+     - name: jedi-fv3
+       base: fv3
+       target: jedi
+
+Features:
+
+- symmetric ranges
+- independent colormaps
+- variable mapping support
+
+Plot Configuration
 ------------------
 
-You can define per-variable styling:
+Projection
+^^^^^^^^^^
+
+Supported projections:
+
+- ``Robinson``
+- ``PlateCarree``
+- ``Mollweide``
+- ``NorthPolarStereo``
+- ``SouthPolarStereo``
+- ``Stereographic``
+
+Example:
+
+.. code-block:: yaml
+
+   projection:
+     name: Robinson
+     central_longitude: -77.0
+
+Background Features
+^^^^^^^^^^^^^^^^^^^
+
+Supported background layers:
+
+- ``coastline``
+- ``borders``
+- ``states``
+- ``lakes``
+- ``land``
+
+Example:
+
+.. code-block:: yaml
+
+   background:
+     features:
+       - coastline
+       - borders
+
+Colormap and Range
+^^^^^^^^^^^^^^^^^^
+
+Per-variable styling is supported.
+
+Example:
 
 .. code-block:: yaml
 
@@ -151,101 +266,19 @@ You can define per-variable styling:
      T_inc: RdBu_r
 
    range:
-     default:
-       vmin: null
-       vmax: null
      T_inc:
        vmin: -2.5
        vmax: 2.5
 
-Behavior:
+Automatic behavior:
 
-- If not specified → automatic percentile-based scaling
-- Difference plots → symmetric range enforced
+- Increment and difference plots use symmetric scaling.
+- Non-increment plots use percentile-based scaling.
 
----
+Output Naming
+--------------
 
-Forecast Data
--------------
-
-Forecast datasets must include a filename pattern:
-
-.. code-block:: yaml
-
-   filename: ufs.t00z.atmf*.tile1.nc
-
-The pipeline automatically detects forecast hours (``fhr``).
-
----
-
-Restart Data
-------------
-
-Restart datasets use time tags:
-
-.. code-block:: yaml
-
-   filename: *.tile1.nc
-
-Tags are automatically detected (e.g., ``20240224.000000``).
-
----
-
-Observation Data
-----------------
-
-Supports IODA-style observation files.
-
-Features:
-
-- Automatic lat/lon detection
-- Channel-aware plotting
-- Scatter visualization
-
-Example:
-
-.. code-block:: yaml
-
-   data_kind: observation
-   channels: [1, 2, 3]
-
----
-
-Plot Configuration
-------------------
-
-Control figure appearance:
-
-.. code-block:: yaml
-
-   plot:
-     projection:
-       name: Robinson
-       central_longitude: -77.0
-
-     figure:
-       figsize: [5, 2.5]
-       dpi: 300
-
-     colorbar:
-       extend: both
-
-     background:
-       features:
-         - coastline
-
-Supported projections:
-
-- ``Robinson``
-- ``PlateCarree``
-- ``Mollweide``
-
----
-
-Output
-------
-
-Output files are automatically named:
+Generated figures follow this convention:
 
 .. code-block:: text
 
@@ -257,55 +290,18 @@ Example:
 
    atmdata_fv3_T_inc_z076_20240224_t00z.png
 
----
-
-Difference Plots
-----------------
-
-You can define differences between datasets:
-
-.. code-block:: yaml
-
-   input:
-     differences:
-       - name: fv3_minus_jedi
-         base: fv3
-         target: jedi
-         var_pairs:
-           - base: T_inc
-             target: tmp
-
-Features:
-
-- Computes: ``target - base``
-- Uses symmetric color range
-- Supports custom colormap and range
-
----
-
-Execution Flow
---------------
-
-1. Load configuration
-2. Initialize datasets
-3. Build tasks
-4. Read data
-5. Resolve styles
-6. Generate plots
-7. Save outputs
-
----
-
 Logging
 -------
 
-Set logging level via CLI:
+Set the logging level from the command line:
 
 .. code-block:: bash
 
-   python run_plot_task.py -i config.yaml -l DEBUG
+   python -m ufs_plot_utils.cli_main \
+       -i config.yaml \
+       -l DEBUG
 
-Available levels:
+Supported levels:
 
 - DEBUG
 - INFO
@@ -313,29 +309,13 @@ Available levels:
 - ERROR
 - CRITICAL
 
----
-
-Advanced Usage
---------------
-
-You can extend the pipeline by:
-
-- Adding new ``data_kind`` handlers
-- Customizing ``PlotStyleResolver``
-- Creating new task types
-- Supporting new projections
-
----
-
 Summary
 -------
 
-This pipeline provides:
+``ufs_plot_utils`` provides:
 
-- Modular architecture
-- YAML-driven configuration
-- Support for multiple data formats
-- Automated plotting workflow
-- Flexible styling system
-
-For more details, refer to the API documentation.
+- modular plotting architecture
+- YAML-driven workflows
+- support for multiple UFS-related formats
+- automated figure generation
+- configurable styling and projections

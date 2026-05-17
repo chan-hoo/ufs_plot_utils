@@ -50,6 +50,25 @@ def zero_da():
     )
 
 
+@pytest.fixture(autouse=True)
+def disable_plotting(monkeypatch):
+
+    monkeypatch.setattr(
+        "ufs_plot_utils.plot.Plotter.plot_data_tiles",
+        lambda *a, **k: None
+    )
+
+    monkeypatch.setattr(
+        "ufs_plot_utils.plot.Plotter.plot_data_grid",
+        lambda *a, **k: None
+    )
+
+    monkeypatch.setattr(
+        "ufs_plot_utils.plot.Plotter.plot_data_scatter",
+        lambda *a, **k: None
+    )
+
+
 # Automatically applies to all tests
 @pytest.fixture(autouse=True)
 def disable_plot_saving(monkeypatch):

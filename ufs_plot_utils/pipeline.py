@@ -2,7 +2,6 @@ import logging
 
 from .data import DataReader
 from .dataset import Dataset
-from .geo import GeoReader
 from .naming import NameBuilder
 from .plot import Plotter
 from .output import OutputManager
@@ -34,7 +33,7 @@ class Pipeline:
 
     # =============================================================== CHJ ===
 
-    def run_plot_tiles(self):
+    def run_plot_data(self):
         """
         Pipeline for multiple datasets
         """
@@ -62,8 +61,6 @@ class Pipeline:
         for diff_cfg in diff_cfgs:
             base_ds = ds_map[diff_cfg["base"]]
             target_ds = ds_map[diff_cfg["target"]]
-
-            geo = GeoReader(base_ds).get_geo()
 
             reader_base = DataReader(base_ds)
             reader_target = DataReader(target_ds)
@@ -100,7 +97,6 @@ class Pipeline:
                     var_base,
                     var_target,
                     readers=(reader_base, reader_target),
-                    geo=geo,
                     plotter=self.plotter,
                     output=self.output,
                     namer=self.names,

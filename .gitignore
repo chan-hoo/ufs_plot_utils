@@ -2,6 +2,9 @@
 **/*.swp
 /*.png
 configs/*.png
+configs/plot/
 env/plot_pyenv/
 docs/build/
+.idea/
+.DS_Store
 *.egg-info/

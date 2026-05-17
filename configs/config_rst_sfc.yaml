@@ -5,6 +5,7 @@ input:
 
   datasets:
     - name: sfc_data
+      data_model: fv3          # fv3 | mom6 | cice | ww3 | jedi | ioda | etc.
       data_kind: restart   # increment | analysis | forecast | restart | observation etc.
       geo:
         path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_fix/FV3/Tiled/C96
@@ -31,7 +32,7 @@ input:
       title: "restart sfc_data"
 
 output:
-  path: ./
+  path: ./plot
   prefix: rst
 
 plot:
@@ -46,10 +47,10 @@ plot:
     extend: both   # neither | both | min | max
     size: "3.5%"
     pad: 0.08
-    label_fontsize: 8
-    tick_fontsize: 7
+    label_fontsize: 7
+    tick_fontsize: 6
   title:
-    fontsize: 9
+    fontsize: 8
   background:
     features:
       - coastline

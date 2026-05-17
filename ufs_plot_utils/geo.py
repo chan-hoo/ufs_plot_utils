@@ -2,7 +2,12 @@ import os
 import logging
 import numpy as np
 import xarray as xr
-from .utils import extract_tile_prefix, normalize_geo_dims
+from .utils import (
+    extract_tile_prefix,
+    normalize_geo_dims,
+    resolve_mom6_geo_vars,
+    resolve_cice_geo_vars,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +21,7 @@ class GeoReader:
 
     # =============================================================== CHJ ===
 
-    def get_geo(self):
+    def get_geo(self, da=None):
         """
         Choose geo data reading method based on config
         """
@@ -25,8 +30,15 @@ class GeoReader:
         if self.dataset.data_kind == "observation":
             return self._get_geo_observation()
 
-        geo_type = self.dataset.geo_file_type.lower()
+        # MOM6
+        if self.dataset.data_model == "mom6":
+            return self._get_geo_mom6(da)
 
+        # CICE
+        if self.dataset.data_model == "cice":
+            return self._get_geo_cice(da)
+
+        geo_type = self.dataset.geo_file_type.lower()
         if geo_type == "file":
             return self._get_geo_file()
         elif geo_type == "orog":
@@ -50,7 +62,10 @@ class GeoReader:
 
         logger.info(f'''Opening geo file: {fpath}''')
 
-        with xr.open_dataset(fpath) as ds_geo:
+        with xr.open_dataset(
+            fpath,
+            decode_timedelta=True,
+        ) as ds_geo:
             # flatten groups
             ds_flat = xr.Dataset({k: v for k, v in ds_geo.data_vars.items()})
             lat_candidates = ["lat", "latitude"]
@@ -107,7 +122,10 @@ class GeoReader:
 
             logger.info(f'''Reading orography tile {itile}: {fpath}''')
 
-            with xr.open_dataset(fpath) as ds:
+            with xr.open_dataset(
+                fpath,
+                decode_timedelta=True,
+            ) as ds:
                 lat_candidates = ["geolat", "y", "lat", "latitude"]
                 lon_candidates = ["geolon", "x", "lon", "longitude"]
                 lat_name = next(
@@ -199,7 +217,10 @@ class GeoReader:
         for f in selected_files:
             logger.info(f'''Reading geo tile: {f}''')
 
-            with xr.open_dataset(f) as ds:
+            with xr.open_dataset(
+                f,
+                decode_timedelta=True,
+            ) as ds:
                 # -------------------------
                 # Candidate variable names
                 # -------------------------
@@ -245,6 +266,64 @@ class GeoReader:
 
     # =============================================================== CHJ ===
 
+    def _get_geo_mom6(self, da):
+
+        fpath = os.path.join(
+            self.dataset.geo_path,
+            self.dataset.geo_filename
+        )
+
+        lon_name, lat_name = resolve_mom6_geo_vars(da)
+
+        logger.info(
+            f'''MOM6 grid mapping:: '''
+            f'''{da.dims} -> {lon_name}/{lat_name}'''
+        )
+
+        with xr.open_dataset(
+            fpath,
+            decode_timedelta=True,
+        ) as ds:
+            lon = ds[lon_name].values
+            lat = ds[lat_name].values
+
+        return normalize_geo_dims(
+            lat,
+            lon,
+            add_tile_dim=False,
+        )
+
+    # =============================================================== CHJ ===
+
+    def _get_geo_cice(self, da):
+
+        fpath = os.path.join(
+            self.dataset.geo_path,
+            self.dataset.geo_filename
+        )
+
+        lon_name, lat_name = resolve_cice_geo_vars(da)
+
+        logger.info(
+            f'''CICE grid mapping:: '''
+            f'''{da.name} -> {lon_name}/{lat_name}'''
+        )
+
+        with xr.open_dataset(
+                fpath,
+                decode_timedelta=True,
+        ) as ds:
+            lon = ds[lon_name].values
+            lat = ds[lat_name].values
+
+        return normalize_geo_dims(
+            lat,
+            lon,
+            add_tile_dim=False,
+        )
+
+    # =============================================================== CHJ ===
+
     def _get_geo_observation(self):
         """
         Read lon/lat from IODA-style observation file.
@@ -265,7 +344,11 @@ class GeoReader:
         # 1. Try MetaData group (IODA standard)
         # -------------------------
         try:
-            with xr.open_dataset(fpath, group="MetaData") as ds:
+            with xr.open_dataset(
+                fpath,
+                group="MetaData",
+                decode_timedelta=True,
+            ) as ds:
                 logger.info("Trying group: MetaData")
 
                 lon = ds["longitude"].values
@@ -278,7 +361,10 @@ class GeoReader:
             # -------------------------
             # 2. Fallback: root
             # -------------------------
-            with xr.open_dataset(fpath) as ds:
+            with xr.open_dataset(
+                fpath,
+                decode_timedelta=True,
+            ) as ds:
                 logger.info("Falling back to ROOT group")
 
                 lon_candidates = ["lon", "longitude"]

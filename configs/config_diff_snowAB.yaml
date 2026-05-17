@@ -5,7 +5,8 @@ input:
 
   datasets:
     - name: before
-      data_kind: analysis   # increment | analysis | forecast | restart | observation | etc.
+      data_model: fv3          # fv3 | mom6 | cice | ww3 | jedi | ioda | etc.
+      data_kind: analysis      # increment | analysis | forecast | restart | observation | etc.
       geo:
         path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_fix/FV3/Tiled/C96
         filename: C96.mx100_oro_data
@@ -36,6 +37,7 @@ input:
       title: "snow-DA: before analysis"
 
     - name: after
+      data_model: fv3          # fv3 | mom6 | cice | ww3 | jedi | ioda | etc.
       data_kind: analysis   # increment | analysis | forecast | restart | observation | etc.
       geo:
         path: /work2/noaa/epic/UFS-DA-Workflow_v1.0/inputs/DATA_fix/FV3/Tiled/C96
@@ -92,7 +94,7 @@ input:
       title: "snow-DA: after-before"
 
 output:
-  path: ./
+  path: ./plot
   prefix: snowAnal
 
 plot:
@@ -107,10 +109,10 @@ plot:
     extend: both   # neither | both | min | max
     size: "3.5%"
     pad: 0.08
-    label_fontsize: 8
-    tick_fontsize: 7
+    label_fontsize: 7
+    tick_fontsize: 6
   title:
-    fontsize: 9
+    fontsize: 8
   background:
     features:
       - coastline

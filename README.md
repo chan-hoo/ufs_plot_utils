@@ -1,38 +1,61 @@
 # ufs_plot_utils
-Plotting utilities for UFS applications
+Plotting tools for UFS applications
 
-## Quick-start-guide
+---
 
-1. Set up the conda/python environment:
+## Developer Usage (without installation)
+
+### 1. Clone this repository:
+
+**SSH:**
+```bash
+git clone git@gitlab.com/chan-hoo/ufs_plot_utils.git
 ```
+
+**HTTPS:**
+```bash
+git clone https://gitlab.com/chan-hoo/ufs_plot_utils.git
+```
+
+### 2. Set up the conda/python environment:
+```bash
 cd env
 
 vim build_conda_env.sh
-(or)
+# or
 vim build_venv.sh
-(follow the steps)
 ```
+Follow the steps inside the script.
 
 - If you have already set it up, activate it:
-```
+```bash
 module load miniconda3
+
 conda activate plot_pyenv
-(or)
+# or
 source env/plot_pyenv/bin/activate
 ```
 
-2. Run a sample script:
-```
+### 3. Run a sample script:
+```bash
 cd ../configs
 ./run_plot_task.py -i config_[case].yaml -l INFO
 ```
 
-3. Deactivate the conda/python environment:
-```
+### 4. Deactivate the conda/python environment:
+```bash
 conda deactivate
-(or)
+# or
 deactivate
 ```
 
+## Installed Usage
+
+```bash
+pip install -e .
+
+ufs-plot -i configs/config.yaml
+```
+
 ## Read-the-Docs User's Guide
-User's guide: [click this link](https://ufs-plot-utils.readthedocs.io/en/latest/)
+User's guide: [click this link](https://ufs-plot-tools.readthedocs.io/en/latest/)

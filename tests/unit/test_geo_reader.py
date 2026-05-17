@@ -5,11 +5,19 @@ from ufs_plot_utils.geo import GeoReader
 
 
 class DummyGeoConfig:
-    def __init__(self, geo_file_type="file", geo_path=".",
-                 geo_filename="dummy.nc"):
+    def __init__(
+        self,
+        geo_file_type="file",
+        geo_path=".",
+        geo_filename="dummy.nc",
+        data_model="fv3",
+        data_kind="analysis",
+    ):
         self.geo_file_type = geo_file_type
         self.geo_path = geo_path
         self.geo_filename = geo_filename
+        self.data_model = data_model
+        self.data_kind = data_kind
 
 
 # =================================================================== CHJ ===
@@ -73,17 +81,46 @@ def test_geo_reader_path_join(monkeypatch):
         mock_open_dataset
     )
 
-    class DummyGeoConfig:
-        def __init__(self):
-            self.geo_file_type = "file"
-            self.geo_path = "/data"
-            self.geo_filename = "geo.nc"
-            self.data_kind = "analysis"
-
-    config = DummyGeoConfig()
+    config = DummyGeoConfig(
+        geo_path="/data",
+        geo_filename="geo.nc",
+    )
 
     g = GeoReader(config)
     g.get_geo()
 
     assert called_paths, "open_dataset was not called"
     assert "/data/geo.nc" in called_paths[0]
+
+
+# =================================================================== CHJ ===
+
+def test_mom6_geo_resolution(monkeypatch):
+    """
+    MOM6 stagger-aware geo selection
+    """
+
+    ds = xr.Dataset({
+        "geolon": (("yh", "xh"), np.random.rand(10, 20)),
+        "geolat": (("yh", "xh"), np.random.rand(10, 20)),
+    })
+
+    def mock_open_dataset(*args, **kwargs):
+        return ds
+
+    monkeypatch.setattr(
+        "ufs_plot_utils.geo.xr.open_dataset",
+        mock_open_dataset
+    )
+
+    class DummyDA:
+        dims = ("yh", "xh")
+
+    cfg = DummyGeoConfig(data_model="mom6")
+
+    g = GeoReader(cfg)
+
+    lat, lon = g._get_geo_mom6(DummyDA())
+
+    assert lat.shape == (10, 20)
+    assert lon.shape == (10, 20)

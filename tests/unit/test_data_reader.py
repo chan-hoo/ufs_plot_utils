@@ -8,10 +8,21 @@ class DummyDataset:
     """
     Mock dataset object for testing DataReader
     """
-    def __init__(self, path=".", filename="dummy.nc", file_type="file"):
+    def __init__(
+        self,
+        path=".",
+        filename="dummy.nc",
+        file_type="file",
+        data_kind="analysis",
+        data_model="fv3",
+    ):
         self.path = path
         self.filename = filename
         self.file_type = file_type
+
+        self.data_kind = data_kind
+        self.data_model = data_model
+
         self.z_index = None
         self.time_index = 0
 

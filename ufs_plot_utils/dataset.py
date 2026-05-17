@@ -5,6 +5,7 @@ class Dataset:
         # -------------------------
         self.name = cfg.get("name")
         self.data_kind = cfg.get("data_kind", "increment")
+        self.data_model = cfg.get("data_model", "fv3")
         self.title = cfg.get("title")
 
         # -------------------------
