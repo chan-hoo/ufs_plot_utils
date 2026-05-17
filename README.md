@@ -9,12 +9,12 @@ Plotting tools for UFS applications
 
 **SSH:**
 ```bash
-git clone git@gitlab.com/chan-hoo/ufs_plot_utils.git
+git clone git@github.com/chan-hoo/ufs_plot_utils.git
 ```
 
 **HTTPS:**
 ```bash
-git clone https://gitlab.com/chan-hoo/ufs_plot_utils.git
+git clone https://github.com/chan-hoo/ufs_plot_utils.git
 ```
 
 ### 2. Set up the conda/python environment:
@@ -58,4 +58,4 @@ ufs-plot -i configs/config.yaml
 ```
 
 ## Read-the-Docs User's Guide
-User's guide: [click this link](https://ufs-plot-tools.readthedocs.io/en/latest/)
+User's guide: [click this link](https://ufs-plot-utils.readthedocs.io/en/latest/)
