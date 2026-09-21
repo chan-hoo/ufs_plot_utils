@@ -28,17 +28,18 @@ The package is organized into modular layers:
 Installation
 ------------
 
-Install into your Python environment:
+Install Python environment:
 
 .. code-block:: bash
 
-   pip install -e .
+   cd ufs_plot_utils
+   ./setup_env.sh
 
-Recommended dependencies:
+If you have already set it up, activate it:
 
 .. code-block:: bash
 
-   conda install cartopy xarray netcdf4 matplotlib pyyaml
+   source .venv/bin/activate
 
 Quick Start
 -----------
@@ -49,9 +50,7 @@ Quick Start
 
 .. code-block:: bash
 
-   python -m ufs_plot_utils.cli_main \
-       -i configs/config.yaml \
-       -l INFO
+   ufs_plot -i configs/config.yaml -l INFO
 
 3. Output figures will be written to:
 

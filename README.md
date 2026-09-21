@@ -5,7 +5,7 @@ Plotting tools for UFS applications
 
 ## Developer Usage (without installation)
 
-### 1. Clone this repository:
+### 1. Clone repository:
 
 **SSH:**
 ```bash
@@ -17,7 +17,7 @@ git clone git@github.com/chan-hoo/ufs_plot_utils.git
 git clone https://github.com/chan-hoo/ufs_plot_utils.git
 ```
 
-### 2. Set up the conda/python environment:
+### 2. Set up python environment:
 ```bash
 cd ufs_plot_utils
 ./setup_env.sh
@@ -28,13 +28,13 @@ cd ufs_plot_utils
 source .venv/bin/activate
 ```
 
-### 3. Run a sample script:
+### 3. Run sample script:
 ```bash
 cd configs
 ./run_plot_task.py -i config_[case].yaml -l INFO
 ```
 
-### 4. Deactivate the python environment:
+### 4. Deactivate python environment:
 ```bash
 deactivate
 ```
