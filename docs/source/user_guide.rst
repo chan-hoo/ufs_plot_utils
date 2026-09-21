@@ -50,7 +50,7 @@ Quick Start
 
 .. code-block:: bash
 
-   ufs_plot -i configs/config.yaml -l INFO
+   ufs-plot -i configs/config.yaml -l INFO
 
 3. Output figures will be written to:
 
