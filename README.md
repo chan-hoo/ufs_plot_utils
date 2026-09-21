@@ -19,41 +19,29 @@ git clone https://github.com/chan-hoo/ufs_plot_utils.git
 
 ### 2. Set up the conda/python environment:
 ```bash
-cd env
-
-vim build_conda_env.sh
-# or
-vim build_venv.sh
+cd ufs_plot_utils
+./setup_env.sh
 ```
-Follow the steps inside the script.
 
 - If you have already set it up, activate it:
 ```bash
-module load miniconda3
-
-conda activate plot_pyenv
-# or
-source env/plot_pyenv/bin/activate
+source .venv/bin/activate
 ```
 
 ### 3. Run a sample script:
 ```bash
-cd ../configs
+cd configs
 ./run_plot_task.py -i config_[case].yaml -l INFO
 ```
 
-### 4. Deactivate the conda/python environment:
+### 4. Deactivate the python environment:
 ```bash
-conda deactivate
-# or
 deactivate
 ```
 
 ## Installed Usage
 
 ```bash
-pip install -e .
-
 ufs-plot -i configs/config.yaml
 ```
 

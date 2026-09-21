@@ -18,12 +18,14 @@ authors = [
 license = {text = "Apache-2.0"}
 
 dependencies = [
-    "numpy",
-    "xarray",
-    "matplotlib",
     "cartopy",
+    "matplotlib",
     "netCDF4",
-    "pyyaml",
+    "numpy",
+    "PyYAML",
+    "scipy",
+    "seaborn",
+    "xarray",
 ]
 
 # ===================================================================
@@ -33,6 +35,8 @@ dev = [
     "pytest",
     "sphinx",
     "sphinx-rtd-theme",
+    "myst-parser",
+    "sphinxcontrib-mermaid",
 ]
 
 # ===================================================================
@@ -52,3 +56,4 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
+
