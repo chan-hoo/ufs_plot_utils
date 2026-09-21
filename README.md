@@ -3,7 +3,7 @@ Plotting tools for UFS applications
 
 ---
 
-## Developer Usage (without installation)
+## Quick Start Guide
 
 ### 1. Clone repository:
 
@@ -29,20 +29,20 @@ source .venv/bin/activate
 ```
 
 ### 3. Run sample script:
+- Run with script:
 ```bash
 cd configs
 ./run_plot_task.py -i config_[case].yaml -l INFO
 ```
 
+- Run with executable:
+```bash
+ufs-plot -i configs/config.yaml
+```
+
 ### 4. Deactivate python environment:
 ```bash
 deactivate
-```
-
-## Installed Usage
-
-```bash
-ufs-plot -i configs/config.yaml
 ```
 
 ## Read-the-Docs User's Guide
