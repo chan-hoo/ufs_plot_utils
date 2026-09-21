@@ -24,12 +24,11 @@ setup:
   stage: setup
   script:
     - python --version
-    - pip install --upgrade pip
     - python -m venv $VENV_PATH
     - source $VENV_PATH/bin/activate
-    - pip install -r env/plot_env_list.txt
-    - pip install -e .
-    - pip check
+    - python -m pip install --upgrade pip
+    - python -m pip install -e ".[dev]"
+    - python -m pip check
   artifacts:
     paths:
       - .venv
@@ -47,7 +46,6 @@ lint:
     - setup
   script:
     - source $VENV_PATH/bin/activate
-    - pip install flake8
     - flake8 configs docs tests ufs_plot_utils
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -64,7 +62,6 @@ test:
     - setup
   script:
     - source $VENV_PATH/bin/activate
-    - pip install pytest pytest-cov
     - pytest --cov=./ --cov-report=xml --cov-report=term
   artifacts:
     reports:

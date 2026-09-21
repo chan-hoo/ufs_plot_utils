@@ -33,6 +33,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-cov",
+    "flake8",
     "sphinx",
     "sphinx-rtd-theme",
     "myst-parser",
