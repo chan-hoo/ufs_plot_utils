@@ -4,13 +4,15 @@ channels:
 dependencies:
   - python=3.10
   - numpy
-  - xarray
   - netcdf4
   - cartopy
   - matplotlib
-  - pytest
   - PyYAML
+  - scipy
+  - seaborn
+  - xarray
   - pip
+  - pytest
   - sphinx
   - sphinx-rtd-theme
   - myst-parser

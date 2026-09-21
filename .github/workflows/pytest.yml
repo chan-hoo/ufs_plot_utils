@@ -16,21 +16,24 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+        uses: conda-incubator/setup-miniconda@v4
         with:
           environment-file: env/ci_environment.yml
           activate-environment: test
           use-mamba: true
-          auto-activate-base: false
+          auto-activate: false
+          conda-remove-defaults: true
 
       - name: Install package
+        shell: bash -el {0}
         run: pip install -e .
 
       - name: Run tests
-        run: PYTHONPATH=. conda run -n test pytest -x -ra
+        shell: bash -el {0}
+        run: pytest -x -ra
 
 
   mirror_to_gitlab:
@@ -41,7 +44,7 @@ jobs:
 
     steps:
       - name: Checkout repo (full history)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
