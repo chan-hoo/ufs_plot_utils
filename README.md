@@ -9,7 +9,7 @@ Plotting tools for UFS applications
 
 **SSH:**
 ```bash
-git clone git@github.com/chan-hoo/ufs_plot_utils.git
+git clone git@github.com:chan-hoo/ufs_plot_utils.git
 ```
 
 **HTTPS:**
